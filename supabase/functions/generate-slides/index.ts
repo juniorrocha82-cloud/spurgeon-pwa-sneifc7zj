@@ -46,7 +46,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
     })
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -90,6 +90,36 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
     responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
 
     const generatedContent = JSON.parse(responseText)
+
+    // Fetch images from Pexels if requested
+    if (hasImages === 'yes') {
+      const pexelsApiKey = Deno.env.get('PEXELS_API_KEY')
+      if (pexelsApiKey && generatedContent.slides) {
+        for (const slide of generatedContent.slides) {
+          if (slide.imageQuery) {
+            try {
+              const pexelsRes = await fetch(
+                `https://api.pexels.com/v1/search?query=${encodeURIComponent(slide.imageQuery)}&per_page=1&orientation=landscape`,
+                {
+                  headers: {
+                    Authorization: pexelsApiKey,
+                  },
+                },
+              )
+              if (pexelsRes.ok) {
+                const pexelsData = await pexelsRes.json()
+                if (pexelsData.photos && pexelsData.photos.length > 0) {
+                  slide.imageUrl =
+                    pexelsData.photos[0].src.large2x || pexelsData.photos[0].src.large
+                }
+              }
+            } catch (e) {
+              console.error('Error fetching from Pexels:', e)
+            }
+          }
+        }
+      }
+    }
 
     return new Response(JSON.stringify(generatedContent), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
