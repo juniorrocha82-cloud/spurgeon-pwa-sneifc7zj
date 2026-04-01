@@ -1,4 +1,4 @@
-DO $
+DO $$
 DECLARE
   new_user_id uuid;
 BEGIN
@@ -24,7 +24,7 @@ BEGIN
       '', '', '', '', '', NULL, '', '', ''
     );
   END IF;
-END $;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.sermons (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
