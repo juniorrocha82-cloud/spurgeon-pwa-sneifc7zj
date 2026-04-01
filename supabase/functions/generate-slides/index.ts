@@ -7,12 +7,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_SLIDES') || Deno.env.get('GEMINI_API_KEY')
+    const apiKey = Deno.env.get('GEMINI_API_KEY')
 
     if (!apiKey) {
       return new Response(
         JSON.stringify({
-          error: 'API Key do Gemini (Slides) não encontrada.',
+          error:
+            "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
@@ -31,7 +32,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
     {
       "title": "Título do slide (curto e impactante)",
       "content": "Tópicos ou texto para o slide (máximo 3 linhas para ficar legível durante a apresentação)",
-      "imageQuery": "Um prompt descritivo em inglês para geração de IA (ex: 'A dramatic silhouette of a cross on a hill at sunset', 'An open old bible with glowing light', 'A serene nature landscape with mountains') - apenas se hasImages for yes, senão deixe vazio"
+      "imageQuery": "termo de busca em inglês para imagem realista e elegante (ex: 'cross silhouette', 'praying hands', 'bible study', 'nature landscape') - apenas se hasImages for yes, senão deixe vazio"
     }
   ]
 }`
@@ -44,8 +45,8 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       conclusao: sermon.content.conclusion,
     })
 
-    const textResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -63,16 +64,24 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
           ],
           generationConfig: {
             temperature: 0.7,
+            maxOutputTokens: 2000,
             responseMimeType: 'application/json',
           },
         }),
       },
     )
 
-    const data = await textResponse.json()
+    const data = await response.json()
 
-    if (!textResponse.ok) {
-      throw new Error(data.error?.message || 'Erro ao chamar API do Gemini (Texto)')
+    if (!response.ok) {
+      console.error('Erro detalhado da API do Gemini:', data)
+      throw new Error(
+        `Erro na API do Gemini: ${data.error?.message || response.statusText || 'Erro desconhecido'}`,
+      )
+    }
+
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error('A API do Gemini não retornou nenhum conteúdo válido.')
     }
 
     let responseText = data.candidates[0].content.parts[0].text
@@ -82,52 +91,20 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
 
     const generatedContent = JSON.parse(responseText)
 
-    if (hasImages === 'yes' && generatedContent.slides && Array.isArray(generatedContent.slides)) {
-      const slidesWithImages = await Promise.all(
-        generatedContent.slides.map(async (slide: any) => {
-          if (slide.imageQuery) {
-            try {
-              const imagePrompt = `Create a picture of: ${slide.imageQuery}. Style: photorealistic, elegant, high quality, suitable for a church presentation background, no text.`
-
-              const imageResponse = await fetch(
-                `https://generativelanguage.googleapis.com/v1alpha/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
-                {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: imagePrompt }] }],
-                  }),
-                },
-              )
-
-              if (imageResponse.ok) {
-                const imageData = await imageResponse.json()
-                const parts = imageData.candidates?.[0]?.content?.parts
-                if (parts && parts.length > 0) {
-                  const inlineData = parts.find((p: any) => p.inlineData)?.inlineData
-                  if (inlineData) {
-                    slide.imageBase64 = `data:${inlineData.mimeType};base64,${inlineData.data}`
-                  }
-                }
-              }
-            } catch (err) {
-              console.error(`Falha ao gerar imagem para o slide: ${slide.title}`, err)
-            }
-          }
-          return slide
-        }),
-      )
-      generatedContent.slides = slidesWithImages
-    }
-
     return new Response(JSON.stringify(generatedContent), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    console.error('Exceção capturada:', error.message)
+    return new Response(
+      JSON.stringify({
+        error: error.message || 'Erro interno no processamento da geração de slides.',
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      },
+    )
   }
 })
