@@ -32,23 +32,34 @@ interface SermonContextType {
 
 const SermonContext = createContext<SermonContextType | undefined>(undefined)
 
+import { fetchUserSermons, deleteSermonFromDb } from '@/services/sermons'
+import { useAuth } from '@/hooks/use-auth'
+
 export function SermonProvider({ children }: { children: ReactNode }) {
-  const [sermons, setSermons] = useState<Sermon[]>(() => {
-    const saved = localStorage.getItem('@spurgeon-sermons')
-    if (saved) {
-      try {
-        return JSON.parse(saved)
-      } catch (e) {
-        console.error('Failed to parse sermons', e)
-        return []
-      }
-    }
-    return []
-  })
+  const { user } = useAuth()
+  const [sermons, setSermons] = useState<Sermon[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    localStorage.setItem('@spurgeon-sermons', JSON.stringify(sermons))
-  }, [sermons])
+    if (user) {
+      loadSermons()
+    } else {
+      setSermons([])
+      setIsLoading(false)
+    }
+  }, [user])
+
+  const loadSermons = async () => {
+    try {
+      setIsLoading(true)
+      const data = await fetchUserSermons()
+      setSermons(data)
+    } catch (error) {
+      console.error('Failed to fetch sermons', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const addSermon = (sermon: Sermon) => {
     setSermons((prev) => [sermon, ...prev])
@@ -58,8 +69,14 @@ export function SermonProvider({ children }: { children: ReactNode }) {
     return sermons.find((s) => s.id === id)
   }
 
-  const deleteSermon = (id: string) => {
-    setSermons((prev) => prev.filter((s) => s.id !== id))
+  const deleteSermon = async (id: string) => {
+    try {
+      await deleteSermonFromDb(id)
+      setSermons((prev) => prev.filter((s) => s.id !== id))
+    } catch (error) {
+      console.error('Failed to delete sermon', error)
+      throw error
+    }
   }
 
   return (

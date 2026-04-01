@@ -14,7 +14,8 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
 import { useSermonStore } from '@/store/SermonContext'
-import { generateSermonMock } from '@/lib/mockAi'
+import { useToast } from '@/hooks/use-toast'
+import { aiGenerateSermon, saveSermonToDb } from '@/services/sermons'
 
 const QUOTES = [
   'A Palavra de Deus é viva e eficaz...',
@@ -27,6 +28,7 @@ const QUOTES = [
 export default function Index() {
   const navigate = useNavigate()
   const { addSermon } = useSermonStore()
+  const { toast } = useToast()
 
   const [baseText, setBaseText] = useState('')
   const [version, setVersion] = useState('NVI')
@@ -52,18 +54,30 @@ export default function Index() {
     setIsGenerating(true)
 
     try {
-      const generatedData = await generateSermonMock(baseText, version, duration[0])
+      // 1. Generate via AI Edge Function
+      const generatedData = await aiGenerateSermon(baseText, version, duration[0])
 
-      const newSermon = {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString(),
-        ...generatedData,
-      }
+      // 2. Save to Database
+      const savedSermon = await saveSermonToDb({
+        title: generatedData.title,
+        baseText,
+        version,
+        duration: duration[0],
+        content: generatedData.content,
+        insights: generatedData.insights,
+        references: generatedData.references,
+      })
 
-      addSermon(newSermon)
-      navigate(`/sermon/${newSermon.id}`)
-    } catch (error) {
+      // 3. Update local state and redirect
+      addSermon(savedSermon)
+      navigate(`/sermon/${savedSermon.id}`)
+    } catch (error: any) {
       console.error(error)
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao gerar pregação',
+        description: error.message || 'Ocorreu um erro inesperado. Tente novamente.',
+      })
       setIsGenerating(false)
     }
   }
