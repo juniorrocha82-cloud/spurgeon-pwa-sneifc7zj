@@ -1,5 +1,6 @@
 {
   "_versions": {
-    "generate-sermon": 6
+    "generate-sermon": 7,
+    "generate-slides": 1
   }
 }
