@@ -19,6 +19,7 @@ export type Database = {
           id: string
           insights: Json
           references_list: Json
+          sermon_type: string
           title: string
           user_id: string
           version: string
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           insights: Json
           references_list: Json
+          sermon_type?: string
           title: string
           user_id: string
           version: string
@@ -45,6 +47,7 @@ export type Database = {
           id?: string
           insights?: Json
           references_list?: Json
+          sermon_type?: string
           title?: string
           user_id?: string
           version?: string
@@ -210,6 +213,7 @@ export const Constants = {
 //   references_list: jsonb (not null)
 //   date: timestamp with time zone (not null, default: now())
 //   created_at: timestamp with time zone (not null, default: now())
+//   sermon_type: text (not null, default: 'Expositivo'::text)
 
 // --- CONSTRAINTS ---
 // Table: sermons

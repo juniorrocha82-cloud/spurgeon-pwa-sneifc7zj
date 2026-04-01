@@ -7,13 +7,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get('OPENAI_API_KEY')
+    const apiKey = Deno.env.get('GEMINI_API_KEY')
 
     if (!apiKey) {
       return new Response(
         JSON.stringify({
           error:
-            "API Key da OpenAI não encontrada. Por favor, configure a secret 'OPENAI_API_KEY' no painel do Supabase Edge Functions.",
+            "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
@@ -33,7 +33,7 @@ A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
 4. Ilustração
 5. Conclusão
 
-Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
+Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
 {
   "title": "Um título chamativo e profundo para o sermão",
   "content": {
@@ -56,33 +56,49 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
   ]
 }`
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nEstilo: ${sermonType}\nDuração estimada: ${duration} minutos.`,
+    const userPrompt = `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nEstilo: ${sermonType}\nDuração estimada: ${duration} minutos.`
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
           },
-        ],
-        temperature: 0.7,
-        response_format: { type: 'json_object' },
-      }),
-    })
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: userPrompt }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            responseMimeType: 'application/json',
+          },
+        }),
+      },
+    )
 
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Erro ao chamar OpenAI')
+      throw new Error(data.error?.message || 'Erro ao chamar API do Gemini')
     }
 
-    const generatedContent = JSON.parse(data.choices[0].message.content)
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error('Nenhuma resposta gerada pela API do Gemini.')
+    }
+
+    let responseText = data.candidates[0].content.parts[0].text
+
+    // Tratamento extra de segurança contra blocos markdown
+    responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+
+    const generatedContent = JSON.parse(responseText)
 
     return new Response(JSON.stringify(generatedContent), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
