@@ -75,7 +75,7 @@ export default function Index() {
           O que Deus colocou em seu coração?
         </h1>
         <p className="text-muted-foreground text-lg">
-          Deixe a IA auxiliar na estruturação e profundidade da sua próxima mensagem.
+          Deixe o Spurgeon auxiliar na estrutura e profundidade da sua mensagem.
         </p>
       </div>
 
@@ -83,7 +83,7 @@ export default function Index() {
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center font-serif text-primary">
             <Sparkles className="w-5 h-5 mr-2" />
-            Parâmetros do Sermão
+            Parâmetros da sua Pregação
           </CardTitle>
           <CardDescription>Defina a base e o estilo da sua pregação.</CardDescription>
         </CardHeader>
