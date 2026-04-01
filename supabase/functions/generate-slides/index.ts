@@ -31,7 +31,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
     {
       "title": "Título do slide (curto e impactante)",
       "content": "Tópicos ou texto para o slide (máximo 3 linhas para ficar legível durante a apresentação)",
-      "imageQuery": "termo de busca em inglês para imagem realista e elegante (ex: 'cross silhouette', 'praying hands', 'bible study', 'nature landscape') - apenas se hasImages for yes, senão deixe vazio"
+      "imageQuery": "Um prompt descritivo em inglês para geração de IA (ex: 'A dramatic silhouette of a cross on a hill at sunset', 'An open old bible with glowing light', 'A serene nature landscape with mountains') - apenas se hasImages for yes, senão deixe vazio"
     }
   ]
 }`
@@ -44,8 +44,8 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       conclusao: sermon.content.conclusion,
     })
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
+    const textResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -69,10 +69,10 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       },
     )
 
-    const data = await response.json()
+    const data = await textResponse.json()
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Erro ao chamar API do Gemini')
+    if (!textResponse.ok) {
+      throw new Error(data.error?.message || 'Erro ao chamar API do Gemini (Texto)')
     }
 
     let responseText = data.candidates[0].content.parts[0].text
@@ -81,6 +81,44 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
     responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
 
     const generatedContent = JSON.parse(responseText)
+
+    if (hasImages === 'yes' && generatedContent.slides && Array.isArray(generatedContent.slides)) {
+      const slidesWithImages = await Promise.all(
+        generatedContent.slides.map(async (slide: any) => {
+          if (slide.imageQuery) {
+            try {
+              const imagePrompt = `Create a picture of: ${slide.imageQuery}. Style: photorealistic, elegant, high quality, suitable for a church presentation background, no text.`
+
+              const imageResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1alpha/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents: [{ role: 'user', parts: [{ text: imagePrompt }] }],
+                  }),
+                },
+              )
+
+              if (imageResponse.ok) {
+                const imageData = await imageResponse.json()
+                const parts = imageData.candidates?.[0]?.content?.parts
+                if (parts && parts.length > 0) {
+                  const inlineData = parts.find((p: any) => p.inlineData)?.inlineData
+                  if (inlineData) {
+                    slide.imageBase64 = `data:${inlineData.mimeType};base64,${inlineData.data}`
+                  }
+                }
+              }
+            } catch (err) {
+              console.error(`Falha ao gerar imagem para o slide: ${slide.title}`, err)
+            }
+          }
+          return slide
+        }),
+      )
+      generatedContent.slides = slidesWithImages
+    }
 
     return new Response(JSON.stringify(generatedContent), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

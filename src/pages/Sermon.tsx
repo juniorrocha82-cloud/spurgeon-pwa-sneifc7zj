@@ -110,10 +110,11 @@ ${sermon.content.conclusion}`
           (slide: any) => `
         <div class="slide">
           ${
-            hasImages === 'yes' && slide.imageQuery
-              ? `<div class="slide-bg" style="background-image: url('https://img.usecurling.com/p/1280/720?q=${encodeURIComponent(
-                  slide.imageQuery,
-                )}&color=${isDark ? 'black' : 'white'}')"></div>`
+            hasImages === 'yes' && (slide.imageBase64 || slide.imageQuery)
+              ? `<div class="slide-bg" style="background-image: url('${
+                  slide.imageBase64 ||
+                  `https://img.usecurling.com/p/1280/720?q=${encodeURIComponent(slide.imageQuery)}&color=${isDark ? 'black' : 'white'}`
+                }')"></div>`
               : ''
           }
           <div class="slide-content">
@@ -162,9 +163,10 @@ ${sermon.content.conclusion}`
     <div class="slide">
       ${
         hasImages === 'yes'
-          ? `<div class="slide-bg" style="background-image: url('https://img.usecurling.com/p/1280/720?q=${encodeURIComponent(
-              'christian cross faith',
-            )}&color=${isDark ? 'black' : 'white'}')"></div>`
+          ? `<div class="slide-bg" style="background-image: url('${
+              slides[0]?.imageBase64 ||
+              `https://img.usecurling.com/p/1280/720?q=${encodeURIComponent('christian cross faith')}&color=${isDark ? 'black' : 'white'}`
+            }')"></div>`
           : ''
       }
       <div class="slide-content">
