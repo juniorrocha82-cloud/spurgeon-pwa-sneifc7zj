@@ -7,12 +7,12 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_KEY')
+    const apiKey = Deno.env.get('GEMINI_API_SLIDES') || Deno.env.get('GEMINI_API_KEY')
 
     if (!apiKey) {
       return new Response(
         JSON.stringify({
-          error: 'API Key do Gemini não encontrada.',
+          error: 'API Key do Gemini (Slides) não encontrada.',
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
@@ -45,7 +45,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
     })
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
