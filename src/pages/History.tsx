@@ -64,12 +64,20 @@ export default function HistoryPage() {
             >
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start mb-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-background text-xs text-muted-foreground border-border"
-                  >
-                    {sermon.version}
-                  </Badge>
+                  <div className="flex gap-2">
+                    <Badge
+                      variant="outline"
+                      className="bg-background text-xs text-muted-foreground border-border"
+                    >
+                      {sermon.version}
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="bg-secondary/50 text-xs text-secondary-foreground"
+                    >
+                      {sermon.sermonType || 'Expositivo'}
+                    </Badge>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"

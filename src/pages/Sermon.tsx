@@ -1,215 +1,184 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  Copy,
-  Download,
-  Edit,
   ArrowLeft,
   BookOpen,
+  Clock,
   Lightbulb,
-  Link as LinkIcon,
-  CheckCircle2,
+  Bookmark,
+  Quote,
+  Presentation,
+  Image as ImageIcon,
 } from 'lucide-react'
-import { useSermonStore } from '@/store/SermonContext'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { useToast } from '@/hooks/use-toast'
+import { useSermonStore, Sermon } from '@/store/SermonContext'
 
 export default function SermonPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { getSermon } = useSermonStore()
-  const { toast } = useToast()
-
-  const sermon = getSermon(id || '')
+  const { sermons, loading } = useSermonStore()
+  const [sermon, setSermon] = useState<Sermon | null>(null)
 
   useEffect(() => {
-    if (!sermon) {
-      navigate('/history')
+    if (!loading) {
+      const found = sermons.find((s) => s.id === id)
+      if (found) setSermon(found)
+      else navigate('/history')
     }
-  }, [sermon, navigate])
+  }, [id, sermons, loading, navigate])
 
-  if (!sermon) return null
-
-  const handleCopy = () => {
-    let textToCopy = `${sermon.title}\n\n`
-    textToCopy += `Introdução:\n${sermon.content.intro}\n\n`
-    sermon.content.points.forEach((p, i) => {
-      textToCopy += `${i + 1}. ${p.title}\n${p.text}\n\n`
-    })
-    textToCopy += `Conclusão:\n${sermon.content.conclusion}`
-
-    navigator.clipboard.writeText(textToCopy)
-    toast({
-      title: 'Copiado com sucesso',
-      description: 'O sermão foi copiado para a área de transferência.',
-    })
-  }
-
-  const handleExport = () => {
-    window.print()
+  if (loading || !sermon) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <BookOpen className="w-12 h-12 text-primary/50 mb-4" />
+          <p className="text-muted-foreground">Carregando sermão...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full animate-fade-in-up pb-24 md:pb-0">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="mr-2 hover:bg-secondary"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-serif font-bold text-foreground line-clamp-1">
-            {sermon.title}
-          </h1>
-          <div className="flex items-center mt-2 space-x-2">
-            <Badge variant="outline" className="border-primary/50 text-primary bg-primary/5">
-              {sermon.version}
-            </Badge>
-            <Badge variant="secondary" className="bg-secondary/80">
-              {sermon.duration} min
-            </Badge>
-            <span className="text-xs text-muted-foreground ml-2">
-              {new Date(sermon.date).toLocaleDateString('pt-BR')}
-            </span>
-          </div>
+    <div className="flex-1 w-full max-w-4xl mx-auto pb-12 animate-fade-in-up">
+      <Button
+        variant="ghost"
+        className="mb-6 -ml-4 text-muted-foreground hover:text-foreground"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Voltar
+      </Button>
+
+      <div className="mb-8 space-y-4">
+        <div className="flex flex-wrap gap-2 mb-2">
+          <Badge variant="outline" className="border-primary/30 text-primary">
+            {sermon.version}
+          </Badge>
+          <Badge variant="secondary">
+            <Clock className="w-3 h-3 mr-1" />
+            {sermon.duration} min
+          </Badge>
+          <Badge variant="secondary" className="bg-secondary/50">
+            {sermon.sermonType || 'Expositivo'}
+          </Badge>
         </div>
+        <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground leading-tight">
+          {sermon.title}
+        </h1>
+        <p className="text-lg text-muted-foreground flex items-center">
+          <Bookmark className="w-4 h-4 mr-2" />
+          Texto Base: <strong className="ml-1 text-foreground">{sermon.baseText}</strong>
+        </p>
       </div>
 
-      <Tabs defaultValue="sermon" className="flex-1 flex flex-col">
-        <TabsList className="w-full justify-start bg-card border border-border/50 p-1 mb-6 rounded-xl overflow-x-auto overflow-y-hidden shadow-sm">
-          <TabsTrigger
-            value="sermon"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-6 py-2.5 text-sm md:text-base transition-all"
-          >
-            <BookOpen className="w-4 h-4 mr-2" />
-            Sermão Completo
-          </TabsTrigger>
-          <TabsTrigger
-            value="insights"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-6 py-2.5 text-sm md:text-base transition-all"
-          >
-            <Lightbulb className="w-4 h-4 mr-2" />
-            Insights do Pregador
-          </TabsTrigger>
-          <TabsTrigger
-            value="references"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-6 py-2.5 text-sm md:text-base transition-all"
-          >
-            <LinkIcon className="w-4 h-4 mr-2" />
-            Referências
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <section className="space-y-4">
+            <h2 className="text-2xl font-serif font-semibold text-primary flex items-center">
+              <BookOpen className="w-5 h-5 mr-2" /> Introdução
+            </h2>
+            <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap">
+              {sermon.content.intro}
+            </p>
+          </section>
 
-        <div className="flex-1 bg-card border border-border/50 rounded-xl shadow-elevation overflow-hidden relative">
-          <ScrollArea className="h-full absolute inset-0">
-            <div className="p-6 md:p-10">
-              <TabsContent value="sermon" className="mt-0 outline-none print:block">
-                <article className="max-w-prose mx-auto font-sans text-foreground/90 leading-relaxed text-lg print:text-black">
-                  <div className="mb-10">
-                    <h2 className="text-2xl font-serif font-bold text-primary mb-4 print:text-black">
-                      Introdução
-                    </h2>
-                    <p className="whitespace-pre-wrap">{sermon.content.intro}</p>
-                  </div>
+          {sermon.content.proposition && (
+            <section className="space-y-4 bg-primary/5 border border-primary/20 rounded-xl p-6">
+              <h2 className="text-xl font-serif font-semibold text-primary flex items-center">
+                <Presentation className="w-5 h-5 mr-2" /> Proposição
+              </h2>
+              <p className="text-lg font-medium leading-relaxed text-foreground/90 italic">
+                "{sermon.content.proposition}"
+              </p>
+            </section>
+          )}
 
-                  <div className="space-y-10">
-                    {sermon.content.points.map((point, index) => (
-                      <div key={index}>
-                        <h2 className="text-2xl font-serif font-bold text-primary mb-4 print:text-black">
-                          {index + 1}. {point.title}
-                        </h2>
-                        <p className="whitespace-pre-wrap">{point.text}</p>
-                      </div>
-                    ))}
-                  </div>
+          <div className="space-y-8 mt-8">
+            <h2 className="text-2xl font-serif font-semibold text-primary flex items-center">
+              <Bookmark className="w-5 h-5 mr-2" /> Desenvolvimento
+            </h2>
+            {sermon.content.points.map((point, i) => (
+              <div key={i} className="space-y-3">
+                <h3 className="text-xl font-serif font-medium text-foreground flex items-baseline">
+                  <span className="text-primary text-sm mr-3">{i + 1}.</span>
+                  {point.title}
+                </h3>
+                <p className="text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap pl-6">
+                  {point.text}
+                </p>
+              </div>
+            ))}
+          </div>
 
-                  <Separator className="my-10 bg-border/50" />
+          {sermon.content.illustration && (
+            <section className="space-y-4 bg-secondary/20 border border-secondary/30 rounded-xl p-6">
+              <h2 className="text-xl font-serif font-semibold text-foreground flex items-center">
+                <ImageIcon className="w-5 h-5 mr-2 text-muted-foreground" /> Ilustração
+              </h2>
+              <p className="text-lg leading-relaxed text-foreground/90">
+                {sermon.content.illustration}
+              </p>
+            </section>
+          )}
 
-                  <div className="mb-10">
-                    <h2 className="text-2xl font-serif font-bold text-primary mb-4 print:text-black">
-                      Conclusão
-                    </h2>
-                    <p className="whitespace-pre-wrap">{sermon.content.conclusion}</p>
-                  </div>
-                </article>
-              </TabsContent>
+          <Separator className="my-8" />
 
-              <TabsContent value="insights" className="mt-0 outline-none">
-                <div className="max-w-2xl mx-auto space-y-6">
-                  {sermon.insights.map((insight, index) => (
-                    <div
-                      key={index}
-                      className="flex p-5 rounded-xl bg-background border border-border shadow-sm"
-                    >
-                      <div className="bg-primary/20 p-2 rounded-lg h-fit mr-4">
-                        <Lightbulb className="w-5 h-5 text-primary" />
-                      </div>
-                      <p className="text-foreground/90 leading-relaxed pt-1">{insight}</p>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="references" className="mt-0 outline-none">
-                <div className="max-w-2xl mx-auto space-y-4">
-                  {sermon.references.map((ref, index) => {
-                    const [verse, desc] = ref.split(' - ')
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-start p-5 rounded-xl bg-background border border-border shadow-sm"
-                      >
-                        <CheckCircle2 className="w-5 h-5 text-primary mr-4 shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className="font-serif font-bold text-lg text-foreground mb-1">
-                            {verse}
-                          </h4>
-                          <p className="text-muted-foreground">{desc}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </TabsContent>
-            </div>
-          </ScrollArea>
+          <section className="space-y-4">
+            <h2 className="text-2xl font-serif font-semibold text-primary flex items-center">
+              <Quote className="w-5 h-5 mr-2" /> Conclusão
+            </h2>
+            <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap">
+              {sermon.content.conclusion}
+            </p>
+          </section>
         </div>
-      </Tabs>
 
-      {/* Floating Action Bar */}
-      <div className="fixed bottom-20 md:bottom-8 right-4 md:right-8 flex flex-col md:flex-row gap-3 z-40 print:hidden">
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-12 w-12 rounded-full shadow-lg border border-border"
-          onClick={() => navigate('/')}
-          title="Novo Sermão"
-        >
-          <Edit className="w-5 h-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-12 w-12 rounded-full shadow-lg border border-border"
-          onClick={handleCopy}
-          title="Copiar Texto"
-        >
-          <Copy className="w-5 h-5" />
-        </Button>
-        <Button
-          className="h-12 w-12 md:w-auto md:px-6 rounded-full shadow-[0_0_15px_rgba(212,175,55,0.3)] btn-gold-glow border border-primary/50"
-          onClick={handleExport}
-        >
-          <Download className="w-5 h-5 md:mr-2" />
-          <span className="hidden md:inline font-medium">Exportar PDF</span>
-        </Button>
+        <div className="space-y-6">
+          <Card className="bg-card/50 border-border/50 shadow-sm sticky top-24">
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg font-serif">
+                <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />
+                Insights para o Pregador
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                {sermon.insights.map((insight, i) => (
+                  <li key={i} className="flex items-start text-sm text-muted-foreground">
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500/50 mt-1.5 mr-2 shrink-0" />
+                    <span className="leading-relaxed">{insight}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 border-border/50 shadow-sm sticky top-[400px]">
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg font-serif">
+                <BookOpen className="w-5 h-5 mr-2 text-primary" />
+                Referências Cruzadas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                {sermon.references.map((ref, i) => {
+                  const [verse, ...descArr] = ref.split(' - ')
+                  const desc = descArr.join(' - ')
+                  return (
+                    <li key={i} className="text-sm">
+                      <strong className="block text-foreground font-serif">{verse}</strong>
+                      {desc && <span className="text-muted-foreground mt-1 block">{desc}</span>}
+                    </li>
+                  )
+                })}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

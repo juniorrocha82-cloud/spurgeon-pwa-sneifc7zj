@@ -32,6 +32,7 @@ export default function Index() {
 
   const [baseText, setBaseText] = useState('')
   const [version, setVersion] = useState('NVI')
+  const [sermonType, setSermonType] = useState('Expositivo')
   const [duration, setDuration] = useState([30])
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -55,7 +56,7 @@ export default function Index() {
 
     try {
       // 1. Generate via AI Edge Function
-      const generatedData = await aiGenerateSermon(baseText, version, duration[0])
+      const generatedData = await aiGenerateSermon(baseText, version, duration[0], sermonType)
 
       // 2. Save to Database
       const savedSermon = await saveSermonToDb({
@@ -63,6 +64,7 @@ export default function Index() {
         baseText,
         version,
         duration: duration[0],
+        sermonType,
         content: generatedData.content,
         insights: generatedData.insights,
         references: generatedData.references,
@@ -117,7 +119,7 @@ export default function Index() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-3">
                 <Label htmlFor="version" className="text-base">
                   Versão da Bíblia
@@ -133,6 +135,21 @@ export default function Index() {
                     <SelectItem value="NVI">NVI (Nova Versão Internacional)</SelectItem>
                     <SelectItem value="NVT">NVT (Nova Versão Transformadora)</SelectItem>
                     <SelectItem value="NTLH">NTLH (Linguagem de Hoje)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="sermonType" className="text-base">
+                  Estilo da Pregação
+                </Label>
+                <Select value={sermonType} onValueChange={setSermonType}>
+                  <SelectTrigger id="sermonType" className="bg-background/50 border-border h-12">
+                    <SelectValue placeholder="Selecione o estilo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Expositivo">Expositivo</SelectItem>
+                    <SelectItem value="Temático">Temático</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

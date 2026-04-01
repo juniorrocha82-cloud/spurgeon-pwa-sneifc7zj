@@ -19,21 +19,31 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const { baseText, version, duration } = await req.json()
+    const { baseText, version, duration, sermonType = 'Expositivo' } = await req.json()
 
-    const systemPrompt = `Você é um assistente teológico especializado em preparar pregações e sermões cristãos baseados na Bíblia.
-Sua tarefa é gerar um sermão estruturado com base no texto ou tema fornecido, utilizando a versão bíblica solicitada (${version}) e com conteúdo suficiente para uma pregação de aproximadamente ${duration} minutos.
+    const systemPrompt = `Você é um assistente teológico homilético experiente.
+Sua tarefa é gerar um sermão estruturado com base no texto ou tema fornecido, utilizando a versão bíblica solicitada (${version}).
+O estilo da pregação será: ${sermonType} (Expositivo ou Temático).
+A duração estimada é de ${duration} minutos.
+
+A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
+1. Introdução
+2. Proposição (A ideia central do sermão)
+3. Tópicos Principais (Desenvolvimento, mínimo de 3)
+4. Ilustração
+5. Conclusão
 
 Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
 {
   "title": "Um título chamativo e profundo para o sermão",
   "content": {
     "intro": "Texto da introdução...",
+    "proposition": "Texto da proposição...",
     "points": [
       { "title": "Título do ponto 1", "text": "Desenvolvimento do ponto 1..." },
-      { "title": "Título do ponto 2", "text": "Desenvolvimento do ponto 2..." },
-      ... (mínimo de 3 pontos)
+      { "title": "Título do ponto 2", "text": "Desenvolvimento do ponto 2..." }
     ],
+    "illustration": "Texto da ilustração...",
     "conclusion": "Texto da conclusão e apelo..."
   },
   "insights": [
@@ -58,7 +68,7 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
           { role: 'system', content: systemPrompt },
           {
             role: 'user',
-            content: `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nDuração estimada: ${duration} minutos.`,
+            content: `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nEstilo: ${sermonType}\nDuração estimada: ${duration} minutos.`,
           },
         ],
         temperature: 0.7,

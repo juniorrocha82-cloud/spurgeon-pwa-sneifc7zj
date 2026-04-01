@@ -9,7 +9,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      sermons: {
+        Row: {
+          base_text: string
+          content: Json
+          created_at: string
+          date: string
+          duration: number
+          id: string
+          insights: Json
+          references_list: Json
+          title: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          base_text: string
+          content: Json
+          created_at?: string
+          date?: string
+          duration: number
+          id?: string
+          insights: Json
+          references_list: Json
+          title: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          base_text?: string
+          content?: Json
+          created_at?: string
+          date?: string
+          duration?: number
+          id?: string
+          insights?: Json
+          references_list?: Json
+          title?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -153,3 +194,35 @@ export const Constants = {
 // IMPORTANT: The TypeScript types above map UUID, TEXT, VARCHAR all to "string".
 // Use the COLUMN TYPES section below to know the real PostgreSQL type for each column.
 // Always use the correct PostgreSQL type when writing SQL migrations.
+
+// --- COLUMN TYPES (actual PostgreSQL types) ---
+// Use this to know the real database type when writing migrations.
+// "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: sermons
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   title: text (not null)
+//   base_text: text (not null)
+//   version: text (not null)
+//   duration: integer (not null)
+//   content: jsonb (not null)
+//   insights: jsonb (not null)
+//   references_list: jsonb (not null)
+//   date: timestamp with time zone (not null, default: now())
+//   created_at: timestamp with time zone (not null, default: now())
+
+// --- CONSTRAINTS ---
+// Table: sermons
+//   PRIMARY KEY sermons_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY sermons_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+
+// --- ROW LEVEL SECURITY POLICIES ---
+// Table: sermons
+//   Policy "Users can delete their own sermons" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//   Policy "Users can insert their own sermons" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (auth.uid() = user_id)
+//   Policy "Users can update their own sermons" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//   Policy "Users can view their own sermons" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)

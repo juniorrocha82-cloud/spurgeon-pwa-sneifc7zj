@@ -1,95 +1,101 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { fetchUserSermons, deleteSermonFromDb } from '@/services/sermons'
+import { useAuth } from '@/hooks/use-auth'
 
-export type SermonPoint = {
-  title: string
-  text: string
-}
-
-export type SermonContent = {
+export interface SermonContent {
   intro: string
-  points: SermonPoint[]
+  proposition?: string
+  points: { title: string; text: string }[]
+  illustration?: string
   conclusion: string
 }
 
-export type Sermon = {
+export interface Sermon {
   id: string
   title: string
   baseText: string
   version: string
   duration: number
-  date: string
+  sermonType: string
   content: SermonContent
   insights: string[]
   references: string[]
+  date: string
 }
 
 interface SermonContextType {
   sermons: Sermon[]
   addSermon: (sermon: Sermon) => void
-  getSermon: (id: string) => Sermon | undefined
   deleteSermon: (id: string) => void
+  loading: boolean
 }
 
 const SermonContext = createContext<SermonContextType | undefined>(undefined)
 
-import { fetchUserSermons, deleteSermonFromDb } from '@/services/sermons'
-import { useAuth } from '@/hooks/use-auth'
-
-export function SermonProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+export const SermonProvider = ({ children }: { children: ReactNode }) => {
   const [sermons, setSermons] = useState<Sermon[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
   useEffect(() => {
     if (user) {
-      loadSermons()
+      // Offline support: Load from local storage first
+      const cached = localStorage.getItem(`sermons_${user.id}`)
+      if (cached) {
+        try {
+          setSermons(JSON.parse(cached))
+        } catch (e) {
+          console.error('Failed to parse cached sermons', e)
+        }
+      }
+
+      // Fetch fresh data
+      fetchUserSermons()
+        .then((data) => {
+          setSermons(data)
+          localStorage.setItem(`sermons_${user.id}`, JSON.stringify(data))
+          setLoading(false)
+        })
+        .catch((err) => {
+          console.error('Error fetching sermons, relying on cache', err)
+          setLoading(false)
+        })
     } else {
       setSermons([])
-      setIsLoading(false)
+      setLoading(false)
     }
   }, [user])
 
-  const loadSermons = async () => {
-    try {
-      setIsLoading(true)
-      const data = await fetchUserSermons()
-      setSermons(data)
-    } catch (error) {
-      console.error('Failed to fetch sermons', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const addSermon = (sermon: Sermon) => {
-    setSermons((prev) => [sermon, ...prev])
-  }
-
-  const getSermon = (id: string) => {
-    return sermons.find((s) => s.id === id)
+    setSermons((prev) => {
+      const updated = [sermon, ...prev]
+      if (user) localStorage.setItem(`sermons_${user.id}`, JSON.stringify(updated))
+      return updated
+    })
   }
 
   const deleteSermon = async (id: string) => {
     try {
       await deleteSermonFromDb(id)
-      setSermons((prev) => prev.filter((s) => s.id !== id))
-    } catch (error) {
-      console.error('Failed to delete sermon', error)
-      throw error
+      setSermons((prev) => {
+        const updated = prev.filter((s) => s.id !== id)
+        if (user) localStorage.setItem(`sermons_${user.id}`, JSON.stringify(updated))
+        return updated
+      })
+    } catch (e) {
+      console.error(e)
     }
   }
 
   return (
-    <SermonContext.Provider value={{ sermons, addSermon, getSermon, deleteSermon }}>
+    <SermonContext.Provider value={{ sermons, addSermon, deleteSermon, loading }}>
       {children}
     </SermonContext.Provider>
   )
 }
 
-export function useSermonStore() {
+export const useSermonStore = () => {
   const context = useContext(SermonContext)
-  if (context === undefined) {
-    throw new Error('useSermonStore must be used within a SermonProvider')
-  }
+  if (!context) throw new Error('useSermonStore must be used within SermonProvider')
   return context
 }

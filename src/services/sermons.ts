@@ -1,9 +1,14 @@
 import { supabase } from '@/lib/supabase/client'
 import { Sermon } from '@/store/SermonContext'
 
-export const aiGenerateSermon = async (baseText: string, version: string, duration: number) => {
+export const aiGenerateSermon = async (
+  baseText: string,
+  version: string,
+  duration: number,
+  sermonType: string,
+) => {
   const { data, error } = await supabase.functions.invoke('generate-sermon', {
-    body: { baseText, version, duration },
+    body: { baseText, version, duration, sermonType },
   })
 
   if (error) throw error
@@ -24,6 +29,7 @@ export const saveSermonToDb = async (sermonData: Omit<Sermon, 'id' | 'date'>): P
       base_text: sermonData.baseText,
       version: sermonData.version,
       duration: sermonData.duration,
+      sermon_type: sermonData.sermonType,
       content: sermonData.content,
       insights: sermonData.insights,
       references_list: sermonData.references,
@@ -40,6 +46,7 @@ export const saveSermonToDb = async (sermonData: Omit<Sermon, 'id' | 'date'>): P
     baseText: data.base_text,
     version: data.version,
     duration: data.duration,
+    sermonType: data.sermon_type,
     content: data.content,
     insights: data.insights,
     references: data.references_list,
@@ -61,6 +68,7 @@ export const fetchUserSermons = async (): Promise<Sermon[]> => {
     baseText: d.base_text,
     version: d.version,
     duration: d.duration,
+    sermonType: d.sermon_type || 'Expositivo',
     content: d.content,
     insights: d.insights,
     references: d.references_list,
