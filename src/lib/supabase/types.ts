@@ -9,6 +9,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sermons: {
         Row: {
           base_text: string
@@ -231,6 +261,14 @@ export const Constants = {
 // --- COLUMN TYPES (actual PostgreSQL types) ---
 // Use this to know the real database type when writing migrations.
 // "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: contact_messages
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   name: text (not null)
+//   email: text (not null)
+//   subject: text (not null)
+//   message: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: sermons
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -254,6 +292,9 @@ export const Constants = {
 //   updated_at: timestamp with time zone (not null, default: now())
 
 // --- CONSTRAINTS ---
+// Table: contact_messages
+//   PRIMARY KEY contact_messages_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY contact_messages_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 // Table: sermons
 //   PRIMARY KEY sermons_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY sermons_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -263,6 +304,9 @@ export const Constants = {
 //   UNIQUE user_settings_user_id_key: UNIQUE (user_id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
+// Table: contact_messages
+//   Policy "Users can insert their own messages" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (auth.uid() = user_id)
 // Table: sermons
 //   Policy "Users can delete their own sermons" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)

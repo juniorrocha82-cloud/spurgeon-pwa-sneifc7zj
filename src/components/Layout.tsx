@@ -1,5 +1,5 @@
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
-import { Feather, History, Settings, BookOpen, Info, Mail } from 'lucide-react'
+import { Feather, History, Settings, BookOpen, Info, Mail, BookHeart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Layout() {
@@ -8,12 +8,15 @@ export default function Layout() {
   const navItems = [
     { path: '/', label: 'Gerar Sermão', icon: Feather },
     { path: '/history', label: 'Meus Sermões', icon: History },
+    { path: '/devotionals', label: 'Devocionais', icon: BookHeart },
   ]
 
   const getPageTitle = () => {
     if (location.pathname === '/') return 'Preparo de Sermão'
     if (location.pathname.startsWith('/sermon/')) return 'Resultado da Pregação'
     if (location.pathname === '/history') return 'Meus Sermões'
+    if (location.pathname === '/devotionals') return 'Devocionais'
+    if (location.pathname.startsWith('/devotional/')) return 'Devocional Diário'
     if (location.pathname === '/settings') return 'Configurações'
     if (location.pathname === '/about') return 'Sobre'
     if (location.pathname === '/contact') return 'Contato'
