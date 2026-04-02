@@ -1,5 +1,5 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
-import { Feather, History, Settings, BookOpen } from 'lucide-react'
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
+import { Feather, History, Settings, BookOpen, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Layout() {
@@ -14,6 +14,8 @@ export default function Layout() {
     if (location.pathname === '/') return 'Preparo de Sermão'
     if (location.pathname.startsWith('/sermon/')) return 'Resultado da Pregação'
     if (location.pathname === '/history') return 'Meus Sermões'
+    if (location.pathname === '/settings') return 'Configurações'
+    if (location.pathname === '/about') return 'Sobre'
     return 'Spurgeon PWA'
   }
 
@@ -53,10 +55,23 @@ export default function Layout() {
           })}
         </nav>
         <div className="p-4 border-t border-border/50">
-          <button className="flex items-center w-full px-4 py-3 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
-            <Settings className="w-5 h-5 mr-3" />
+          <Link
+            to="/settings"
+            className={cn(
+              'flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 group',
+              location.pathname === '/settings'
+                ? 'bg-primary/10 text-primary font-medium shadow-subtle'
+                : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+            )}
+          >
+            <Settings
+              className={cn(
+                'w-5 h-5 mr-3 transition-colors',
+                location.pathname === '/settings' ? 'text-primary' : 'group-hover:text-primary',
+              )}
+            />
             Configurações
-          </button>
+          </Link>
         </div>
       </aside>
 
@@ -79,6 +94,18 @@ export default function Layout() {
         <div className="flex-1 p-4 md:p-8 w-full max-w-5xl mx-auto flex flex-col">
           <Outlet />
         </div>
+
+        {/* Floating About Link */}
+        <Link
+          to="/about"
+          className="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 z-50 flex items-center justify-center group hover:pr-5"
+          title="Sobre o Spurgeon"
+        >
+          <Info className="w-6 h-6" />
+          <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-[100px] transition-all duration-300 ease-in-out text-sm font-medium opacity-0 group-hover:opacity-100 pl-0 group-hover:pl-2">
+            Sobre
+          </span>
+        </Link>
       </main>
 
       {/* Mobile Bottom Nav */}

@@ -54,6 +54,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          created_at: string
+          font_family: string
+          id: string
+          logo_base64: string | null
+          primary_color: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          font_family?: string
+          id?: string
+          logo_base64?: string | null
+          primary_color?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          font_family?: string
+          id?: string
+          logo_base64?: string | null
+          primary_color?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -214,11 +244,23 @@ export const Constants = {
 //   date: timestamp with time zone (not null, default: now())
 //   created_at: timestamp with time zone (not null, default: now())
 //   sermon_type: text (not null, default: 'Expositivo'::text)
+// Table: user_settings
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   primary_color: text (not null, default: '#d97706'::text)
+//   font_family: text (not null, default: 'Arial'::text)
+//   logo_base64: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 
 // --- CONSTRAINTS ---
 // Table: sermons
 //   PRIMARY KEY sermons_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY sermons_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: user_settings
+//   PRIMARY KEY user_settings_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY user_settings_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   UNIQUE user_settings_user_id_key: UNIQUE (user_id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: sermons
@@ -230,3 +272,15 @@ export const Constants = {
 //     USING: (auth.uid() = user_id)
 //   Policy "Users can view their own sermons" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
+// Table: user_settings
+//   Policy "Users can insert their own settings" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (auth.uid() = user_id)
+//   Policy "Users can select their own settings" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//   Policy "Users can update their own settings" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//     WITH CHECK: (auth.uid() = user_id)
+
+// --- INDEXES ---
+// Table: user_settings
+//   CREATE UNIQUE INDEX user_settings_user_id_key ON public.user_settings USING btree (user_id)
