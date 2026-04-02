@@ -2,6 +2,7 @@
   "_versions": {
     "generate-sermon": 13,
     "generate-slides": 17,
-    "generate-devotional": 2
+    "generate-devotional": 2,
+    "get-playlist-preview": 1
   }
 }
