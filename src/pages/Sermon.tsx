@@ -19,6 +19,7 @@ import {
   Edit3,
   Download,
   Share2,
+  Settings,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -46,6 +47,7 @@ import { useSermonStore, Sermon } from '@/store/SermonContext'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { fetchSettings, UserSettings } from '@/services/settings'
 
 type GenerationState = 'idle' | 'generating' | 'completed'
 
@@ -65,12 +67,17 @@ export default function SermonPage() {
   const [progress, setProgress] = useState(0)
   const [generatedHtml, setGeneratedHtml] = useState<string | null>(null)
   const [generatedPptxBase64, setGeneratedPptxBase64] = useState<string | null>(null)
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null)
 
   useEffect(() => {
     if (!loading) {
       const found = sermons.find((s) => s.id === id)
-      if (found) setSermon(found)
-      else navigate('/history')
+      if (found) {
+        setSermon(found)
+        fetchSettings().then(setUserSettings).catch(console.error)
+      } else {
+        navigate('/history')
+      }
     }
   }, [id, sermons, loading, navigate])
 
@@ -114,7 +121,7 @@ ${sermon.content.conclusion}`
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-slides', {
-        body: { sermon, theme, slideCount, hasImages },
+        body: { sermon, theme, slideCount, hasImages, settings: userSettings },
       })
 
       if (error) throw error
@@ -131,25 +138,26 @@ ${sermon.content.conclusion}`
       const isDark = theme === 'dark'
       const bgColor = isDark ? '#0f172a' : '#ffffff'
       const textColor = isDark ? '#f8fafc' : '#0f172a'
-      const accentColor = '#d97706' // amber-600
+      const accentColor = userSettings?.primaryColor || '#d97706'
+      const fontFamily = userSettings?.fontFamily || 'system-ui, -apple-system, sans-serif'
+      const logoHtml = userSettings?.logoBase64
+        ? `<img src="${userSettings.logoBase64}" class="slide-logo" alt="Logo" />`
+        : ''
 
       const slidesHtml = slides
         .map(
           (slide: any) => `
         <div class="slide">
           ${
-            hasImages === 'yes' && (slide.imageUrl || slide.imageBase64 || slide.imageQuery)
-              ? `<div class="slide-bg" style="background-image: url('${
-                  slide.imageUrl ||
-                  slide.imageBase64 ||
-                  `https://img.usecurling.com/p/1280/720?q=${encodeURIComponent(slide.imageQuery)}&color=${isDark ? 'black' : 'white'}`
-                }')"></div>`
+            hasImages === 'yes' && slide.imageBase64
+              ? `<div class="slide-bg" style="background-image: url('${slide.imageBase64}')"></div>`
               : ''
           }
           <div class="slide-content">
             <h1>${slide.title}</h1>
             <p>${slide.content.replace(/\n/g, '<br/>')}</p>
           </div>
+          ${logoHtml}
         </div>
       `,
         )
@@ -162,7 +170,7 @@ ${sermon.content.conclusion}`
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Apresentação - ${sermon?.title}</title>
 <style>
-  body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: ${bgColor}; color: ${textColor}; overflow: hidden; }
+  body { margin: 0; font-family: ${fontFamily}; background: ${bgColor}; color: ${textColor}; overflow: hidden; }
   .slide { 
     width: 100vw; height: 100vh; 
     display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -184,6 +192,7 @@ ${sermon.content.conclusion}`
   .instructions { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 10; font-size: 0.875rem; opacity: 0.5; background: ${
     isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.8)'
   }; padding: 0.5rem 1rem; border-radius: 2rem; pointer-events: none; }
+  .slide-logo { position: absolute; bottom: 2rem; right: 2rem; max-width: 120px; max-height: 80px; z-index: 10; object-fit: contain; }
 </style>
 </head>
 <body>
@@ -191,18 +200,15 @@ ${sermon.content.conclusion}`
   <div class="container">
     <div class="slide">
       ${
-        hasImages === 'yes'
-          ? `<div class="slide-bg" style="background-image: url('${
-              slides[0]?.imageUrl ||
-              slides[0]?.imageBase64 ||
-              `https://img.usecurling.com/p/1280/720?q=${encodeURIComponent('christian cross faith')}&color=${isDark ? 'black' : 'white'}`
-            }')"></div>`
+        hasImages === 'yes' && slides[0]?.imageBase64
+          ? `<div class="slide-bg" style="background-image: url('${slides[0].imageBase64}')"></div>`
           : ''
       }
       <div class="slide-content">
         <h1>${sermon?.title}</h1>
         <p>${sermon?.baseText} - ${sermon?.version}</p>
       </div>
+      ${logoHtml}
     </div>
     ${slidesHtml}
   </div>
@@ -346,14 +352,26 @@ ${sermon.content.conclusion}`
         }
       `}</style>
 
-      <Button
-        variant="ghost"
-        className="mb-6 -ml-4 text-muted-foreground hover:text-foreground print:hidden"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Voltar
-      </Button>
+      <div className="flex justify-between items-center mb-6 print:hidden">
+        <Button
+          variant="ghost"
+          className="-ml-4 text-muted-foreground hover:text-foreground"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/settings')}
+          className="text-muted-foreground"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Estilos da Marca
+        </Button>
+      </div>
 
       <div className="mb-8 space-y-4 print:space-y-6">
         <div className="flex flex-wrap gap-2 mb-2 print:hidden">

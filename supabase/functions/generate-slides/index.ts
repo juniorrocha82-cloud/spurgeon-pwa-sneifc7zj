@@ -20,7 +20,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const { sermon, slideCount, hasImages, theme } = await req.json()
+    const { sermon, slideCount, hasImages, theme, settings } = await req.json()
 
     const systemPrompt = `Você é um especialista em criar apresentações de slides impactantes para pregações cristãs.
 A partir do sermão fornecido, crie um roteiro de slides.
@@ -90,46 +90,60 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
 
     const generatedContent = JSON.parse(responseText)
 
-    // Fetch images from Pexels if requested
-    if (hasImages === 'yes') {
+    // Fetch images and convert to Base64 (always do this if hasImages === 'yes' to guarantee parity)
+    if (hasImages === 'yes' && generatedContent.slides) {
       const pexelsApiKey = Deno.env.get('PEXELS_API_KEY')
-      if (pexelsApiKey && generatedContent.slides) {
-        for (const slide of generatedContent.slides) {
-          if (slide.imageQuery) {
+      const isDark = theme === 'dark'
+
+      for (const slide of generatedContent.slides) {
+        let imgUrl = ''
+
+        if (slide.imageQuery) {
+          if (pexelsApiKey) {
             try {
               const pexelsRes = await fetch(
                 `https://api.pexels.com/v1/search?query=${encodeURIComponent(slide.imageQuery)}&per_page=1&orientation=landscape`,
                 {
-                  headers: {
-                    Authorization: pexelsApiKey,
-                  },
+                  headers: { Authorization: pexelsApiKey },
                 },
               )
               if (pexelsRes.ok) {
                 const pexelsData = await pexelsRes.json()
                 if (pexelsData.photos && pexelsData.photos.length > 0) {
-                  const imgUrl = pexelsData.photos[0].src.large2x || pexelsData.photos[0].src.large
-                  slide.imageUrl = imgUrl
-
-                  // Convert to base64 for PPTX embedding
-                  const imgFetch = await fetch(imgUrl)
-                  const arrayBuffer = await imgFetch.arrayBuffer()
-                  const bytes = new Uint8Array(arrayBuffer)
-                  const CHUNK_SIZE = 8192
-                  let binary = ''
-                  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-                    binary += String.fromCharCode.apply(
-                      null,
-                      Array.from(bytes.subarray(i, i + CHUNK_SIZE)),
-                    )
-                  }
-                  const base64 = btoa(binary)
-                  slide.imageBase64 = `data:${imgFetch.headers.get('content-type') || 'image/jpeg'};base64,${base64}`
+                  imgUrl = pexelsData.photos[0].src.large2x || pexelsData.photos[0].src.large
                 }
               }
             } catch (e) {
               console.error('Error fetching from Pexels:', e)
             }
+          }
+
+          // Fallback to usecurling if Pexels failed or no key
+          if (!imgUrl) {
+            imgUrl = `https://img.usecurling.com/p/1280/720?q=${encodeURIComponent(slide.imageQuery)}&color=${isDark ? 'black' : 'white'}`
+          }
+
+          slide.imageUrl = imgUrl // Keep for reference
+
+          // Convert to base64 for PPTX embedding and HTML parity
+          try {
+            const imgFetch = await fetch(imgUrl)
+            if (imgFetch.ok) {
+              const arrayBuffer = await imgFetch.arrayBuffer()
+              const bytes = new Uint8Array(arrayBuffer)
+              const CHUNK_SIZE = 8192
+              let binary = ''
+              for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+                binary += String.fromCharCode.apply(
+                  null,
+                  Array.from(bytes.subarray(i, i + CHUNK_SIZE)),
+                )
+              }
+              const base64 = btoa(binary)
+              slide.imageBase64 = `data:${imgFetch.headers.get('content-type') || 'image/jpeg'};base64,${base64}`
+            }
+          } catch (e) {
+            console.error('Error converting image to base64:', e)
           }
         }
       }
@@ -143,7 +157,11 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       const isDark = theme === 'dark'
       const bgColor = isDark ? '0F172A' : 'FFFFFF'
       const textColor = isDark ? 'F8FAFC' : '0F172A'
-      const accentColor = 'D97706' // amber-600
+
+      const userPrimaryColor = settings?.primaryColor || '#d97706'
+      const accentColor = userPrimaryColor.replace('#', '').toUpperCase()
+      const fontFamily = settings?.fontFamily || 'Arial'
+      const logoBase64 = settings?.logoBase64
 
       // Title Slide
       const titleSlide = pres.addSlide()
@@ -153,6 +171,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
         y: 2.0,
         w: '90%',
         h: 1.5,
+        fontFace: fontFamily,
         fontSize: 44,
         color: accentColor,
         bold: true,
@@ -163,10 +182,21 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
         y: 3.5,
         w: '90%',
         h: 1.0,
+        fontFace: fontFamily,
         fontSize: 24,
         color: textColor,
         align: 'center',
       })
+      if (logoBase64) {
+        titleSlide.addImage({
+          data: logoBase64,
+          x: '88%',
+          y: '85%',
+          w: 1.0,
+          h: 1.0,
+          sizing: { type: 'contain' },
+        })
+      }
 
       // Content Slides
       for (const slideData of generatedContent.slides) {
@@ -190,6 +220,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
           y: 0.8,
           w: '90%',
           h: 1.5,
+          fontFace: fontFamily,
           fontSize: 36,
           color: accentColor,
           bold: true,
@@ -201,11 +232,23 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
           y: 2.5,
           w: '80%',
           h: 3.5,
+          fontFace: fontFamily,
           fontSize: 28,
           color: textColor,
           align: 'center',
           valign: 'middle',
         })
+
+        if (logoBase64) {
+          slide.addImage({
+            data: logoBase64,
+            x: '88%',
+            y: '85%',
+            w: 1.0,
+            h: 1.0,
+            sizing: { type: 'contain' },
+          })
+        }
       }
 
       const pptxBase64 = await pres.write({ outputType: 'base64' })
