@@ -10,6 +10,7 @@ import Layout from './components/Layout'
 import AuthPage from './pages/Auth'
 import SettingsPage from './pages/Settings'
 import AboutPage from './pages/About'
+import ContactPage from './pages/Contact'
 import { SermonProvider } from './store/SermonContext'
 import { AuthProvider, useAuth } from './hooks/use-auth'
 
@@ -38,6 +39,7 @@ const AppRoutes = () => {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

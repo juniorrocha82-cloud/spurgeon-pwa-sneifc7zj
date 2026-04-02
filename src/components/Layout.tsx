@@ -1,5 +1,5 @@
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
-import { Feather, History, Settings, BookOpen, Info } from 'lucide-react'
+import { Feather, History, Settings, BookOpen, Info, Mail } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Layout() {
@@ -16,6 +16,7 @@ export default function Layout() {
     if (location.pathname === '/history') return 'Meus Sermões'
     if (location.pathname === '/settings') return 'Configurações'
     if (location.pathname === '/about') return 'Sobre'
+    if (location.pathname === '/contact') return 'Contato'
     return 'Spurgeon PWA'
   }
 
@@ -95,17 +96,29 @@ export default function Layout() {
           <Outlet />
         </div>
 
-        {/* Floating About Link */}
-        <Link
-          to="/about"
-          className="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 z-50 flex items-center justify-center group hover:pr-5"
-          title="Sobre o Spurgeon"
-        >
-          <Info className="w-6 h-6" />
-          <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-[100px] transition-all duration-300 ease-in-out text-sm font-medium opacity-0 group-hover:opacity-100 pl-0 group-hover:pl-2">
-            Sobre
-          </span>
-        </Link>
+        {/* Floating Action Links */}
+        <div className="fixed bottom-20 md:bottom-8 right-4 md:right-8 flex flex-col gap-3 z-50 items-end">
+          <Link
+            to="/contact"
+            className="bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 flex items-center justify-center group hover:pr-5"
+            title="Contato"
+          >
+            <Mail className="w-6 h-6" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-[100px] transition-all duration-300 ease-in-out text-sm font-medium opacity-0 group-hover:opacity-100 pl-0 group-hover:pl-2">
+              Contato
+            </span>
+          </Link>
+          <Link
+            to="/about"
+            className="bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 flex items-center justify-center group hover:pr-5"
+            title="Sobre o Spurgeon"
+          >
+            <Info className="w-6 h-6" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-[100px] transition-all duration-300 ease-in-out text-sm font-medium opacity-0 group-hover:opacity-100 pl-0 group-hover:pl-2">
+              Sobre
+            </span>
+          </Link>
+        </div>
       </main>
 
       {/* Mobile Bottom Nav */}
