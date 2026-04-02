@@ -21,6 +21,21 @@ export const saveSermonToDb = async (sermonData: Omit<Sermon, 'id' | 'date'>): P
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) throw new Error('Usuário não autenticado')
 
+  // Check existing sermons to enforce the limit of 7
+  const { data: existingSermons } = await supabase
+    .from('sermons')
+    .select('id')
+    .eq('user_id', userData.user.id)
+    .order('date', { ascending: true })
+
+  if (existingSermons && existingSermons.length >= 7) {
+    // We want to keep only the 6 newest to make room for the new one
+    const toDeleteCount = existingSermons.length - 6
+    const idsToDelete = existingSermons.slice(0, toDeleteCount).map((s) => s.id)
+
+    await supabase.from('sermons').delete().in('id', idsToDelete)
+  }
+
   const { data, error } = await supabase
     .from('sermons')
     .insert({
@@ -59,6 +74,7 @@ export const fetchUserSermons = async (): Promise<Sermon[]> => {
     .from('sermons')
     .select('*')
     .order('date', { ascending: false })
+    .limit(7)
 
   if (error) throw error
 
