@@ -39,6 +39,25 @@ export default function ChannelPage() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="px-1 mt-4">
+          <h2 className="text-2xl font-serif font-bold">Minha Playlist de Adoração</h2>
+        </div>
+        <Card className="overflow-hidden border-border/50 shadow-elevation">
+          <CardContent className="p-0">
+            <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src="https://www.youtube.com/embed/videoseries?list=PLS7Kqj3rKpLyS3kTsPtaQVj3MQWNhenWq"
+                title="YouTube playlist player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
