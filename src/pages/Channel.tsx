@@ -58,13 +58,20 @@ export default function ChannelPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Video Section */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          <div className="px-1">
+            <h2 className="text-2xl font-serif font-bold mt-4">Vídeo em Destaque</h2>
+            <p className="text-muted-foreground mt-2">
+              Assista à nossa página no YouTube. Acompanhe as atualizações diárias de músicas e
+              compartilhe com seus irmãos!
+            </p>
+          </div>
           <Card className="overflow-hidden border-border/50 shadow-elevation">
             <CardContent className="p-0">
               <div className="relative w-full aspect-video bg-black flex items-center justify-center">
                 <iframe
                   className="absolute top-0 left-0 w-full h-full"
-                  src="https://www.youtube.com/embed/FLZ4T8ZP9Ck?si=8t4xCwGPkCMctuw6"
+                  src="https://www.youtube.com/embed/FLZ4T8ZP9Ck?si=3EdKUUnMRBnF60sU"
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -74,13 +81,6 @@ export default function ChannelPage() {
               </div>
             </CardContent>
           </Card>
-          <div className="px-1">
-            <h2 className="text-2xl font-serif font-bold mt-4">Vídeo em Destaque</h2>
-            <p className="text-muted-foreground mt-2">
-              Assista à nossa página no YouTube. Acompanhe as atualizações diárias de músicas e
-              compartilhe com seus irmãos!
-            </p>
-          </div>
         </div>
 
         {/* Playlist Section */}
