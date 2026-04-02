@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
       thumbnails?.default?.url ||
       ''
 
-    const embedUrl = `https://www.youtube.com/embed/videoseries?list=${playlistId}`
+    const embedUrl = `https://www.youtube.com/embed/videoseries?list=${playlistId}&enablejsapi=1`
     const embedCode = `<iframe width="560" height="315" src="${embedUrl}" title="YouTube playlist player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`
 
     const result = {

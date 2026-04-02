@@ -13,6 +13,13 @@ interface PlaylistInfo {
   embedCode: string
 }
 
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady: () => void
+    YT: any
+  }
+}
+
 export default function ChannelPage() {
   const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -21,6 +28,25 @@ export default function ChannelPage() {
   const playlistId = 'PLS7Kqj3rKpLyS3kTsPtaQVj3MQWNhenWq'
 
   useEffect(() => {
+    const loadYouTubeApi = () => {
+      if (!window.YT) {
+        const tag = document.createElement('script')
+        tag.src = 'https://www.youtube.com/iframe_api'
+        const firstScriptTag = document.getElementsByTagName('script')[0]
+        if (firstScriptTag && firstScriptTag.parentNode) {
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+        } else {
+          document.head.appendChild(tag)
+        }
+      }
+
+      window.onYouTubeIframeAPIReady = () => {
+        console.log('YouTube Iframe API is ready')
+      }
+    }
+
+    loadYouTubeApi()
+
     const fetchPlaylistPreview = async () => {
       try {
         setLoading(true)
@@ -73,7 +99,7 @@ export default function ChannelPage() {
             <div className="relative w-full aspect-video bg-black flex items-center justify-center">
               <iframe
                 className="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/FLZ4T8ZP9Ck?si=3EdKUUnMRBnF60sU"
+                src="https://www.youtube.com/embed/FLZ4T8ZP9Ck?si=3EdKUUnMRBnF60sU&enablejsapi=1"
                 title="YouTube video player"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -141,7 +167,11 @@ export default function ChannelPage() {
                 {playlistInfo?.embedUrl ? (
                   <iframe
                     className="absolute top-0 left-0 w-full h-full"
-                    src={playlistInfo.embedUrl}
+                    src={
+                      playlistInfo.embedUrl.includes('enablejsapi=1')
+                        ? playlistInfo.embedUrl
+                        : `${playlistInfo.embedUrl}&enablejsapi=1`
+                    }
                     title="YouTube playlist player"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
