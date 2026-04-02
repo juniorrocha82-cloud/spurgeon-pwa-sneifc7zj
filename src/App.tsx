@@ -7,6 +7,7 @@ import SermonPage from './pages/Sermon'
 import HistoryPage from './pages/History'
 import DevotionalsPage from './pages/Devotionals'
 import DevotionalViewPage from './pages/DevotionalView'
+import ChannelPage from './pages/Channel'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 import AuthPage from './pages/Auth'
@@ -41,6 +42,7 @@ const AppRoutes = () => {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/devotionals" element={<DevotionalsPage />} />
           <Route path="/devotional/:id" element={<DevotionalViewPage />} />
+          <Route path="/channel" element={<ChannelPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
