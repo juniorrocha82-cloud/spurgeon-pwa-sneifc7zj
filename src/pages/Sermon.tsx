@@ -64,6 +64,7 @@ export default function SermonPage() {
   const [generationState, setGenerationState] = useState<GenerationState>('idle')
   const [progress, setProgress] = useState(0)
   const [generatedHtml, setGeneratedHtml] = useState<string | null>(null)
+  const [generatedPptxBase64, setGeneratedPptxBase64] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading) {
@@ -121,6 +122,10 @@ ${sermon.content.conclusion}`
 
       clearInterval(progressInterval)
       setProgress(100)
+
+      if (data.pptxBase64) {
+        setGeneratedPptxBase64(data.pptxBase64)
+      }
 
       const slides = data.slides
       const isDark = theme === 'dark'
@@ -227,23 +232,36 @@ ${sermon.content.conclusion}`
   }
 
   const handleDownloadPptx = () => {
-    if (!generatedHtml) return
-    toast.success('Download PPTX iniciado', {
-      description: 'O arquivo será salvo em seu dispositivo.',
-    })
-    const blob = new Blob([generatedHtml], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `apresentacao-${sermon?.title.toLowerCase().replace(/\s+/g, '-')}.html`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    if (generatedPptxBase64) {
+      const link = document.createElement('a')
+      link.href = `data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,${generatedPptxBase64}`
+      link.download = `apresentacao-${sermon?.title.toLowerCase().replace(/\s+/g, '-')}.pptx`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      toast.success('Download concluído', {
+        description: 'O arquivo PPTX foi salvo em seu dispositivo.',
+      })
+    } else {
+      toast.error('Erro ao baixar PPTX', {
+        description: 'O arquivo PPTX não foi gerado corretamente.',
+      })
+    }
   }
 
   const handleEditOnline = () => {
-    window.open('https://docs.google.com/presentation/create', '_blank')
+    if (generatedPptxBase64) {
+      handleDownloadPptx()
+      window.open('https://docs.google.com/presentation/create', '_blank')
+      toast.info('Google Apresentações', {
+        description: 'Faça o upload do arquivo PPTX baixado para editar online.',
+        duration: 8000,
+      })
+    } else {
+      toast.error('Erro ao abrir online', {
+        description: 'A apresentação não está disponível.',
+      })
+    }
   }
 
   const handleDownloadPdf = () => {
@@ -276,6 +294,7 @@ ${sermon.content.conclusion}`
       setTimeout(() => {
         setGenerationState('idle')
         setProgress(0)
+        setGeneratedPptxBase64(null)
       }, 300)
     }
   }
@@ -298,6 +317,35 @@ ${sermon.content.conclusion}`
       id="printable-sermon"
       className="flex-1 w-full max-w-4xl mx-auto pb-12 animate-fade-in-up print:m-0 print:p-0 print:max-w-none print:w-full print:bg-white print:text-black"
     >
+      <style>{`
+        @media print {
+          @page {
+            size: A4;
+            margin: 20mm 15mm;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          #printable-sermon {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          h1, h2, h3, h4, h5, h6 {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          p, li, .print\\:break-inside-avoid {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+        }
+      `}</style>
+
       <Button
         variant="ghost"
         className="mb-6 -ml-4 text-muted-foreground hover:text-foreground print:hidden"
