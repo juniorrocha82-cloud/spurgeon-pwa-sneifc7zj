@@ -8,6 +8,9 @@ interface PlaylistInfo {
   title: string
   description: string
   thumbnail: string
+  playlistId: string
+  embedUrl: string
+  embedCode: string
 }
 
 export default function ChannelPage() {
@@ -85,7 +88,18 @@ export default function ChannelPage() {
           <h2 className="text-2xl font-serif font-bold">Minha Playlist de Adoração</h2>
         </div>
 
-        {loading ? (
+        {error ? (
+          <Card className="overflow-hidden border-destructive/50 shadow-elevation bg-destructive/10">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center justify-center text-center space-y-2">
+                <p className="text-destructive font-medium">
+                  Não foi possível carregar a playlist.
+                </p>
+                <p className="text-sm text-destructive/80">{error}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : loading ? (
           <Card className="overflow-hidden border-border/50 shadow-elevation">
             <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
               <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 rounded-md hidden sm:block flex-shrink-0" />
@@ -124,15 +138,22 @@ export default function ChannelPage() {
             )}
             <CardContent className="p-0">
               <div className="relative w-full aspect-video bg-black flex items-center justify-center">
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full"
-                  src={`https://www.youtube.com/embed/videoseries?list=${playlistId}`}
-                  title="YouTube playlist player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                ></iframe>
+                {playlistInfo?.embedUrl ? (
+                  <iframe
+                    className="absolute top-0 left-0 w-full h-full"
+                    src={playlistInfo.embedUrl}
+                    title="YouTube playlist player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <div className="text-muted-foreground flex flex-col items-center gap-2">
+                    <Youtube className="w-8 h-8 opacity-50" />
+                    <p>Vídeo indisponível</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

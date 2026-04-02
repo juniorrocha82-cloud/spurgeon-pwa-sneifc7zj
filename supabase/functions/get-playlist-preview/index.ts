@@ -22,7 +22,7 @@ Deno.serve(async (req: Request) => {
     const { playlistId } = await req.json()
 
     if (!playlistId) {
-      throw new Error('O ID da playlist é obrigatório.')
+      throw new Error('O ID da playlist é obrigatório para buscar os dados.')
     }
 
     const response = await fetch(
@@ -50,10 +50,16 @@ Deno.serve(async (req: Request) => {
       thumbnails?.default?.url ||
       ''
 
+    const embedUrl = `https://www.youtube.com/embed/videoseries?list=${playlistId}`
+    const embedCode = `<iframe width="560" height="315" src="${embedUrl}" title="YouTube playlist player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`
+
     const result = {
       title: snippet.title,
       description: snippet.description,
       thumbnail,
+      playlistId,
+      embedUrl,
+      embedCode,
     }
 
     return new Response(JSON.stringify(result), {
@@ -61,9 +67,13 @@ Deno.serve(async (req: Request) => {
       status: 200,
     })
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    console.error('Erro na Edge Function get-playlist-preview:', error.message)
+    return new Response(
+      JSON.stringify({ error: error.message || 'Erro desconhecido ao processar a playlist.' }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      },
+    )
   }
 })
