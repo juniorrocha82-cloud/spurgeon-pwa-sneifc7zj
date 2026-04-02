@@ -75,10 +75,10 @@ export default function ChannelPage() {
             </CardContent>
           </Card>
           <div className="px-1">
-            <h2 className="text-2xl font-serif font-bold mt-4">Mensagem em Destaque</h2>
+            <h2 className="text-2xl font-serif font-bold mt-4">Vídeo em Destaque</h2>
             <p className="text-muted-foreground mt-2">
-              Assista à nossa última pregação disponível no YouTube. Acompanhe a mensagem e
-              compartilhe com seus irmãos para espalhar a palavra.
+              Assista à nossa página no YouTube. Acompanhe as atualizações diárias de músicas e
+              compartilhe com seus irmãos!
             </p>
           </div>
         </div>
@@ -86,13 +86,6 @@ export default function ChannelPage() {
         {/* Playlist Section */}
         <div className="lg:col-span-1 h-full min-h-[400px]">
           <Card className="h-full border-border/50 shadow-elevation flex flex-col">
-            <CardHeader className="bg-secondary/30 pb-4 border-b border-border/50">
-              <CardTitle className="text-lg font-serif flex items-center gap-2">
-                <ListVideo className="w-5 h-5 text-red-600" />
-                Lista de Reprodução
-              </CardTitle>
-              <CardDescription>Últimas mensagens do canal</CardDescription>
-            </CardHeader>
             <CardContent className="p-0 flex-1 relative min-h-[300px]">
               <ScrollArea className="absolute inset-0 w-full h-full">
                 <div className="p-4 flex flex-col gap-4">
