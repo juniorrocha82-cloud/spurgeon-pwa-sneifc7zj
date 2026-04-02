@@ -11,6 +11,9 @@ import ChannelPage from './pages/Channel'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 import AuthPage from './pages/Auth'
+import ForgotPasswordPage from './pages/ForgotPassword'
+import ResetPasswordPage from './pages/ResetPassword'
+import ProfilePage from './pages/Profile'
 import SettingsPage from './pages/Settings'
 import AboutPage from './pages/About'
 import ContactPage from './pages/Contact'
@@ -31,6 +34,11 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
         <Route
+          path="/forgot-password"
+          element={user ? <Navigate to="/" replace /> : <ForgotPasswordPage />}
+        />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route
           element={
             <ProtectedRoute>
               <Layout />
@@ -43,6 +51,7 @@ const AppRoutes = () => {
           <Route path="/devotionals" element={<DevotionalsPage />} />
           <Route path="/devotional/:id" element={<DevotionalViewPage />} />
           <Route path="/channel" element={<ChannelPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
