@@ -733,13 +733,7 @@ ${sermon.content.conclusion}`
                   >
                     <Eye className="w-4 h-4 mr-2" /> Visualizar
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleEditOnline}
-                    className="w-full h-12 border-border shadow-sm"
-                  >
-                    <Edit3 className="w-4 h-4 mr-2" /> Editar Online
-                  </Button>
+
                   <Button
                     variant="outline"
                     onClick={handleDownloadPptx}
