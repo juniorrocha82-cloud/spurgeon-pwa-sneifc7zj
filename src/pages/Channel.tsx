@@ -5,39 +5,39 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 const mockPlaylist = [
   {
     id: '1',
-    title: 'A Graça Inexplicável - Série Sermões',
-    date: 'Há 2 dias',
-    thumbnail: 'https://img.usecurling.com/p/400/225?q=church&color=black',
+    title: 'Sinta a Presença de Deus em Rio de Amor',
+    date: 'Momento com Deus Sounds',
+    thumbnail: 'https://img.usecurling.com/p/400/225?q=river%20sunlight&color=green',
   },
   {
     id: '2',
-    title: 'O Poder da Oração Fervorosa',
-    date: 'Há 1 semana',
-    thumbnail: 'https://img.usecurling.com/p/400/225?q=pray&color=black',
+    title: 'Paz Interior e Meditação Profunda',
+    date: 'Momento com Deus Sounds',
+    thumbnail: 'https://img.usecurling.com/p/400/225?q=nature%20peace',
   },
   {
     id: '3',
-    title: 'Caminhando pela Fé na Tempestade',
-    date: 'Há 2 semanas',
-    thumbnail: 'https://img.usecurling.com/p/400/225?q=bible&color=black',
+    title: 'Oração da Manhã - Comece Bem o Dia',
+    date: 'Momento com Deus Sounds',
+    thumbnail: 'https://img.usecurling.com/p/400/225?q=morning%20sun',
   },
   {
     id: '4',
-    title: 'Esperança Inabalável em Tempos Difíceis',
-    date: 'Há 1 mês',
-    thumbnail: 'https://img.usecurling.com/p/400/225?q=light&color=black',
+    title: 'Sons da Natureza para Dormir e Relaxar',
+    date: 'Momento com Deus Sounds',
+    thumbnail: 'https://img.usecurling.com/p/400/225?q=night%20forest',
   },
   {
     id: '5',
-    title: 'O Amor que Transforma Corações',
-    date: 'Há 1 mês',
-    thumbnail: 'https://img.usecurling.com/p/400/225?q=cross&color=black',
+    title: 'Louvor e Adoração Instrumental',
+    date: 'Momento com Deus Sounds',
+    thumbnail: 'https://img.usecurling.com/p/400/225?q=worship%20instrumental',
   },
   {
     id: '6',
-    title: 'A Verdadeira Adoração',
-    date: 'Há 2 meses',
-    thumbnail: 'https://img.usecurling.com/p/400/225?q=worship&color=black',
+    title: 'Tempo de Busca - Fundo Musical',
+    date: 'Momento com Deus Sounds',
+    thumbnail: 'https://img.usecurling.com/p/400/225?q=praying%20hands',
   },
 ]
 
@@ -71,7 +71,7 @@ export default function ChannelPage() {
               <div className="relative w-full aspect-video bg-black flex items-center justify-center">
                 <iframe
                   className="absolute top-0 left-0 w-full h-full"
-                  src="https://www.youtube.com/embed/FLZ4T8ZP9Ck?si=3EdKUUnMRBnF60sU"
+                  src="https://www.youtube.com/embed/videoseries?list=PLS7Kqj3rKpLyS3kTsPtaQVj3MQWNhenWq"
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -85,7 +85,16 @@ export default function ChannelPage() {
 
         {/* Playlist Section */}
         <div className="lg:col-span-1 h-full min-h-[400px]">
-          <Card className="h-full border-border/50 shadow-elevation flex flex-col">
+          <Card className="h-full border-border/50 shadow-elevation flex flex-col mt-4 lg:mt-0">
+            <div className="p-4 border-b bg-muted/30">
+              <h3 className="font-semibold flex items-center gap-2">
+                <ListVideo className="w-5 h-5 text-primary" />
+                Rio de Amor
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Playlist • Momento com Deus Sounds
+              </p>
+            </div>
             <CardContent className="p-0 flex-1 relative min-h-[300px]">
               <ScrollArea className="absolute inset-0 w-full h-full">
                 <div className="p-4 flex flex-col gap-4">
