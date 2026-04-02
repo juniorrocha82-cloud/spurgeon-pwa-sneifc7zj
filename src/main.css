@@ -4,6 +4,61 @@
 @tailwind components;
 @tailwind utilities;
 
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  html,
+  body,
+  #root,
+  main,
+  .h-screen,
+  .h-\[100dvh\],
+  .overflow-hidden,
+  .overflow-y-auto,
+  .flex-1,
+  .flex {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  nav,
+  header,
+  footer,
+  aside {
+    display: none !important;
+  }
+
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+
+  #printable-sermon {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+}
+
 @layer base {
   :root {
     --background: 213 100% 12%;

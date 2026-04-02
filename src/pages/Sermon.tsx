@@ -294,7 +294,10 @@ ${sermon.content.conclusion}`
   const isDarkPreview = theme === 'dark'
 
   return (
-    <div className="flex-1 w-full max-w-4xl mx-auto pb-12 animate-fade-in-up print:m-0 print:p-8 print:max-w-none print:w-full print:bg-white print:text-black">
+    <div
+      id="printable-sermon"
+      className="flex-1 w-full max-w-4xl mx-auto pb-12 animate-fade-in-up print:m-0 print:p-0 print:max-w-none print:w-full print:bg-white print:text-black"
+    >
       <Button
         variant="ghost"
         className="mb-6 -ml-4 text-muted-foreground hover:text-foreground print:hidden"
