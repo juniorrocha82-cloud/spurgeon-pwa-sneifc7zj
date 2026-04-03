@@ -55,7 +55,7 @@ const PLAN_MAP: Record<string, PlanDetails> = {
   },
 }
 
-export default function SubscriptionPage() {
+export function SubscriptionPanel({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<any>(null)
   const [usage, setUsage] = useState(0)
@@ -63,15 +63,10 @@ export default function SubscriptionPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (!user) return
-
         const { data: sub } = await supabase
           .from('user_subscriptions')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle()
@@ -79,8 +74,7 @@ export default function SubscriptionPage() {
         setSubscription(sub)
 
         const planId = sub?.plan_id || 'free'
-
-        let startDate = new Date()
+        const startDate = new Date()
         if (planId === 'pro') {
           startDate.setDate(startDate.getDate() - 30)
         } else {
@@ -90,7 +84,7 @@ export default function SubscriptionPage() {
         const { count } = await supabase
           .from('generation_logs')
           .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .gte('created_at', startDate.toISOString())
 
         setUsage(count || 0)
@@ -100,17 +94,12 @@ export default function SubscriptionPage() {
         setLoading(false)
       }
     }
-
     fetchData()
-  }, [])
+  }, [userId])
 
   if (loading) {
     return (
-      <div className="container max-w-4xl py-8 space-y-8 animate-in fade-in-up duration-500">
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-5 w-96" />
-        </div>
+      <div className="space-y-8 animate-in fade-in-up duration-500">
         <div className="grid gap-6 md:grid-cols-2">
           <Skeleton className="h-64 rounded-xl" />
           <Skeleton className="h-64 rounded-xl" />
@@ -123,21 +112,11 @@ export default function SubscriptionPage() {
   const plan = PLAN_MAP[planId] || PLAN_MAP.free
   const isExpired = subscription ? isPast(new Date(subscription.expires_at)) : false
   const isActive = subscription?.status === 'active' && !isExpired
-
   const usagePercentage = plan.isUnlimited ? 0 : Math.min(100, (usage / plan.limit) * 100)
   const isNearLimit = usagePercentage >= 80
 
   return (
-    <div className="container max-w-4xl py-8 space-y-8 animate-in fade-in-up duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Minha Assinatura</h1>
-          <p className="text-muted-foreground">
-            Gerencie seu plano, acompanhe seu uso e renove sua assinatura.
-          </p>
-        </div>
-      </div>
-
+    <div className="space-y-6 animate-in fade-in-up duration-500">
       {isExpired && subscription && (
         <Alert
           variant="destructive"
@@ -147,8 +126,7 @@ export default function SubscriptionPage() {
           <AlertTitle>Plano Expirado</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
             <span>
-              Sua assinatura {plan.name} expirou. Reative agora para continuar gerando sermões sem
-              interrupções.
+              Sua assinatura {plan.name} expirou. Reative agora para continuar gerando sermões.
             </span>
             <Button asChild size="sm" variant="destructive">
               <Link to="/planos">Reativar Assinatura</Link>
@@ -185,7 +163,6 @@ export default function SubscriptionPage() {
               </div>
               <p className="text-sm text-muted-foreground">{plan.price}</p>
             </div>
-
             {subscription && (
               <div className="space-y-1 pt-4 border-t">
                 <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -260,47 +237,18 @@ export default function SubscriptionPage() {
               <h4 className="text-sm font-medium text-muted-foreground mb-3">
                 O que está incluído no {plan.name}:
               </h4>
-              {planId === 'free' && (
-                <>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> {plan.limit} gerações por
-                    semana
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> Pregações temáticas e
-                    expositivas
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground line-through">
-                    <CheckCircle2 className="h-4 w-4" /> Slides para apresentação
-                  </div>
-                </>
-              )}
-              {planId === 'pro' && (
-                <>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> {plan.limit} gerações por
-                    mês
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> Geração de slides automático
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> Suporte prioritário
-                  </div>
-                </>
-              )}
-              {planId === 'enterprise' && (
-                <>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> Gerações ilimitadas
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> Todos os recursos do Pro
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" /> Acesso a APIs futuras
-                  </div>
-                </>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                {plan.isUnlimited ? 'Gerações ilimitadas' : `${plan.limit} gerações ${plan.period}`}
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-green-500" /> Pregações temáticas e
+                expositivas
+              </div>
+              {planId !== 'free' && (
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Geração de slides automático
+                </div>
               )}
             </div>
           </CardContent>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { User, BookOpen, FileText, Lock } from 'lucide-react'
+import { SubscriptionPanel } from '@/components/SubscriptionPanel'
 
 export default function ProfilePage() {
   const { user, updatePassword } = useAuth()
@@ -204,6 +205,11 @@ export default function ProfilePage() {
             </form>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="pt-4">
+        <h2 className="text-2xl font-bold tracking-tight mb-6">Sua Assinatura</h2>
+        {user && <SubscriptionPanel userId={user.id} />}
       </div>
     </div>
   )

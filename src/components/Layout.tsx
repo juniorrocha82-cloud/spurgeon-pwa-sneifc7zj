@@ -1,9 +1,11 @@
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
 import { Feather, History, Settings, BookOpen, Info, Mail, BookHeart, Youtube } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/use-auth'
 
 export default function Layout() {
   const location = useLocation()
+  const { user } = useAuth()
 
   const navItems = [
     { path: '/', label: 'Gerar Sermão', icon: Feather },
@@ -92,9 +94,13 @@ export default function Layout() {
           <div className="hidden md:block font-serif text-2xl text-foreground/90 font-medium">
             {getPageTitle()}
           </div>
-          <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold border border-primary/20 text-primary shadow-subtle cursor-pointer hover:bg-primary/10 transition-colors">
-            PR
-          </div>
+          <Link
+            to="/profile"
+            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold border border-primary/20 text-primary shadow-subtle cursor-pointer hover:bg-primary/10 transition-colors uppercase"
+            title="Meu Perfil"
+          >
+            {user?.user_metadata?.name?.substring(0, 2) || user?.email?.substring(0, 2) || 'PR'}
+          </Link>
         </header>
 
         <div className="flex-1 p-4 md:p-8 w-full max-w-5xl mx-auto flex flex-col">
