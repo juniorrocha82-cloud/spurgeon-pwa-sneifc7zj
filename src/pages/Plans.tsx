@@ -23,7 +23,8 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase/client'
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '')
+const stripePubKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+const stripePromise = stripePubKey ? loadStripe(stripePubKey) : null
 
 const plans = [
   {
