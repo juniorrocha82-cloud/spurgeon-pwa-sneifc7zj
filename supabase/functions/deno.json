@@ -5,6 +5,7 @@
     "generate-devotional": 4,
     "get-playlist-preview": 6,
     "create-checkout-session": 4,
-    "stripe-webhook": 2
+    "stripe-webhook": 2,
+    "create-subscription": 1
   }
 }

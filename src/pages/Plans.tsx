@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, useStripe } from '@stripe/react-stripe-js'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -20,6 +22,8 @@ import {
 } from '@/components/ui/dialog'
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase/client'
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '')
 
 const plans = [
   {
@@ -64,11 +68,12 @@ const plans = [
   },
 ]
 
-export default function PlansPage() {
+function PlansContent() {
   const [selectedPlan, setSelectedPlan] = useState<(typeof plans)[0] | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useAuth()
+  const stripe = useStripe()
 
   const handleChoosePlan = (plan: (typeof plans)[0]) => {
     if (plan.current) return
@@ -89,7 +94,7 @@ export default function PlansPage() {
 
     setIsLoading(true)
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+      const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
           plan_id: selectedPlan.stripePriceId,
           user_id: user.id,
@@ -99,11 +104,19 @@ export default function PlansPage() {
       if (error) throw error
       if (data?.error) throw new Error(data.error)
 
-      if (data?.url) {
-        // Redireciona o usuário para a sessão de checkout segura do Stripe
+      if (data?.sessionId && stripe) {
+        // Redireciona o usuário para a sessão de checkout recorrente usando o Stripe.js
+        const { error: stripeError } = await stripe.redirectToCheckout({
+          sessionId: data.sessionId,
+        })
+        if (stripeError) {
+          throw new Error(stripeError.message)
+        }
+      } else if (data?.url) {
+        // Fallback para redirecionamento direto
         window.location.href = data.url
       } else {
-        throw new Error('URL de checkout não foi gerada pelo servidor.')
+        throw new Error('Sessão de checkout não foi gerada pelo servidor.')
       }
     } catch (err: any) {
       console.error('Erro no fluxo de pagamento:', err)
@@ -116,7 +129,7 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="container mx-auto py-10 px-4 md:px-6 max-w-6xl animate-fade-in">
+    <div className="container mx-auto py-10 px-4 md:px-6 max-w-6xl animate-fade-in-up">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4">
           Escolha o Plano Ideal para o Seu Ministério
@@ -206,7 +219,7 @@ export default function PlansPage() {
             </div>
           )}
 
-          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-2">
+          <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
@@ -229,5 +242,13 @@ export default function PlansPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function PlansPage() {
+  return (
+    <Elements stripe={stripePromise}>
+      <PlansContent />
+    </Elements>
   )
 }
