@@ -16,6 +16,15 @@ import { Button } from '@/components/ui/button'
 import { useSermonStore } from '@/store/SermonContext'
 import { useToast } from '@/hooks/use-toast'
 import { aiGenerateSermon, saveSermonToDb } from '@/services/sermons'
+import { checkGenerationLimit, logGeneration } from '@/services/billing'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const QUOTES = [
   'A Palavra de Deus é viva e eficaz...',
@@ -37,6 +46,7 @@ export default function Index() {
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [quoteIndex, setQuoteIndex] = useState(0)
+  const [showLimitModal, setShowLimitModal] = useState(false)
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>
@@ -51,6 +61,22 @@ export default function Index() {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!baseText.trim()) return
+
+    try {
+      const canGenerate = await checkGenerationLimit()
+      if (!canGenerate) {
+        setShowLimitModal(true)
+        return
+      }
+    } catch (error) {
+      console.error('Erro ao checar limite:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Erro de validação',
+        description: 'Não foi possível verificar seu limite de gerações. Tente novamente.',
+      })
+      return
+    }
 
     setIsGenerating(true)
 
@@ -70,7 +96,10 @@ export default function Index() {
         references: generatedData.references,
       })
 
-      // 3. Update local state and redirect
+      // 3. Log generation
+      await logGeneration('sermon')
+
+      // 4. Update local state and redirect
       addSermon(savedSermon)
       navigate(`/sermon/${savedSermon.id}`)
     } catch (error: any) {
@@ -218,6 +247,32 @@ export default function Index() {
           `}</style>
         </div>
       )}
+
+      <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-primary">
+              Limite de gerações atingido
+            </DialogTitle>
+            <DialogDescription className="text-base mt-2">
+              Você atingiu o limite de gerações do seu plano atual. Faça upgrade para continuar
+              criando pregações inspiradoras com o auxílio da IA.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setShowLimitModal(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
+            <Button onClick={() => navigate('/planos')} className="w-full sm:w-auto btn-gold-glow">
+              Ver Planos
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
