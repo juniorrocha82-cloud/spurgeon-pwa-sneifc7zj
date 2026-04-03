@@ -19,6 +19,7 @@ import AboutPage from './pages/About'
 import ContactPage from './pages/Contact'
 import PlansPage from './pages/Plans'
 import SuccessPage from './pages/Success'
+import SubscriptionPage from './pages/Subscription'
 import { SermonProvider } from './store/SermonContext'
 import { AuthProvider, useAuth } from './hooks/use-auth'
 
@@ -59,6 +60,7 @@ const AppRoutes = () => {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/planos" element={<PlansPage />} />
           <Route path="/success" element={<SuccessPage />} />
+          <Route path="/minha-assinatura" element={<SubscriptionPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
