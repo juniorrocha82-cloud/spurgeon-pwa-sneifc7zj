@@ -1,6 +1,12 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { corsHeaders } from '../_shared/cors.ts'
 import Stripe from 'npm:stripe@^14.0.0'
+
+export const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+}
 
 Deno.serve(async (req: Request) => {
   // Preflight CORS handler

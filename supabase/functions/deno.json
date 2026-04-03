@@ -3,6 +3,7 @@
     "generate-sermon": 14,
     "generate-slides": 18,
     "generate-devotional": 3,
-    "get-playlist-preview": 5
+    "get-playlist-preview": 5,
+    "create-checkout-session": 1
   }
 }
