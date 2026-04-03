@@ -4,7 +4,7 @@
     "generate-slides": 18,
     "generate-devotional": 3,
     "get-playlist-preview": 5,
-    "create-checkout-session": 2,
+    "create-checkout-session": 3,
     "stripe-webhook": 1
   }
 }

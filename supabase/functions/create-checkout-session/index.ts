@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
       ],
       mode: 'subscription',
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/planos`,
+      cancel_url: `${origin}/success?canceled=true`,
       client_reference_id: user_id,
       metadata: {
         user_id: user_id,

@@ -172,6 +172,7 @@ export type Database = {
           id: string
           plan_id: string
           status: string
+          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
         }
@@ -181,6 +182,7 @@ export type Database = {
           id?: string
           plan_id: string
           status: string
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -190,6 +192,7 @@ export type Database = {
           id?: string
           plan_id?: string
           status?: string
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -392,6 +395,7 @@ export const Constants = {
 //   expires_at: timestamp with time zone (not null)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+//   stripe_subscription_id: text (nullable)
 
 // --- CONSTRAINTS ---
 // Table: contact_messages
