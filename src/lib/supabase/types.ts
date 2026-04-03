@@ -69,6 +69,27 @@ export type Database = {
         }
         Relationships: []
       }
+      generation_logs: {
+        Row: {
+          created_at: string
+          id: string
+          resource_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          resource_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resource_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sermons: {
         Row: {
           base_text: string
@@ -139,6 +160,36 @@ export type Database = {
           id?: string
           logo_base64?: string | null
           primary_color?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          plan_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          plan_id: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          plan_id?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -307,6 +358,11 @@ export const Constants = {
 //   content: jsonb (not null)
 //   date: timestamp with time zone (not null, default: now())
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: generation_logs
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   resource_type: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: sermons
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -328,6 +384,14 @@ export const Constants = {
 //   logo_base64: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+// Table: user_subscriptions
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   plan_id: text (not null)
+//   status: text (not null)
+//   expires_at: timestamp with time zone (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 
 // --- CONSTRAINTS ---
 // Table: contact_messages
@@ -336,6 +400,9 @@ export const Constants = {
 // Table: devotionals
 //   PRIMARY KEY devotionals_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY devotionals_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: generation_logs
+//   PRIMARY KEY generation_logs_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY generation_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: sermons
 //   PRIMARY KEY sermons_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY sermons_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -343,6 +410,9 @@ export const Constants = {
 //   PRIMARY KEY user_settings_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY user_settings_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE user_settings_user_id_key: UNIQUE (user_id)
+// Table: user_subscriptions
+//   PRIMARY KEY user_subscriptions_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY user_subscriptions_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: contact_messages
@@ -357,6 +427,11 @@ export const Constants = {
 //     USING: (auth.uid() = user_id)
 //     WITH CHECK: (auth.uid() = user_id)
 //   Policy "Users can view their own devotionals" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+// Table: generation_logs
+//   Policy "Users can insert their own generation logs" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (auth.uid() = user_id)
+//   Policy "Users can view their own generation logs" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
 // Table: sermons
 //   Policy "Users can delete their own sermons" (DELETE, PERMISSIVE) roles={authenticated}
@@ -375,6 +450,9 @@ export const Constants = {
 //   Policy "Users can update their own settings" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
 //     WITH CHECK: (auth.uid() = user_id)
+// Table: user_subscriptions
+//   Policy "Users can view their own subscriptions" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
 
 // --- INDEXES ---
 // Table: user_settings
