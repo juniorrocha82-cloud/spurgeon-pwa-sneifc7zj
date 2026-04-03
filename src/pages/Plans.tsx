@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,6 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useAuth } from '@/hooks/use-auth'
+import { supabase } from '@/lib/supabase/client'
 
 const plans = [
   {
@@ -28,6 +30,7 @@ const plans = [
     description: 'Para quem está começando a explorar a plataforma.',
     features: ['3 gerações em 7 dias', 'Acesso básico aos recursos', 'Suporte comunitário'],
     current: true,
+    stripePriceId: null,
   },
   {
     id: 'pro',
@@ -42,6 +45,7 @@ const plans = [
       'Suporte prioritário',
     ],
     current: false,
+    stripePriceId: 'price_pro_placeholder', // Substitua pelo Price ID real do Stripe
   },
   {
     id: 'enterprise',
@@ -56,12 +60,15 @@ const plans = [
       'Acesso antecipado a novas funções',
     ],
     current: false,
+    stripePriceId: 'price_enterprise_placeholder', // Substitua pelo Price ID real do Stripe
   },
 ]
 
 export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<(typeof plans)[0] | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const { user } = useAuth()
 
   const handleChoosePlan = (plan: (typeof plans)[0]) => {
     if (plan.current) return
@@ -69,11 +76,43 @@ export default function PlansPage() {
     setIsModalOpen(true)
   }
 
-  const handleProceedToPayment = () => {
-    toast.success('Redirecionando para o pagamento...', {
-      description: 'A integração com o gateway de pagamento será concluída em breve.',
-    })
-    setIsModalOpen(false)
+  const handleProceedToPayment = async () => {
+    if (!selectedPlan?.stripePriceId) {
+      toast.error('Plano inválido para pagamento.')
+      return
+    }
+
+    if (!user) {
+      toast.error('Você precisa estar logado para assinar um plano.')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          plan_id: selectedPlan.stripePriceId,
+          user_id: user.id,
+        },
+      })
+
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+
+      if (data?.url) {
+        // Redireciona o usuário para a sessão de checkout segura do Stripe
+        window.location.href = data.url
+      } else {
+        throw new Error('URL de checkout não foi gerada pelo servidor.')
+      }
+    } catch (err: any) {
+      console.error('Erro no fluxo de pagamento:', err)
+      toast.error('Erro ao iniciar o pagamento', {
+        description: err.message || 'Houve um problema ao contatar o servidor. Tente novamente.',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -138,7 +177,7 @@ export default function PlansPage() {
           <DialogHeader>
             <DialogTitle>Resumo da Assinatura</DialogTitle>
             <DialogDescription>
-              Confirme os detalhes do plano selecionado antes de prosseguir para o pagamento.
+              Confirme os detalhes do plano selecionado antes de prosseguir para o pagamento seguro.
             </DialogDescription>
           </DialogHeader>
 
@@ -168,10 +207,24 @@ export default function PlansPage() {
           )}
 
           <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-2">
-            <Button variant="outline" onClick={() => setIsModalOpen(false)} className="sm:mr-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              disabled={isLoading}
+              className="sm:mr-2"
+            >
               Cancelar
             </Button>
-            <Button onClick={handleProceedToPayment}>Prosseguir para Pagamento</Button>
+            <Button onClick={handleProceedToPayment} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Conectando...
+                </>
+              ) : (
+                'Prosseguir para Pagamento'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
