@@ -1,11 +1,12 @@
 {
-  "name": "Spurgeon PWA",
+  "name": "Spurgeon",
   "short_name": "Spurgeon",
-  "description": "Sistema PWA para geração de pregações com IA, utilizando referências bíblicas e design moderno.",
+  "description": "Gerador de Sermões com IA",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#001B3D",
-  "theme_color": "#D4AF37",
+  "background_color": "#ffffff",
+  "theme_color": "#1a2a4a",
   "icons": [
     {
       "src": "https://img.usecurling.com/i?q=bible&color=yellow&shape=outline",
