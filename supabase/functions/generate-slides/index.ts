@@ -22,7 +22,7 @@ Deno.serve(async (req: Request) => {
 
     const { sermon, slideCount, hasImages, theme, settings, customOutline, custom_outline } =
       await req.json()
-    const outline = custom_outline || customOutline
+    const outline = custom_outline || customOutline || sermon?.content?.custom_outline || ''
 
     const systemPrompt = `Você é um especialista em criar apresentações de slides impactantes para pregações cristãs.
 A partir do sermão fornecido, crie um roteiro de slides.

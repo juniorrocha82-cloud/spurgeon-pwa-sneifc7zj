@@ -85,12 +85,13 @@ export default function Index() {
 
     try {
       // 1. Generate via AI Edge Function
+      const outlineValue = hasCustomOutline ? customOutline : ''
       const generatedData = await aiGenerateSermon(
         baseText,
         version,
         duration[0],
         sermonType,
-        hasCustomOutline ? customOutline : undefined,
+        outlineValue,
       )
 
       // 2. Save to Database
@@ -100,7 +101,10 @@ export default function Index() {
         version,
         duration: duration[0],
         sermonType,
-        content: generatedData.content,
+        content: {
+          ...generatedData.content,
+          custom_outline: outlineValue,
+        },
         insights: generatedData.insights,
         references: generatedData.references,
       })

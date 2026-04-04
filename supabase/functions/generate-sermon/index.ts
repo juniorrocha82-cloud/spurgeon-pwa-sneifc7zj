@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
       custom_outline,
     } = await req.json()
 
-    const outline = custom_outline || customOutline
+    const outline = custom_outline || customOutline || ''
 
     const systemPrompt = `Você é um assistente teológico homilético experiente.
 Sua tarefa é gerar um sermão estruturado com base no texto ou tema fornecido, utilizando a versão bíblica solicitada (${version}).
