@@ -68,6 +68,18 @@ Deno.serve(async (req) => {
           planId = 'pro' // Default fallback
         }
 
+        // Tenta buscar o ID interno do plano correspondente ao price_id do Stripe
+        let internalPlanId = planId
+        const { data: planData } = await supabase
+          .from('subscription_plans')
+          .select('id')
+          .eq('price_id', planId)
+          .maybeSingle()
+
+        if (planData) {
+          internalPlanId = planData.id
+        }
+
         const { data: existingSub } = await supabase
           .from('user_subscriptions')
           .select('id')
@@ -79,7 +91,7 @@ Deno.serve(async (req) => {
             .from('user_subscriptions')
             .update({
               status: 'active',
-              plan_id: planId,
+              plan_id: internalPlanId,
               expires_at: expiresAt.toISOString(),
               stripe_subscription_id: (stripeSubscriptionId as string) || null,
               updated_at: new Date().toISOString(),
@@ -89,7 +101,7 @@ Deno.serve(async (req) => {
           await supabase.from('user_subscriptions').insert({
             user_id: userId,
             status: 'active',
-            plan_id: planId,
+            plan_id: internalPlanId,
             expires_at: expiresAt.toISOString(),
             stripe_subscription_id: (stripeSubscriptionId as string) || null,
           })

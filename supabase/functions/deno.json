@@ -1,11 +1,11 @@
 {
   "_versions": {
-    "generate-sermon": 15,
-    "generate-slides": 19,
-    "generate-devotional": 4,
-    "get-playlist-preview": 6,
-    "create-checkout-session": 4,
-    "stripe-webhook": 2,
-    "create-subscription": 1
+    "generate-sermon": 16,
+    "generate-slides": 20,
+    "generate-devotional": 5,
+    "get-playlist-preview": 7,
+    "create-checkout-session": 5,
+    "stripe-webhook": 4,
+    "create-subscription": 2
   }
 }
