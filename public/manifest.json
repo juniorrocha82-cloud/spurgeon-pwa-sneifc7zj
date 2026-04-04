@@ -9,12 +9,12 @@
   "theme_color": "#1a2a4a",
   "icons": [
     {
-      "src": "https://img.usecurling.com/i?q=bible&color=yellow&shape=outline",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://img.usecurling.com/i?q=bible&color=yellow&shape=outline",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
