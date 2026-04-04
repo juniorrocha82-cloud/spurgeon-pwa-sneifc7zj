@@ -20,7 +20,9 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const { sermon, slideCount, hasImages, theme, settings } = await req.json()
+    const { sermon, slideCount, hasImages, theme, settings, customOutline, custom_outline } =
+      await req.json()
+    const outline = custom_outline || customOutline
 
     const systemPrompt = `Você é um especialista em criar apresentações de slides impactantes para pregações cristãs.
 A partir do sermão fornecido, crie um roteiro de slides.
@@ -38,13 +40,17 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
   ]
 }`
 
-    const userPrompt = JSON.stringify({
+    let userPromptText = JSON.stringify({
       titulo: sermon.title,
       textoBase: sermon.baseText,
       introducao: sermon.content.intro,
       pontos: sermon.content.points,
       conclusao: sermon.content.conclusion,
     })
+
+    if (outline) {
+      userPromptText += `\n\nCrie slides que sigam exatamente a estrutura deste roteiro de pregação: ${outline}`
+    }
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
@@ -60,7 +66,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
           contents: [
             {
               role: 'user',
-              parts: [{ text: userPrompt }],
+              parts: [{ text: userPromptText }],
             },
           ],
           generationConfig: {
