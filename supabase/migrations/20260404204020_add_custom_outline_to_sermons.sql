@@ -1,0 +1,3 @@
+ALTER TABLE public.sermons 
+ADD COLUMN IF NOT EXISTS custom_outline TEXT,
+ADD COLUMN IF NOT EXISTS use_custom_outline BOOLEAN DEFAULT FALSE;

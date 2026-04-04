@@ -101,12 +101,11 @@ export default function Index() {
         version,
         duration: duration[0],
         sermonType,
-        content: {
-          ...generatedData.content,
-          custom_outline: outlineValue,
-        },
+        content: generatedData.content,
         insights: generatedData.insights,
         references: generatedData.references,
+        custom_outline: outlineValue,
+        use_custom_outline: hasCustomOutline,
       })
 
       // 3. Log generation

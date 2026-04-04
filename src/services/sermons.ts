@@ -18,7 +18,12 @@ export const aiGenerateSermon = async (
   return data
 }
 
-export const saveSermonToDb = async (sermonData: Omit<Sermon, 'id' | 'date'>): Promise<Sermon> => {
+export const saveSermonToDb = async (
+  sermonData: Omit<Sermon, 'id' | 'date'> & {
+    custom_outline?: string
+    use_custom_outline?: boolean
+  },
+): Promise<Sermon> => {
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) throw new Error('Usuário não autenticado')
 
@@ -50,6 +55,8 @@ export const saveSermonToDb = async (sermonData: Omit<Sermon, 'id' | 'date'>): P
       insights: sermonData.insights,
       references_list: sermonData.references,
       date: new Date().toISOString(),
+      custom_outline: sermonData.custom_outline || null,
+      use_custom_outline: sermonData.use_custom_outline || false,
     })
     .select()
     .single()
@@ -67,7 +74,9 @@ export const saveSermonToDb = async (sermonData: Omit<Sermon, 'id' | 'date'>): P
     insights: data.insights,
     references: data.references_list,
     date: data.date,
-  }
+    custom_outline: data.custom_outline,
+    use_custom_outline: data.use_custom_outline,
+  } as Sermon
 }
 
 export const fetchUserSermons = async (): Promise<Sermon[]> => {
@@ -90,6 +99,8 @@ export const fetchUserSermons = async (): Promise<Sermon[]> => {
     insights: d.insights,
     references: d.references_list,
     date: d.date,
+    custom_outline: d.custom_outline,
+    use_custom_outline: d.use_custom_outline,
   }))
 }
 
