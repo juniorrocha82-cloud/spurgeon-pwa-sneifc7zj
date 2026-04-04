@@ -95,6 +95,7 @@ export type Database = {
           base_text: string
           content: Json
           created_at: string
+          custom_outline: string | null
           date: string
           duration: number
           id: string
@@ -102,6 +103,7 @@ export type Database = {
           references_list: Json
           sermon_type: string
           title: string
+          use_custom_outline: boolean | null
           user_id: string
           version: string
         }
@@ -109,6 +111,7 @@ export type Database = {
           base_text: string
           content: Json
           created_at?: string
+          custom_outline?: string | null
           date?: string
           duration: number
           id?: string
@@ -116,6 +119,7 @@ export type Database = {
           references_list: Json
           sermon_type?: string
           title: string
+          use_custom_outline?: boolean | null
           user_id: string
           version: string
         }
@@ -123,6 +127,7 @@ export type Database = {
           base_text?: string
           content?: Json
           created_at?: string
+          custom_outline?: string | null
           date?: string
           duration?: number
           id?: string
@@ -130,6 +135,7 @@ export type Database = {
           references_list?: Json
           sermon_type?: string
           title?: string
+          use_custom_outline?: boolean | null
           user_id?: string
           version?: string
         }
@@ -198,6 +204,7 @@ export type Database = {
           expires_at: string
           id: string
           plan_id: string
+          sermons_generated: number | null
           status: string
           stripe_subscription_id: string | null
           updated_at: string
@@ -208,6 +215,7 @@ export type Database = {
           expires_at: string
           id?: string
           plan_id: string
+          sermons_generated?: number | null
           status: string
           stripe_subscription_id?: string | null
           updated_at?: string
@@ -218,6 +226,7 @@ export type Database = {
           expires_at?: string
           id?: string
           plan_id?: string
+          sermons_generated?: number | null
           status?: string
           stripe_subscription_id?: string | null
           updated_at?: string
@@ -406,6 +415,8 @@ export const Constants = {
 //   date: timestamp with time zone (not null, default: now())
 //   created_at: timestamp with time zone (not null, default: now())
 //   sermon_type: text (not null, default: 'Expositivo'::text)
+//   custom_outline: text (nullable)
+//   use_custom_outline: boolean (nullable, default: false)
 // Table: subscription_plans
 //   id: text (not null)
 //   name: text (not null)
@@ -430,6 +441,7 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
 //   stripe_subscription_id: text (nullable)
+//   sermons_generated: integer (nullable, default: 0)
 
 // --- CONSTRAINTS ---
 // Table: contact_messages

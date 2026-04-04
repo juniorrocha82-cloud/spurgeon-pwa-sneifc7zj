@@ -63,7 +63,11 @@ export default function Index() {
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!baseText.trim()) return
+    if (hasCustomOutline) {
+      if (!customOutline.trim()) return
+    } else {
+      if (!baseText.trim()) return
+    }
 
     try {
       const canGenerate = await checkGenerationLimit()
@@ -86,8 +90,9 @@ export default function Index() {
     try {
       // 1. Generate via AI Edge Function
       const outlineValue = hasCustomOutline ? customOutline : ''
+      const finalBaseText = baseText.trim() || 'Tema livre baseado no roteiro fornecido'
       const generatedData = await aiGenerateSermon(
-        baseText,
+        finalBaseText,
         version,
         duration[0],
         sermonType,
@@ -97,7 +102,7 @@ export default function Index() {
       // 2. Save to Database
       const savedSermon = await saveSermonToDb({
         title: generatedData.title,
-        baseText,
+        baseText: finalBaseText,
         version,
         duration: duration[0],
         sermonType,
@@ -156,7 +161,7 @@ export default function Index() {
                 className="min-h-[120px] resize-none bg-background/50 focus:bg-background border-border focus-visible:ring-primary/50 text-base leading-relaxed"
                 value={baseText}
                 onChange={(e) => setBaseText(e.target.value)}
-                required
+                required={!hasCustomOutline}
               />
             </div>
 
@@ -244,7 +249,9 @@ export default function Index() {
               type="submit"
               size="lg"
               className="w-full h-14 text-lg font-serif tracking-wide btn-gold-glow mt-4"
-              disabled={!baseText.trim() || isGenerating}
+              disabled={
+                isGenerating || (hasCustomOutline ? !customOutline.trim() : !baseText.trim())
+              }
             >
               <BookOpen className="mr-2 h-5 w-5" />
               Gerar Pregação
