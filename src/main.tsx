@@ -3,5 +3,13 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './main.css'
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+      console.log('ServiceWorker registration failed: ', err)
+    })
+  })
+}
+
 // @skip-protected: Do not remove. Required for React rendering.
 createRoot(document.getElementById('root')!).render(<App />)
