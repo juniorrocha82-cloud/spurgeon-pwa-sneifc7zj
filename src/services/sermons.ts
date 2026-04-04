@@ -6,9 +6,10 @@ export const aiGenerateSermon = async (
   version: string,
   duration: number,
   sermonType: string,
+  customOutline?: string,
 ) => {
   const { data, error } = await supabase.functions.invoke('generate-sermon', {
-    body: { baseText, version, duration, sermonType },
+    body: { baseText, version, duration, sermonType, customOutline },
   })
 
   if (error) throw error

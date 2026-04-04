@@ -20,7 +20,13 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const { baseText, version, duration, sermonType = 'Expositivo' } = await req.json()
+    const {
+      baseText,
+      version,
+      duration,
+      sermonType = 'Expositivo',
+      customOutline,
+    } = await req.json()
 
     const systemPrompt = `Você é um assistente teológico homilético experiente.
 Sua tarefa é gerar um sermão estruturado com base no texto ou tema fornecido, utilizando a versão bíblica solicitada (${version}).
@@ -55,9 +61,9 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
     "Livro Capítulo:Versículo - Breve explicação da relevância",
     "Livro Capítulo:Versículo - Breve explicação da relevância"
   ]
-}`
+}${customOutline ? `\n\nO usuário forneceu um roteiro/esboço prévio. Você DEVE utilizar esse roteiro como base, expandindo, organizando e aprofundando o conteúdo mantendo a intenção original do usuário.` : ''}`
 
-    const userPrompt = `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nEstilo: ${sermonType}\nDuração estimada: ${duration} minutos.`
+    const userPrompt = `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nEstilo: ${sermonType}\nDuração estimada: ${duration} minutos.${customOutline ? `\n\nRoteiro do Usuário:\n${customOutline}` : ''}`
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,

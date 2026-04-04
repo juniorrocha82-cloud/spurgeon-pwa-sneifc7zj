@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { useSermonStore } from '@/store/SermonContext'
 import { useToast } from '@/hooks/use-toast'
 import { aiGenerateSermon, saveSermonToDb } from '@/services/sermons'
@@ -43,6 +44,8 @@ export default function Index() {
   const [version, setVersion] = useState('NVI')
   const [sermonType, setSermonType] = useState('Expositivo')
   const [duration, setDuration] = useState([30])
+  const [hasCustomOutline, setHasCustomOutline] = useState(false)
+  const [customOutline, setCustomOutline] = useState('')
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [quoteIndex, setQuoteIndex] = useState(0)
@@ -82,7 +85,13 @@ export default function Index() {
 
     try {
       // 1. Generate via AI Edge Function
-      const generatedData = await aiGenerateSermon(baseText, version, duration[0], sermonType)
+      const generatedData = await aiGenerateSermon(
+        baseText,
+        version,
+        duration[0],
+        sermonType,
+        hasCustomOutline ? customOutline : undefined,
+      )
 
       // 2. Save to Database
       const savedSermon = await saveSermonToDb({
@@ -140,13 +149,39 @@ export default function Index() {
               </Label>
               <Textarea
                 id="baseText"
-                placeholder="Ex: João 3:16, ou um tema como 'A graça inesgotável', ou um esboço prévio..."
+                placeholder="Ex: João 3:16, ou um tema como 'A graça Inesgotável', ou um esboço prévio, ou seu próprio sermão (ative o botão 'Roteiro próprio de pregação')"
                 className="min-h-[120px] resize-none bg-background/50 focus:bg-background border-border focus-visible:ring-primary/50 text-base leading-relaxed"
                 value={baseText}
                 onChange={(e) => setBaseText(e.target.value)}
                 required
               />
             </div>
+
+            <div className="flex items-center space-x-2 mt-2">
+              <Switch
+                id="custom-outline"
+                checked={hasCustomOutline}
+                onCheckedChange={setHasCustomOutline}
+              />
+              <Label htmlFor="custom-outline" className="text-base cursor-pointer">
+                Roteiro próprio de pregação
+              </Label>
+            </div>
+
+            {hasCustomOutline && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="customOutline" className="text-base">
+                  Seu Roteiro
+                </Label>
+                <Textarea
+                  id="customOutline"
+                  placeholder="Cole aqui seu roteiro de pregação (introdução, pontos principais, conclusão, etc)"
+                  className="min-h-[150px] resize-none bg-background/50 focus:bg-background border-border focus-visible:ring-primary/50 text-base leading-relaxed"
+                  value={customOutline}
+                  onChange={(e) => setCustomOutline(e.target.value)}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-3">
