@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { loadStripe } from '@stripe/stripe-js'
@@ -26,20 +26,14 @@ import { supabase } from '@/lib/supabase/client'
 const stripePubKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 const stripePromise = stripePubKey ? loadStripe(stripePubKey) : null
 
-const plans = [
-  {
-    id: 'free',
-    name: 'Plano Gratuito',
+const PLAN_DETAILS: Record<string, any> = {
+  free: {
     price: 'R$ 0',
     period: '/mês',
     description: 'Para quem está começando a explorar a plataforma.',
     features: ['3 gerações em 7 dias', 'Acesso básico aos recursos', 'Suporte comunitário'],
-    current: true,
-    stripePriceId: null,
   },
-  {
-    id: 'pro',
-    name: 'Plano Pro',
+  pro: {
     price: 'R$ 40',
     period: '/mês',
     description: 'Para pregadores e líderes que precisam de mais recursos.',
@@ -49,12 +43,8 @@ const plans = [
       'Acesso a todas as ferramentas',
       'Suporte prioritário',
     ],
-    current: false,
-    stripePriceId: 'price_pro_placeholder', // Substitua pelo Price ID real do Stripe
   },
-  {
-    id: 'enterprise',
-    name: 'Plano Enterprise',
+  enterprise: {
     price: 'R$ 99',
     period: '/mês',
     description: 'Para igrejas e ministérios com alta demanda de conteúdo.',
@@ -64,57 +54,86 @@ const plans = [
       'Treinamento dedicado',
       'Acesso antecipado a novas funções',
     ],
-    current: false,
-    stripePriceId: 'price_enterprise_placeholder', // Substitua pelo Price ID real do Stripe
   },
-]
+}
 
 function PlansContent() {
-  const [selectedPlan, setSelectedPlan] = useState<(typeof plans)[0] | null>(null)
+  const [dbPlans, setDbPlans] = useState<any[]>([])
+  const [currentPlanId, setCurrentPlanId] = useState<string>('free')
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true)
+  const [selectedPlan, setSelectedPlan] = useState<any | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false)
+
   const { user } = useAuth()
   const stripe = useStripe()
 
-  const handleChoosePlan = (plan: (typeof plans)[0]) => {
+  useEffect(() => {
+    async function fetchPlans() {
+      setIsLoadingPlans(true)
+      try {
+        const { data: plansData } = await supabase.from('subscription_plans').select('*')
+        if (plansData) setDbPlans(plansData)
+
+        if (user) {
+          const { data: subData } = await supabase
+            .from('user_subscriptions')
+            .select('plan_id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .maybeSingle()
+
+          if (subData) setCurrentPlanId(subData.plan_id)
+        }
+      } catch (err) {
+        console.error(err)
+        toast.error('Erro ao carregar os planos disponíveis.')
+      } finally {
+        setIsLoadingPlans(false)
+      }
+    }
+    fetchPlans()
+  }, [user])
+
+  const displayPlans = ['free', 'pro', 'enterprise'].map((id) => {
+    const dbPlan = dbPlans.find((p) => p.id === id)
+    return {
+      id,
+      ...PLAN_DETAILS[id],
+      name:
+        dbPlan?.name ||
+        (id === 'free' ? 'Plano Gratuito' : id === 'pro' ? 'Plano Pro' : 'Plano Enterprise'),
+      stripePriceId: dbPlan?.price_id || null,
+      current: currentPlanId === id,
+    }
+  })
+
+  const handleChoosePlan = (plan: any) => {
     if (plan.current) return
     setSelectedPlan(plan)
     setIsModalOpen(true)
   }
 
   const handleProceedToPayment = async () => {
-    if (!selectedPlan?.stripePriceId) {
-      toast.error('Plano inválido para pagamento.')
-      return
-    }
+    if (!selectedPlan?.stripePriceId)
+      return toast.error('Este plano não requer pagamento ou não está configurado.')
+    if (!user) return toast.error('Você precisa estar logado para assinar.')
 
-    if (!user) {
-      toast.error('Você precisa estar logado para assinar um plano.')
-      return
-    }
-
-    setIsLoading(true)
+    setIsLoadingPayment(true)
     try {
       const { data, error } = await supabase.functions.invoke('create-subscription', {
-        body: {
-          plan_id: selectedPlan.stripePriceId,
-          user_id: user.id,
-        },
+        body: { plan_id: selectedPlan.stripePriceId, user_id: user.id },
       })
 
       if (error) throw error
       if (data?.error) throw new Error(data.error)
 
       if (data?.sessionId && stripe) {
-        // Redireciona o usuário para a sessão de checkout recorrente usando o Stripe.js
         const { error: stripeError } = await stripe.redirectToCheckout({
           sessionId: data.sessionId,
         })
-        if (stripeError) {
-          throw new Error(stripeError.message)
-        }
+        if (stripeError) throw new Error(stripeError.message)
       } else if (data?.url) {
-        // Fallback para redirecionamento direto
         window.location.href = data.url
       } else {
         throw new Error('Sessão de checkout não foi gerada pelo servidor.')
@@ -122,10 +141,10 @@ function PlansContent() {
     } catch (err: any) {
       console.error('Erro no fluxo de pagamento:', err)
       toast.error('Erro ao iniciar o pagamento', {
-        description: err.message || 'Houve um problema ao contatar o servidor. Tente novamente.',
+        description: err.message || 'Houve um problema ao contatar o servidor.',
       })
     } finally {
-      setIsLoading(false)
+      setIsLoadingPayment(false)
     }
   }
 
@@ -142,7 +161,7 @@ function PlansContent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-        {plans.map((plan) => (
+        {displayPlans.map((plan) => (
           <Card
             key={plan.id}
             className={`flex flex-col h-full transition-all duration-300 hover:shadow-lg ${plan.id === 'pro' ? 'border-primary shadow-md md:-mt-4 relative' : ''}`}
@@ -164,7 +183,7 @@ function PlansContent() {
                 <span className="text-muted-foreground font-medium">{plan.period}</span>
               </div>
               <ul className="space-y-3">
-                {plan.features.map((feature, i) => (
+                {plan.features.map((feature: string, i: number) => (
                   <li key={i} className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <span className="text-sm">{feature}</span>
@@ -176,10 +195,16 @@ function PlansContent() {
               <Button
                 className="w-full"
                 variant={plan.current ? 'outline' : plan.id === 'pro' ? 'default' : 'secondary'}
-                disabled={plan.current}
+                disabled={plan.current || isLoadingPlans}
                 onClick={() => handleChoosePlan(plan)}
               >
-                {plan.current ? 'Seu Plano Atual' : 'Escolher Plano'}
+                {isLoadingPlans ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : plan.current ? (
+                  'Seu Plano Atual'
+                ) : (
+                  'Escolher Plano'
+                )}
               </Button>
             </CardFooter>
           </Card>
@@ -209,7 +234,7 @@ function PlansContent() {
               <div className="text-sm text-muted-foreground pt-3 border-t">
                 <span className="font-medium text-foreground mb-2 block">Você terá acesso a:</span>
                 <ul className="space-y-2">
-                  {selectedPlan.features.map((feature, i) => (
+                  {selectedPlan.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                       {feature}
@@ -224,16 +249,15 @@ function PlansContent() {
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
-              disabled={isLoading}
+              disabled={isLoadingPayment}
               className="sm:mr-2"
             >
               Cancelar
             </Button>
-            <Button onClick={handleProceedToPayment} disabled={isLoading}>
-              {isLoading ? (
+            <Button onClick={handleProceedToPayment} disabled={isLoadingPayment}>
+              {isLoadingPayment ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Conectando...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Conectando...
                 </>
               ) : (
                 'Prosseguir para Pagamento'

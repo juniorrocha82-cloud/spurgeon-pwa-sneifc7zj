@@ -135,6 +135,33 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          generation_limit: number | null
+          id: string
+          name: string
+          price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          generation_limit?: number | null
+          id: string
+          name: string
+          price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          generation_limit?: number | null
+          id?: string
+          name?: string
+          price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           created_at: string
@@ -379,6 +406,13 @@ export const Constants = {
 //   date: timestamp with time zone (not null, default: now())
 //   created_at: timestamp with time zone (not null, default: now())
 //   sermon_type: text (not null, default: 'Expositivo'::text)
+// Table: subscription_plans
+//   id: text (not null)
+//   name: text (not null)
+//   price_id: text (nullable)
+//   generation_limit: integer (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 // Table: user_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -410,6 +444,8 @@ export const Constants = {
 // Table: sermons
 //   PRIMARY KEY sermons_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY sermons_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: subscription_plans
+//   PRIMARY KEY subscription_plans_pkey: PRIMARY KEY (id)
 // Table: user_settings
 //   PRIMARY KEY user_settings_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY user_settings_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -446,6 +482,9 @@ export const Constants = {
 //     USING: (auth.uid() = user_id)
 //   Policy "Users can view their own sermons" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
+// Table: subscription_plans
+//   Policy "Allow read access to all users" (SELECT, PERMISSIVE) roles={public}
+//     USING: true
 // Table: user_settings
 //   Policy "Users can insert their own settings" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (auth.uid() = user_id)
