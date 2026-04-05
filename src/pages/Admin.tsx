@@ -36,28 +36,11 @@ export default function AdminPage() {
 
     const fetchData = async () => {
       try {
-        const { data: subs, error } = await supabase
-          .from('user_subscriptions')
-          .select(`
-            id,
-            user_id,
-            status,
-            sermons_generated,
-            plan_id,
-            expires_at,
-            plan:subscription_plans(name, generation_limit)
-          `)
-          .order('created_at', { ascending: false })
+        const { data: result, error } = await supabase.functions.invoke('get-admin-users')
 
         if (error) throw error
 
-        const formatted = (subs || []).map((sub) => ({
-          ...sub,
-          email:
-            sub.user_id === user.id ? user.email : `user_${sub.user_id.substring(0, 6)}@email.com`,
-        }))
-
-        setData(formatted)
+        setData(result || [])
       } catch (err) {
         console.error('Error fetching admin data:', err)
       } finally {
@@ -145,11 +128,7 @@ export default function AdminPage() {
                   filteredData.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.email}</TableCell>
-                      <TableCell>
-                        {Array.isArray(item.plan)
-                          ? item.plan[0]?.name
-                          : item.plan?.name || item.plan_id}
-                      </TableCell>
+                      <TableCell>{item.plan_name}</TableCell>
                       <TableCell>
                         <Badge
                           variant={item.status === 'active' ? 'default' : 'secondary'}
@@ -165,10 +144,7 @@ export default function AdminPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span className="text-sm">
-                            {item.sermons_generated || 0} /{' '}
-                            {Array.isArray(item.plan)
-                              ? item.plan[0]?.generation_limit
-                              : item.plan?.generation_limit || '∞'}
+                            {item.sermons_generated || 0} / {item.generation_limit || '∞'}
                           </span>
                         </div>
                       </TableCell>
