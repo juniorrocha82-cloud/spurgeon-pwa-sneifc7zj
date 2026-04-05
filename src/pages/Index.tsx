@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Sparkles, Clock, Quote } from 'lucide-react'
+import { BookOpen, Sparkles, Clock, Quote, RefreshCw, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,7 +17,8 @@ import { Switch } from '@/components/ui/switch'
 import { useSermonStore } from '@/store/SermonContext'
 import { useToast } from '@/hooks/use-toast'
 import { aiGenerateSermon, saveSermonToDb } from '@/services/sermons'
-import { checkGenerationLimit, logGeneration } from '@/services/billing'
+import { logGeneration } from '@/services/billing'
+import { supabase } from '@/lib/supabase/client'
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ export default function Index() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [quoteIndex, setQuoteIndex] = useState(0)
   const [showLimitModal, setShowLimitModal] = useState(false)
+  const [isReloadingLimit, setIsReloadingLimit] = useState(false)
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>
@@ -61,6 +63,59 @@ export default function Index() {
     return () => clearInterval(interval)
   }, [isGenerating])
 
+  const checkRealtimeLimit = async () => {
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData?.user) return false
+
+    const { data: sub } = await supabase
+      .from('user_subscriptions')
+      .select('sermons_generated, plan_id')
+      .eq('user_id', userData.user.id)
+      .maybeSingle()
+
+    if (!sub) return false
+
+    const { data: plan } = await supabase
+      .from('subscription_plans')
+      .select('generation_limit')
+      .eq('id', sub.plan_id)
+      .maybeSingle()
+
+    const generated = sub.sermons_generated || 0
+    const limit = plan?.generation_limit
+
+    if (limit === null) return true // Ilimitado
+    return generated < (limit || 3) // Fallback limit
+  }
+
+  const handleReloadLimit = async () => {
+    setIsReloadingLimit(true)
+    try {
+      const canGenerate = await checkRealtimeLimit()
+      if (canGenerate) {
+        setShowLimitModal(false)
+        toast({
+          title: 'Dados atualizados',
+          description: 'Seu limite foi atualizado e você já pode gerar novas pregações.',
+        })
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Limite ainda excedido',
+          description: 'Seu limite de gerações continua excedido. Faça um upgrade para continuar.',
+        })
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao recarregar os dados.',
+      })
+    } finally {
+      setIsReloadingLimit(false)
+    }
+  }
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (hasCustomOutline) {
@@ -70,7 +125,7 @@ export default function Index() {
     }
 
     try {
-      const canGenerate = await checkGenerationLimit()
+      const canGenerate = await checkRealtimeLimit()
       if (!canGenerate) {
         setShowLimitModal(true)
         return
@@ -304,13 +359,26 @@ export default function Index() {
               criando pregações inspiradoras com o auxílio da IA.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
+          <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
             <Button
               variant="outline"
               onClick={() => setShowLimitModal(false)}
               className="w-full sm:w-auto"
             >
               Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleReloadLimit}
+              disabled={isReloadingLimit}
+              className="w-full sm:w-auto"
+            >
+              {isReloadingLimit ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <RefreshCw className="w-4 h-4 mr-2" />
+              )}
+              Recarregar
             </Button>
             <Button onClick={() => navigate('/planos')} className="w-full sm:w-auto btn-gold-glow">
               Ver Planos
