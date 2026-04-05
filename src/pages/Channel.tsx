@@ -11,13 +11,6 @@ interface PlaylistInfo {
   thumbnail_url: string | null
 }
 
-declare global {
-  interface Window {
-    onYouTubeIframeAPIReady: () => void
-    YT: any
-  }
-}
-
 export default function ChannelPage() {
   const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,28 +19,10 @@ export default function ChannelPage() {
   const playlistId = 'PLS7Kqj3rKpLyS3kTsPtaQVj3MQWNhenWq'
 
   useEffect(() => {
-    const loadYouTubeApi = () => {
-      if (!window.YT) {
-        const tag = document.createElement('script')
-        tag.src = 'https://www.youtube.com/iframe_api'
-        const firstScriptTag = document.getElementsByTagName('script')[0]
-        if (firstScriptTag && firstScriptTag.parentNode) {
-          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-        } else {
-          document.head.appendChild(tag)
-        }
-      }
-
-      window.onYouTubeIframeAPIReady = () => {
-        console.log('YouTube Iframe API is ready')
-      }
-    }
-
-    loadYouTubeApi()
-
     const fetchPlaylistPreview = async () => {
       try {
         setLoading(true)
+        // Default behavior of supabase.functions.invoke with body is a POST request
         const { data, error: invokeError } = await supabase.functions.invoke(
           'get-playlist-preview',
           {
@@ -84,34 +59,8 @@ export default function ChannelPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <div className="px-1">
-          <h2 className="text-2xl font-serif font-bold mt-4">Vídeo em Destaque</h2>
-          <p className="text-muted-foreground mt-2">
-            Assista à nossa página no YouTube. Acompanhe as atualizações diárias de músicas e
-            compartilhe com seus irmãos!
-          </p>
-        </div>
-        <Card className="overflow-hidden border-border/50 shadow-elevation">
-          <CardContent className="p-0">
-            <div className="relative w-full aspect-video bg-black flex items-center justify-center">
-              <iframe
-                className="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/JgiRvrw1CVg?si=Kp9JN-oHHeELwM06&enablejsapi=1"
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="px-1 mt-4">
-          <h2 className="text-2xl font-serif font-bold">Minha Playlist de Adoração</h2>
-        </div>
-
+      <div className="flex flex-col gap-8">
+        {/* Main Card with Metadata */}
         {error ? (
           <Card className="overflow-hidden border-destructive/50 shadow-elevation bg-destructive/10">
             <CardContent className="p-6">
@@ -125,50 +74,75 @@ export default function ChannelPage() {
           </Card>
         ) : loading ? (
           <Card className="overflow-hidden border-border/50 shadow-elevation">
-            <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
-              <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 rounded-md hidden sm:block flex-shrink-0" />
+            <CardHeader className="flex flex-col sm:flex-row items-start gap-6">
+              <Skeleton className="w-full sm:w-48 aspect-video rounded-md flex-shrink-0" />
               <div className="space-y-3 flex-1 w-full">
                 <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-8 w-full" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-5/6" />
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <Skeleton className="w-full aspect-video rounded-none" />
-            </CardContent>
           </Card>
         ) : (
           <Card className="overflow-hidden border-border/50 shadow-elevation">
-            {playlistInfo && !error && (
-              <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
+            {playlistInfo && (
+              <CardHeader className="flex flex-col sm:flex-row items-start gap-6">
                 {playlistInfo.thumbnail_url && (
                   <img
                     src={playlistInfo.thumbnail_url}
                     alt={playlistInfo.playlist_name}
-                    className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-md shadow-sm hidden sm:block flex-shrink-0"
+                    className="w-full sm:w-48 aspect-video object-cover rounded-md shadow-sm flex-shrink-0"
                   />
                 )}
                 <div className="space-y-2 flex-1 min-w-0">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <Youtube className="w-4 h-4" />
-                    <span>{playlistInfo.channel_name}</span>
+                    <Youtube className="w-5 h-5 text-red-600" />
+                    <span className="font-medium">{playlistInfo.channel_name}</span>
                   </div>
-                  <CardTitle className="text-xl md:text-2xl truncate">
+                  <CardTitle className="text-2xl md:text-3xl font-serif">
                     {playlistInfo.playlist_name}
                   </CardTitle>
                   {playlistInfo.description && (
-                    <CardDescription className="line-clamp-3 text-sm md:text-base">
+                    <CardDescription className="text-base text-foreground/80 mt-2 whitespace-pre-wrap">
                       {playlistInfo.description}
                     </CardDescription>
                   )}
                 </div>
               </CardHeader>
             )}
+          </Card>
+        )}
+
+        {/* Featured Video */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-serif font-bold px-1">Vídeo em Destaque</h2>
+          <Card className="overflow-hidden border-border/50 shadow-elevation">
             <CardContent className="p-0">
               <div className="relative w-full aspect-video bg-black flex items-center justify-center">
                 <iframe
                   className="absolute top-0 left-0 w-full h-full"
-                  src={`https://www.youtube.com/embed/videoseries?list=${playlistId}&enablejsapi=1`}
+                  src="https://www.youtube.com/embed/JgiRvrw1CVg"
+                  title="Vídeo em Destaque"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Full Playlist */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-serif font-bold px-1">Playlist Completa</h2>
+          <Card className="overflow-hidden border-border/50 shadow-elevation">
+            <CardContent className="p-0">
+              <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src={`https://www.youtube.com/embed/videoseries?list=${playlistId}`}
                   title="YouTube playlist player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -178,7 +152,7 @@ export default function ChannelPage() {
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
       </div>
     </div>
   )
