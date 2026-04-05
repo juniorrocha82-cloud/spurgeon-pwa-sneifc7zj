@@ -10,79 +10,32 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-
-const VERSIONS = [
-  { id: 'nvi', name: 'NVI - Nova Versão Internacional' },
-  { id: 'acf', name: 'ACF - Almeida Corrigida Fiel' },
-  { id: 'ara', name: 'ARA - Almeida Revista e Atualizada' },
-  { id: 'arc', name: 'ARC - Almeida Revista e Corrigida' },
-]
-
-interface BibleBook {
-  abbrev: { pt: string }
-  name: string
-  chapters: number
-}
+import { BIBLE_BOOKS, VERSIONS } from '@/lib/bible-data'
 
 interface BibleVerse {
-  number: number
+  verse: number
   text: string
 }
 
 export default function BiblePage() {
   const { toast } = useToast()
 
-  const [books, setBooks] = useState<BibleBook[]>([])
   const [verses, setVerses] = useState<BibleVerse[]>([])
 
   const [selectedVersion, setSelectedVersion] = useState(VERSIONS[0].id)
-  const [selectedBook, setSelectedBook] = useState('')
+  const [selectedBook, setSelectedBook] = useState(BIBLE_BOOKS[0].id)
   const [selectedChapter, setSelectedChapter] = useState('1')
 
-  const [loadingBooks, setLoadingBooks] = useState(true)
   const [loadingVerses, setLoadingVerses] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [booksError, setBooksError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
-  const currentBook = useMemo(
-    () => books.find((b) => b.abbrev.pt === selectedBook),
-    [books, selectedBook],
-  )
+  const currentBook = useMemo(() => BIBLE_BOOKS.find((b) => b.id === selectedBook), [selectedBook])
 
   const chapterOptions = useMemo(
     () => Array.from({ length: currentBook?.chapters || 1 }, (_, i) => (i + 1).toString()),
     [currentBook],
   )
-
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        setLoadingBooks(true)
-        setBooksError(null)
-        const response = await fetch('https://www.abibliadigital.com.br/api/books')
-        if (!response.ok) throw new Error(`Falha ao carregar livros (Status: ${response.status})`)
-        const data = await response.json()
-        if (!Array.isArray(data)) throw new Error('Dados inválidos')
-        setBooks(data)
-        if (data.length > 0) {
-          setSelectedBook((prev) => prev || data[0].abbrev.pt)
-        }
-      } catch (err: any) {
-        console.error(err)
-        setBooksError('Erro ao carregar os livros. A API pode estar indisponível.')
-        toast({
-          title: 'Erro de Conexão',
-          description: 'Não foi possível carregar a lista de livros.',
-          variant: 'destructive',
-        })
-      } finally {
-        setLoadingBooks(false)
-      }
-    }
-
-    fetchBooks()
-  }, [toast, retryCount])
 
   useEffect(() => {
     if (currentBook && parseInt(selectedChapter) > currentBook.chapters) {
@@ -98,7 +51,7 @@ export default function BiblePage() {
         setLoadingVerses(true)
         setError(null)
         const response = await fetch(
-          `https://www.abibliadigital.com.br/api/verses/${selectedVersion}/${selectedBook}/${selectedChapter}`,
+          `https://bible-api.com/${selectedBook}+${selectedChapter}?translation=${selectedVersion}`,
         )
         if (!response.ok) {
           if (response.status === 404) throw new Error('Capítulo não encontrado nesta versão.')
@@ -141,11 +94,7 @@ export default function BiblePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground pl-1">Versão</label>
-          <Select
-            value={selectedVersion}
-            onValueChange={setSelectedVersion}
-            disabled={loadingBooks || !!booksError}
-          >
+          <Select value={selectedVersion} onValueChange={setSelectedVersion}>
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
               <SelectValue placeholder="Selecione a versão" />
             </SelectTrigger>
@@ -161,21 +110,13 @@ export default function BiblePage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground pl-1">Livro</label>
-          <Select
-            value={selectedBook}
-            onValueChange={setSelectedBook}
-            disabled={loadingBooks || !!booksError}
-          >
+          <Select value={selectedBook} onValueChange={setSelectedBook}>
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
-              <SelectValue
-                placeholder={
-                  loadingBooks ? 'Carregando...' : booksError ? 'Erro' : 'Selecione o livro'
-                }
-              />
+              <SelectValue placeholder="Selecione o livro" />
             </SelectTrigger>
             <SelectContent>
-              {books.map((b) => (
-                <SelectItem key={b.abbrev.pt} value={b.abbrev.pt}>
+              {BIBLE_BOOKS.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
                   {b.name}
                 </SelectItem>
               ))}
@@ -188,7 +129,7 @@ export default function BiblePage() {
           <Select
             value={selectedChapter}
             onValueChange={setSelectedChapter}
-            disabled={loadingBooks || !selectedBook || !!booksError}
+            disabled={!selectedBook}
           >
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
               <SelectValue placeholder="Capítulo" />
@@ -206,7 +147,7 @@ export default function BiblePage() {
 
       <Card className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm">
         <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
-          {loadingVerses || loadingBooks ? (
+          {loadingVerses ? (
             <div className="space-y-4 w-full h-full">
               <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
               {Array.from({ length: 8 }).map((_, i) => (
@@ -215,17 +156,6 @@ export default function BiblePage() {
                   className={`h-6 ${i % 3 === 0 ? 'w-[95%]' : i % 2 === 0 ? 'w-full' : 'w-[90%]'}`}
                 />
               ))}
-            </div>
-          ) : booksError ? (
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
-              <BookIcon className="w-12 h-12 text-destructive/50" />
-              <p className="text-muted-foreground text-lg">{booksError}</p>
-              <button
-                onClick={() => setRetryCount((r) => r + 1)}
-                className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md shadow hover:bg-primary/90 transition-colors"
-              >
-                Tentar Novamente
-              </button>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
@@ -245,9 +175,9 @@ export default function BiblePage() {
               </h2>
               <div className="font-serif text-lg md:text-xl leading-relaxed md:leading-[2.2] text-foreground/90 text-justify">
                 {verses.map((v) => (
-                  <span key={v.number} className="mr-2 inline-block mb-1">
+                  <span key={v.verse} className="mr-2 inline-block mb-1">
                     <sup className="text-primary font-sans font-bold mr-1.5 select-none text-[0.65rem] md:text-xs">
-                      {v.number}
+                      {v.verse}
                     </sup>
                     {v.text}
                   </span>
