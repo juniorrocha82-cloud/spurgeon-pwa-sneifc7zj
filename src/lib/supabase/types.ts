@@ -550,6 +550,8 @@ export const Constants = {
 // Table: subscription_plans
 //   Policy "Allow read access to all users" (SELECT, PERMISSIVE) roles={public}
 //     USING: true
+//   Policy "Permitir leitura de planos" (SELECT, PERMISSIVE) roles={public}
+//     USING: (auth.role() = 'authenticated'::text)
 // Table: user_settings
 //   Policy "Users can insert their own settings" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (auth.uid() = user_id)
@@ -559,6 +561,8 @@ export const Constants = {
 //     USING: (auth.uid() = user_id)
 //     WITH CHECK: (auth.uid() = user_id)
 // Table: user_subscriptions
+//   Policy "Permitir leitura da própria assinatura" (SELECT, PERMISSIVE) roles={public}
+//     USING: (auth.uid() = user_id)
 //   Policy "Users can view their own subscriptions" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
 // Table: youtube_playlists

@@ -1,7 +1,19 @@
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
-import { Feather, History, Settings, BookOpen, Info, Mail, BookHeart, Book } from 'lucide-react'
+import {
+  Feather,
+  History,
+  Settings,
+  BookOpen,
+  Info,
+  Mail,
+  BookHeart,
+  Book,
+  Shield,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
+
+const ADMIN_ID = '911d1666-978b-4ead-9be2-5a49028c767f'
 
 export default function Layout() {
   const location = useLocation()
@@ -12,6 +24,7 @@ export default function Layout() {
     { path: '/history', label: 'Meus Sermões', icon: History },
     { path: '/devotionals', label: 'Devocionais', icon: BookHeart },
     { path: '/bible', label: 'Bíblia', icon: Book },
+    ...(user?.id === ADMIN_ID ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
   ]
 
   const getPageTitle = () => {
@@ -24,6 +37,7 @@ export default function Layout() {
     if (location.pathname === '/settings') return 'Configurações'
     if (location.pathname === '/about') return 'Sobre'
     if (location.pathname === '/contact') return 'Contato'
+    if (location.pathname === '/admin') return 'Administração'
     return 'Spurgeon PWA'
   }
 
