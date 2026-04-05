@@ -42,6 +42,8 @@ export default function BiblePage() {
   const [loadingBooks, setLoadingBooks] = useState(true)
   const [loadingVerses, setLoadingVerses] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [booksError, setBooksError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   const currentBook = useMemo(
     () => books.find((b) => b.abbrev.pt === selectedBook),
@@ -57,14 +59,18 @@ export default function BiblePage() {
     const fetchBooks = async () => {
       try {
         setLoadingBooks(true)
+        setBooksError(null)
         const response = await fetch('https://www.abibliadigital.com.br/api/books')
-        if (!response.ok) throw new Error('Falha ao carregar livros')
+        if (!response.ok) throw new Error(`Falha ao carregar livros (Status: ${response.status})`)
         const data = await response.json()
+        if (!Array.isArray(data)) throw new Error('Dados inválidos')
         setBooks(data)
         if (data.length > 0) {
-          setSelectedBook(data[0].abbrev.pt)
+          setSelectedBook((prev) => prev || data[0].abbrev.pt)
         }
       } catch (err: any) {
+        console.error(err)
+        setBooksError('Erro ao carregar os livros. A API pode estar indisponível.')
         toast({
           title: 'Erro de Conexão',
           description: 'Não foi possível carregar a lista de livros.',
@@ -74,8 +80,9 @@ export default function BiblePage() {
         setLoadingBooks(false)
       }
     }
+
     fetchBooks()
-  }, [toast])
+  }, [toast, retryCount])
 
   useEffect(() => {
     if (currentBook && parseInt(selectedChapter) > currentBook.chapters) {
@@ -95,12 +102,14 @@ export default function BiblePage() {
         )
         if (!response.ok) {
           if (response.status === 404) throw new Error('Capítulo não encontrado nesta versão.')
-          throw new Error('Falha ao carregar versículos.')
+          throw new Error(`Falha ao carregar versículos (Status: ${response.status}).`)
         }
         const data = await response.json()
+        if (!data || !data.verses) throw new Error('Dados do capítulo inválidos.')
         setVerses(data.verses || [])
       } catch (err: any) {
-        setError(err.message)
+        console.error(err)
+        setError(err.message || 'Erro ao carregar o capítulo.')
         toast({
           title: 'Erro de Leitura',
           description: err.message || 'Erro ao carregar o capítulo.',
@@ -113,7 +122,7 @@ export default function BiblePage() {
     }
 
     fetchVerses()
-  }, [selectedVersion, selectedBook, selectedChapter, toast])
+  }, [selectedVersion, selectedBook, selectedChapter, retryCount, toast])
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-12">
@@ -135,7 +144,7 @@ export default function BiblePage() {
           <Select
             value={selectedVersion}
             onValueChange={setSelectedVersion}
-            disabled={loadingBooks}
+            disabled={loadingBooks || !!booksError}
           >
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
               <SelectValue placeholder="Selecione a versão" />
@@ -152,9 +161,17 @@ export default function BiblePage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground pl-1">Livro</label>
-          <Select value={selectedBook} onValueChange={setSelectedBook} disabled={loadingBooks}>
+          <Select
+            value={selectedBook}
+            onValueChange={setSelectedBook}
+            disabled={loadingBooks || !!booksError}
+          >
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
-              <SelectValue placeholder={loadingBooks ? 'Carregando...' : 'Selecione o livro'} />
+              <SelectValue
+                placeholder={
+                  loadingBooks ? 'Carregando...' : booksError ? 'Erro' : 'Selecione o livro'
+                }
+              />
             </SelectTrigger>
             <SelectContent>
               {books.map((b) => (
@@ -171,7 +188,7 @@ export default function BiblePage() {
           <Select
             value={selectedChapter}
             onValueChange={setSelectedChapter}
-            disabled={loadingBooks || !selectedBook}
+            disabled={loadingBooks || !selectedBook || !!booksError}
           >
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
               <SelectValue placeholder="Capítulo" />
@@ -188,9 +205,9 @@ export default function BiblePage() {
       </div>
 
       <Card className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm">
-        <CardContent className="p-6 md:p-10 min-h-[400px]">
+        <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
           {loadingVerses || loadingBooks ? (
-            <div className="space-y-4">
+            <div className="space-y-4 w-full h-full">
               <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
               {Array.from({ length: 8 }).map((_, i) => (
                 <Skeleton
@@ -199,13 +216,30 @@ export default function BiblePage() {
                 />
               ))}
             </div>
+          ) : booksError ? (
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+              <BookIcon className="w-12 h-12 text-destructive/50" />
+              <p className="text-muted-foreground text-lg">{booksError}</p>
+              <button
+                onClick={() => setRetryCount((r) => r + 1)}
+                className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md shadow hover:bg-primary/90 transition-colors"
+              >
+                Tentar Novamente
+              </button>
+            </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
               <BookIcon className="w-12 h-12 text-muted-foreground/50" />
               <p className="text-muted-foreground text-lg">{error}</p>
+              <button
+                onClick={() => setRetryCount((r) => r + 1)}
+                className="mt-4 px-4 py-2 border border-border bg-card rounded-md shadow-sm hover:bg-accent transition-colors text-foreground"
+              >
+                Recarregar Capítulo
+              </button>
             </div>
           ) : verses.length > 0 ? (
-            <div className="relative">
+            <div className="relative w-full h-full animate-fade-in">
               <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground/90 mb-8 text-center border-b border-border/50 pb-4">
                 {currentBook?.name} {selectedChapter}
               </h2>
