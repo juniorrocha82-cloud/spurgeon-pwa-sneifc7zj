@@ -38,9 +38,16 @@ Deno.serve(async (req: Request) => {
       const planData = sub?.plan
 
       const planName = Array.isArray(planData) ? planData[0]?.name : planData?.name
-      const genLimit = Array.isArray(planData)
+      let genLimit = Array.isArray(planData)
         ? planData[0]?.generation_limit
         : planData?.generation_limit
+
+      const planId = sub?.plan_id
+      if (genLimit === undefined) {
+        if (planId === 'pro') genLimit = 15
+        else if (planId === 'free') genLimit = 3
+        else if (planId === 'enterprise') genLimit = null
+      }
 
       return {
         id: user.id,
@@ -48,7 +55,7 @@ Deno.serve(async (req: Request) => {
         plan_name: planName || 'Nenhum',
         status: sub?.status || 'inactive',
         sermons_generated: sub?.sermons_generated || 0,
-        generation_limit: genLimit,
+        generation_limit: genLimit ?? null,
       }
     })
 

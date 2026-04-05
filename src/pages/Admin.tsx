@@ -176,7 +176,9 @@ export default function AdminPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span className="text-sm">
-                            {item.sermons_generated || 0} / {item.generation_limit || '∞'}
+                            {item.generation_limit === null
+                              ? 'Ilimitado'
+                              : `${item.sermons_generated || 0} / ${item.generation_limit}`}
                           </span>
                         </div>
                       </TableCell>

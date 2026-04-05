@@ -100,9 +100,9 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
   const planName =
     planDetails?.name || (planId === 'free' ? 'Gratuito' : planId === 'pro' ? 'Pro' : 'Enterprise')
   const generationLimit =
-    planDetails?.generation_limit || (planId === 'free' ? 3 : planId === 'pro' ? 15 : 999999)
+    planDetails?.generation_limit ?? (planId === 'free' ? 3 : planId === 'pro' ? 15 : null)
   const sermonsGenerated = subscription?.sermons_generated || 0
-  const isUnlimited = generationLimit >= 999999
+  const isUnlimited = generationLimit === null
 
   const uiDetails = PLAN_FEATURES[planId] || PLAN_FEATURES.free
 
@@ -205,7 +205,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
                 <span>Gerações utilizadas</span>
                 <span>
                   {isUnlimited ? (
-                    <span className="text-muted-foreground">{sermonsGenerated} / ∞</span>
+                    <span className="text-muted-foreground">Ilimitado</span>
                   ) : (
                     <span className={isNearLimit ? 'text-amber-500' : ''}>
                       {sermonsGenerated} / {generationLimit}
