@@ -11,141 +11,169 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 
-const VERSIONS = [{ id: 'almeida', name: 'João Ferreira de Almeida' }]
-
-const BIBLE_BOOKS = [
-  { id: 'gen', name: 'Gênesis', chapters: 50 },
-  { id: 'exo', name: 'Êxodo', chapters: 40 },
-  { id: 'lev', name: 'Levítico', chapters: 27 },
-  { id: 'num', name: 'Números', chapters: 36 },
-  { id: 'deu', name: 'Deuteronômio', chapters: 34 },
-  { id: 'jos', name: 'Josué', chapters: 24 },
-  { id: 'jdg', name: 'Juízes', chapters: 21 },
-  { id: 'rut', name: 'Rute', chapters: 4 },
-  { id: '1sa', name: '1 Samuel', chapters: 31 },
-  { id: '2sa', name: '2 Samuel', chapters: 24 },
-  { id: '1ki', name: '1 Reis', chapters: 22 },
-  { id: '2ki', name: '2 Reis', chapters: 25 },
-  { id: '1ch', name: '1 Crônicas', chapters: 29 },
-  { id: '2ch', name: '2 Crônicas', chapters: 36 },
-  { id: 'ezr', name: 'Esdras', chapters: 10 },
-  { id: 'neh', name: 'Neemias', chapters: 13 },
-  { id: 'est', name: 'Ester', chapters: 10 },
-  { id: 'job', name: 'Jó', chapters: 42 },
-  { id: 'psa', name: 'Salmos', chapters: 150 },
-  { id: 'pro', name: 'Provérbios', chapters: 31 },
-  { id: 'ecc', name: 'Eclesiastes', chapters: 12 },
-  { id: 'sng', name: 'Cânticos', chapters: 8 },
-  { id: 'isa', name: 'Isaías', chapters: 66 },
-  { id: 'jer', name: 'Jeremias', chapters: 52 },
-  { id: 'lam', name: 'Lamentações', chapters: 5 },
-  { id: 'ezk', name: 'Ezequiel', chapters: 48 },
-  { id: 'dan', name: 'Daniel', chapters: 12 },
-  { id: 'hos', name: 'Oséias', chapters: 14 },
-  { id: 'jol', name: 'Joel', chapters: 3 },
-  { id: 'amo', name: 'Amós', chapters: 9 },
-  { id: 'oba', name: 'Obadias', chapters: 1 },
-  { id: 'jon', name: 'Jonas', chapters: 4 },
-  { id: 'mic', name: 'Miquéias', chapters: 7 },
-  { id: 'nam', name: 'Naum', chapters: 3 },
-  { id: 'hab', name: 'Habacuque', chapters: 3 },
-  { id: 'zep', name: 'Sofonias', chapters: 3 },
-  { id: 'hag', name: 'Ageu', chapters: 2 },
-  { id: 'zec', name: 'Zacarias', chapters: 14 },
-  { id: 'mal', name: 'Malaquias', chapters: 4 },
-  { id: 'mat', name: 'Mateus', chapters: 28 },
-  { id: 'mrk', name: 'Marcos', chapters: 16 },
-  { id: 'luk', name: 'Lucas', chapters: 24 },
-  { id: 'jn', name: 'João', chapters: 21 },
-  { id: 'act', name: 'Atos', chapters: 28 },
-  { id: 'rom', name: 'Romanos', chapters: 16 },
-  { id: '1co', name: '1 Coríntios', chapters: 16 },
-  { id: '2co', name: '2 Coríntios', chapters: 13 },
-  { id: 'gal', name: 'Gálatas', chapters: 6 },
-  { id: 'eph', name: 'Efésios', chapters: 6 },
-  { id: 'php', name: 'Filipenses', chapters: 4 },
-  { id: 'col', name: 'Colossenses', chapters: 4 },
-  { id: '1th', name: '1 Tessalonicenses', chapters: 5 },
-  { id: '2th', name: '2 Tessalonicenses', chapters: 3 },
-  { id: '1ti', name: '1 Timóteo', chapters: 6 },
-  { id: '2ti', name: '2 Timóteo', chapters: 4 },
-  { id: 'tit', name: 'Tito', chapters: 3 },
-  { id: 'phm', name: 'Filemom', chapters: 1 },
-  { id: 'heb', name: 'Hebreus', chapters: 13 },
-  { id: 'jas', name: 'Tiago', chapters: 5 },
-  { id: '1pe', name: '1 Pedro', chapters: 5 },
-  { id: '2pe', name: '2 Pedro', chapters: 3 },
-  { id: '1jn', name: '1 João', chapters: 5 },
-  { id: '2jn', name: '2 João', chapters: 1 },
-  { id: '3jn', name: '3 João', chapters: 1 },
-  { id: 'jud', name: 'Judas', chapters: 1 },
-  { id: 'rev', name: 'Apocalipse', chapters: 22 },
+const VERSIONS = [
+  { id: 'pt_acf', name: 'ACF (Almeida Corrigida Fiel)' },
+  { id: 'pt_ara', name: 'ARA (Almeida Revista e Atualizada)' },
+  { id: 'pt_nvi', name: 'NVI (Nova Versão Internacional)' },
 ]
 
-interface BibleVerse {
-  verse: number
-  text: string
+const BIBLE_BOOKS = [
+  { id: 'gn', name: 'Gênesis', chapters: 50 },
+  { id: 'ex', name: 'Êxodo', chapters: 40 },
+  { id: 'lv', name: 'Levítico', chapters: 27 },
+  { id: 'nm', name: 'Números', chapters: 36 },
+  { id: 'dt', name: 'Deuteronômio', chapters: 34 },
+  { id: 'js', name: 'Josué', chapters: 24 },
+  { id: 'jz', name: 'Juízes', chapters: 21 },
+  { id: 'rt', name: 'Rute', chapters: 4 },
+  { id: '1sm', name: '1 Samuel', chapters: 31 },
+  { id: '2sm', name: '2 Samuel', chapters: 24 },
+  { id: '1rs', name: '1 Reis', chapters: 22 },
+  { id: '2rs', name: '2 Reis', chapters: 25 },
+  { id: '1cr', name: '1 Crônicas', chapters: 29 },
+  { id: '2cr', name: '2 Crônicas', chapters: 36 },
+  { id: 'ed', name: 'Esdras', chapters: 10 },
+  { id: 'ne', name: 'Neemias', chapters: 13 },
+  { id: 'et', name: 'Ester', chapters: 10 },
+  { id: 'job', name: 'Jó', chapters: 42 },
+  { id: 'sl', name: 'Salmos', chapters: 150 },
+  { id: 'pv', name: 'Provérbios', chapters: 31 },
+  { id: 'ec', name: 'Eclesiastes', chapters: 12 },
+  { id: 'ct', name: 'Cânticos', chapters: 8 },
+  { id: 'is', name: 'Isaías', chapters: 66 },
+  { id: 'jr', name: 'Jeremias', chapters: 52 },
+  { id: 'lm', name: 'Lamentações', chapters: 5 },
+  { id: 'ez', name: 'Ezequiel', chapters: 48 },
+  { id: 'dn', name: 'Daniel', chapters: 12 },
+  { id: 'os', name: 'Oséias', chapters: 14 },
+  { id: 'jl', name: 'Joel', chapters: 3 },
+  { id: 'am', name: 'Amós', chapters: 9 },
+  { id: 'ob', name: 'Obadias', chapters: 1 },
+  { id: 'jn', name: 'Jonas', chapters: 4 },
+  { id: 'mq', name: 'Miquéias', chapters: 7 },
+  { id: 'na', name: 'Naum', chapters: 3 },
+  { id: 'hc', name: 'Habacuque', chapters: 3 },
+  { id: 'sf', name: 'Sofonias', chapters: 3 },
+  { id: 'ag', name: 'Ageu', chapters: 2 },
+  { id: 'zc', name: 'Zacarias', chapters: 14 },
+  { id: 'ml', name: 'Malaquias', chapters: 4 },
+  { id: 'mt', name: 'Mateus', chapters: 28 },
+  { id: 'mc', name: 'Marcos', chapters: 16 },
+  { id: 'lc', name: 'Lucas', chapters: 24 },
+  { id: 'jo', name: 'João', chapters: 21 },
+  { id: 'at', name: 'Atos', chapters: 28 },
+  { id: 'rm', name: 'Romanos', chapters: 16 },
+  { id: '1co', name: '1 Coríntios', chapters: 16 },
+  { id: '2co', name: '2 Coríntios', chapters: 13 },
+  { id: 'gl', name: 'Gálatas', chapters: 6 },
+  { id: 'ef', name: 'Efésios', chapters: 6 },
+  { id: 'fp', name: 'Filipenses', chapters: 4 },
+  { id: 'cl', name: 'Colossenses', chapters: 4 },
+  { id: '1ts', name: '1 Tessalonicenses', chapters: 5 },
+  { id: '2ts', name: '2 Tessalonicenses', chapters: 3 },
+  { id: '1tm', name: '1 Timóteo', chapters: 6 },
+  { id: '2tm', name: '2 Timóteo', chapters: 4 },
+  { id: 'tt', name: 'Tito', chapters: 3 },
+  { id: 'fm', name: 'Filemom', chapters: 1 },
+  { id: 'hb', name: 'Hebreus', chapters: 13 },
+  { id: 'tg', name: 'Tiago', chapters: 5 },
+  { id: '1pe', name: '1 Pedro', chapters: 5 },
+  { id: '2pe', name: '2 Pedro', chapters: 3 },
+  { id: '1jo', name: '1 João', chapters: 5 },
+  { id: '2jo', name: '2 João', chapters: 1 },
+  { id: '3jo', name: '3 João', chapters: 1 },
+  { id: 'jd', name: 'Judas', chapters: 1 },
+  { id: 'ap', name: 'Apocalipse', chapters: 22 },
+]
+
+interface BibleBook {
+  abbrev: string
+  name: string
+  chapters: string[][]
 }
+
+const bibleCache: Record<string, BibleBook[]> = {}
 
 export default function BiblePage() {
   const { toast } = useToast()
 
-  const [verses, setVerses] = useState<BibleVerse[]>([])
-
   const [selectedVersion, setSelectedVersion] = useState(VERSIONS[0].id)
+  const [bibleData, setBibleData] = useState<BibleBook[] | null>(null)
+
   const [selectedBook, setSelectedBook] = useState(BIBLE_BOOKS[0].id)
   const [selectedChapter, setSelectedChapter] = useState('1')
 
-  const [loadingVerses, setLoadingVerses] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
-  const currentBook = useMemo(() => BIBLE_BOOKS.find((b) => b.id === selectedBook), [selectedBook])
-
-  const chapterOptions = useMemo(
-    () => Array.from({ length: currentBook?.chapters || 1 }, (_, i) => (i + 1).toString()),
-    [currentBook],
-  )
-
   useEffect(() => {
-    if (currentBook && parseInt(selectedChapter) > currentBook.chapters) {
-      setSelectedChapter('1')
-    }
-  }, [selectedBook, currentBook, selectedChapter])
+    const fetchBible = async () => {
+      if (bibleCache[selectedVersion]) {
+        setBibleData(bibleCache[selectedVersion])
+        return
+      }
 
-  useEffect(() => {
-    if (!selectedBook || !selectedChapter || !selectedVersion) return
-
-    const fetchVerses = async () => {
       try {
-        setLoadingVerses(true)
+        setLoading(true)
         setError(null)
         const response = await fetch(
-          `https://bible-api.com/${selectedBook}+${selectedChapter}?translation=${selectedVersion}`,
+          `https://raw.githubusercontent.com/thiagobodruk/bible/master/json/${selectedVersion}.json`,
         )
         if (!response.ok) {
-          if (response.status === 404) throw new Error('Capítulo não encontrado nesta versão.')
-          throw new Error(`Falha ao carregar versículos (Status: ${response.status}).`)
+          throw new Error(`Falha ao baixar a versão da Bíblia (Status: ${response.status}).`)
         }
         const data = await response.json()
-        if (!data || !data.verses) throw new Error('Dados do capítulo inválidos.')
-        setVerses(data.verses || [])
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('Dados da Bíblia inválidos.')
+        }
+        bibleCache[selectedVersion] = data
+        setBibleData(data)
       } catch (err: any) {
         console.error(err)
-        setError(err.message || 'Erro ao carregar o capítulo.')
+        setError(err.message || 'Erro ao carregar a versão da Bíblia.')
         toast({
           title: 'Erro de Leitura',
-          description: err.message || 'Erro ao carregar o capítulo.',
+          description: err.message || 'Erro ao carregar a versão da Bíblia.',
           variant: 'destructive',
         })
-        setVerses([])
       } finally {
-        setLoadingVerses(false)
+        setLoading(false)
       }
     }
 
-    fetchVerses()
-  }, [selectedVersion, selectedBook, selectedChapter, retryCount, toast])
+    fetchBible()
+  }, [selectedVersion, retryCount, toast])
+
+  const currentStaticBook = useMemo(
+    () => BIBLE_BOOKS.find((b) => b.id === selectedBook) || BIBLE_BOOKS[0],
+    [selectedBook],
+  )
+
+  const currentJsonBook = useMemo(() => {
+    if (!bibleData) return null
+    return bibleData.find((b) => b.abbrev === selectedBook) || bibleData[0]
+  }, [bibleData, selectedBook])
+
+  const chapterOptions = useMemo(() => {
+    const chaptersCount = currentJsonBook
+      ? currentJsonBook.chapters.length
+      : currentStaticBook.chapters
+    return Array.from({ length: chaptersCount }, (_, i) => (i + 1).toString())
+  }, [currentJsonBook, currentStaticBook])
+
+  useEffect(() => {
+    if (currentJsonBook && parseInt(selectedChapter) > currentJsonBook.chapters.length) {
+      setSelectedChapter('1')
+    }
+  }, [currentJsonBook, selectedChapter])
+
+  const verses = useMemo(() => {
+    if (!currentJsonBook) return []
+    const chapterIndex = parseInt(selectedChapter) - 1
+    const chapterVerses = currentJsonBook.chapters[chapterIndex] || []
+    return chapterVerses.map((text, index) => ({ verse: index + 1, text }))
+  }, [currentJsonBook, selectedChapter])
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-12">
@@ -156,7 +184,7 @@ export default function BiblePage() {
         <div>
           <h1 className="text-3xl font-serif font-bold text-foreground">Bíblia Sagrada</h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Leia e medite na Palavra de Deus com uma interface limpa e confortável.
+            Leia e medite na Palavra de Deus com navegação offline instantânea.
           </p>
         </div>
       </div>
@@ -164,7 +192,7 @@ export default function BiblePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground pl-1">Versão</label>
-          <Select value={selectedVersion} onValueChange={setSelectedVersion}>
+          <Select value={selectedVersion} onValueChange={setSelectedVersion} disabled={loading}>
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
               <SelectValue placeholder="Selecione a versão" />
             </SelectTrigger>
@@ -180,7 +208,7 @@ export default function BiblePage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground pl-1">Livro</label>
-          <Select value={selectedBook} onValueChange={setSelectedBook}>
+          <Select value={selectedBook} onValueChange={setSelectedBook} disabled={loading}>
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
               <SelectValue placeholder="Selecione o livro" />
             </SelectTrigger>
@@ -199,7 +227,7 @@ export default function BiblePage() {
           <Select
             value={selectedChapter}
             onValueChange={setSelectedChapter}
-            disabled={!selectedBook}
+            disabled={!selectedBook || loading}
           >
             <SelectTrigger className="bg-card border-border shadow-subtle h-12">
               <SelectValue placeholder="Capítulo" />
@@ -217,7 +245,7 @@ export default function BiblePage() {
 
       <Card className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm">
         <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
-          {loadingVerses ? (
+          {loading ? (
             <div className="space-y-4 w-full h-full">
               <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
               {Array.from({ length: 8 }).map((_, i) => (
@@ -235,13 +263,13 @@ export default function BiblePage() {
                 onClick={() => setRetryCount((r) => r + 1)}
                 className="mt-4 px-4 py-2 border border-border bg-card rounded-md shadow-sm hover:bg-accent transition-colors text-foreground"
               >
-                Recarregar Capítulo
+                Recarregar Versão
               </button>
             </div>
           ) : verses.length > 0 ? (
             <div className="relative w-full h-full animate-fade-in">
               <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground/90 mb-8 text-center border-b border-border/50 pb-4">
-                {currentBook?.name} {selectedChapter}
+                {currentStaticBook.name} {selectedChapter}
               </h2>
               <div className="font-serif text-lg md:text-xl leading-relaxed md:leading-[2.2] text-foreground/90 text-justify">
                 {verses.map((v) => (
@@ -254,7 +282,11 @@ export default function BiblePage() {
                 ))}
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+              <p className="text-muted-foreground">Nenhum versículo encontrado neste capítulo.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
