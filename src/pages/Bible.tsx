@@ -207,12 +207,16 @@ export default function BiblePage() {
       }
     }
 
-    const shareText = `"${versesText}"\n${bookName} ${chapter}:${verseRef} ${versionAbbrev} https://spurgeon.one`
+    const shareTitle = `${bookName} ${chapter}:${verseRef}`
+    const shareText = `"${versesText}"\n\n${bookName} ${chapter}:${verseRef} (${versionAbbrev})`
+    const shareUrl = 'https://spurgeon.one'
 
     if (action === 'share' && typeof navigator.share === 'function') {
       try {
         await navigator.share({
+          title: shareTitle,
           text: shareText,
+          url: shareUrl,
         })
       } catch (e: any) {
         if (e.name !== 'AbortError') {
@@ -226,7 +230,7 @@ export default function BiblePage() {
       }
     } else {
       try {
-        await navigator.clipboard.writeText(shareText)
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
         toast({
           title: 'Copiado!',
           description: 'Versículo(s) copiado(s) para a área de transferência.',
