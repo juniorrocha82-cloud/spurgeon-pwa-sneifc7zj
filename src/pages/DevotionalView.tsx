@@ -53,7 +53,7 @@ export default function DevotionalViewPage() {
     if (!devotional) return
 
     const url = window.location.href
-    const shareText = `📖 *${devotional.title}*\n${devotional.base_text}\n\nLeia este devocional no Spurgeon:\n${url}`
+    const shareText = `📖 *${devotional.title}*\n${devotional.base_text}\n\n*Leitura do Dia:*\n"${devotional.content.reading}"\n\n*Reflexão:*\n${devotional.content.reflection}\n\n*Oração:*\n${devotional.content.prayer}\n\nLeia este e outros devocionais no Spurgeon:\n${url}`
 
     if (navigator.share) {
       try {
