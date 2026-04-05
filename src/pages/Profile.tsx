@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { User, BookOpen, FileText, Lock } from 'lucide-react'
+import { User, BookOpen, FileText, Lock, LogOut } from 'lucide-react'
 import { SubscriptionPanel } from '@/components/SubscriptionPanel'
 
 export default function ProfilePage() {
-  const { user, updatePassword } = useAuth()
+  const { user, updatePassword, signOut } = useAuth()
   const { toast } = useToast()
   const [stats, setStats] = useState({ sermons: 0, devotionals: 0 })
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const [loadingStats, setLoadingStats] = useState(true)
 
   // Password change state
@@ -47,6 +48,26 @@ export default function ProfilePage() {
     }
     fetchStats()
   }, [user])
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    try {
+      if (signOut) {
+        const { error } = await signOut()
+        if (error) throw error
+      } else {
+        const { error } = await supabase.auth.signOut()
+        if (error) throw error
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao sair',
+        description: error.message,
+        variant: 'destructive',
+      })
+      setIsSigningOut(false)
+    }
+  }
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,14 +112,25 @@ export default function ProfilePage() {
 
   return (
     <div className="container max-w-4xl py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <User className="h-8 w-8 text-primary" />
-          Meu Perfil
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Gerencie suas informações pessoais e acompanhe seu histórico no Spurgeon.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <User className="h-8 w-8 text-primary" />
+            Meu Perfil
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Gerencie suas informações pessoais e acompanhe seu histórico no Spurgeon.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10 whitespace-nowrap shrink-0"
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          {isSigningOut ? 'Saindo...' : 'Sair da Conta'}
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
