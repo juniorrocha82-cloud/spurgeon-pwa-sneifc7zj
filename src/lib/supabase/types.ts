@@ -234,6 +234,45 @@ export type Database = {
         }
         Relationships: []
       }
+      youtube_playlists: {
+        Row: {
+          channel_name: string
+          channel_url: string
+          created_at: string | null
+          description: string | null
+          id: string
+          playlist_id: string
+          playlist_name: string
+          thumbnail_url: string | null
+          updated_at: string | null
+          video_count: number | null
+        }
+        Insert: {
+          channel_name: string
+          channel_url: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          playlist_id: string
+          playlist_name: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          video_count?: number | null
+        }
+        Update: {
+          channel_name?: string
+          channel_url?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          playlist_id?: string
+          playlist_name?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          video_count?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -442,6 +481,17 @@ export const Constants = {
 //   updated_at: timestamp with time zone (not null, default: now())
 //   stripe_subscription_id: text (nullable)
 //   sermons_generated: integer (nullable, default: 0)
+// Table: youtube_playlists
+//   id: uuid (not null, default: gen_random_uuid())
+//   channel_name: text (not null)
+//   channel_url: text (not null)
+//   playlist_id: text (not null)
+//   playlist_name: text (not null)
+//   description: text (nullable)
+//   thumbnail_url: text (nullable)
+//   video_count: integer (nullable, default: 0)
+//   created_at: timestamp without time zone (nullable, default: now())
+//   updated_at: timestamp without time zone (nullable, default: now())
 
 // --- CONSTRAINTS ---
 // Table: contact_messages
@@ -465,6 +515,9 @@ export const Constants = {
 // Table: user_subscriptions
 //   PRIMARY KEY user_subscriptions_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY user_subscriptions_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: youtube_playlists
+//   PRIMARY KEY youtube_playlists_pkey: PRIMARY KEY (id)
+//   UNIQUE youtube_playlists_playlist_id_key: UNIQUE (playlist_id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: contact_messages
@@ -512,3 +565,5 @@ export const Constants = {
 // --- INDEXES ---
 // Table: user_settings
 //   CREATE UNIQUE INDEX user_settings_user_id_key ON public.user_settings USING btree (user_id)
+// Table: youtube_playlists
+//   CREATE UNIQUE INDEX youtube_playlists_playlist_id_key ON public.youtube_playlists USING btree (playlist_id)

@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -7,57 +8,43 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get('YOUTUBE_API_KEY')
-
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "API Key do YouTube não encontrada. Por favor, configure a secret 'YOUTUBE_API_KEY' no painel do Supabase Edge Functions.",
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
-    }
-
     const { playlistId } = await req.json()
 
     if (!playlistId) {
       throw new Error('O ID da playlist é obrigatório para buscar os dados.')
     }
 
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/playlists?part=snippet&id=${playlistId}&key=${apiKey}`,
-    )
-    const data = await response.json()
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Erro ao buscar dados do YouTube.')
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Configurações do Supabase ausentes no ambiente.')
     }
 
-    if (!data.items || data.items.length === 0) {
-      throw new Error('Playlist não encontrada ou não é pública.')
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    const { data, error } = await supabase
+      .from('youtube_playlists')
+      .select('*')
+      .eq('playlist_id', playlistId)
+      .maybeSingle()
+
+    if (error) {
+      throw new Error(`Erro ao consultar banco de dados: ${error.message}`)
     }
 
-    const snippet = data.items[0].snippet
-    const thumbnails = snippet.thumbnails
-
-    // Obter a melhor qualidade de thumbnail disponível
-    const thumbnail =
-      thumbnails?.maxres?.url ||
-      thumbnails?.standard?.url ||
-      thumbnails?.high?.url ||
-      thumbnails?.medium?.url ||
-      thumbnails?.default?.url ||
-      ''
+    if (!data) {
+      throw new Error('Playlist não encontrada na base de dados.')
+    }
 
     const embedUrl = `https://www.youtube.com/embed/videoseries?list=${playlistId}&enablejsapi=1`
     const embedCode = `<iframe width="560" height="315" src="${embedUrl}" title="YouTube playlist player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`
 
     const result = {
-      title: snippet.title,
-      description: snippet.description,
-      thumbnail,
-      playlistId,
+      title: data.playlist_name,
+      description: data.description || '',
+      thumbnail: data.thumbnail_url || '',
+      playlistId: data.playlist_id,
       embedUrl,
       embedCode,
     }
