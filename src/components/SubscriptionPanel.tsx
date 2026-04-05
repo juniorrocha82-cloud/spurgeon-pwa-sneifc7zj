@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { format, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CreditCard, Zap, Calendar, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react'
+import {
+  CreditCard,
+  Zap,
+  Calendar,
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Plus,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import {
@@ -18,6 +26,14 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const ADMIN_USER_ID = '911d1666-978b-4ead-9be2-5a49028c767f'
 
@@ -49,10 +65,19 @@ const PLAN_FEATURES: Record<string, { price: string; period: string; features: s
   },
 }
 
+const ADMIN_FEATURES = [
+  'Acesso ilimitado a todas as funcionalidades',
+  'Gerenciamento de usuários',
+  'Reset de contadores',
+  'Sem restrições',
+]
+
 export function SubscriptionPanel({ userId }: { userId: string }) {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<any>(null)
   const [planDetails, setPlanDetails] = useState<any>(null)
+  const [showLimitModal, setShowLimitModal] = useState(false)
 
   const isAdmin = userId === ADMIN_USER_ID
 
@@ -80,7 +105,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
 
         const { data: planData } = await supabase
           .from('subscription_plans')
-          .select('name, generation_limit')
+          .select('name, generation_limit, features')
           .eq('id', activePlanId)
           .maybeSingle()
 
@@ -110,26 +135,56 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
     ? 'Acesso Ilimitado'
     : planDetails?.name ||
       (planId === 'free' ? 'Gratuito' : planId === 'pro' ? 'Pro' : 'Enterprise')
+
   const generationLimit = isAdmin
     ? null
     : (planDetails?.generation_limit ?? (planId === 'free' ? 3 : planId === 'pro' ? 15 : null))
+
   const sermonsGenerated = isAdmin ? 0 : subscription?.sermons_generated || 0
-  const isUnlimited = generationLimit === null
+  const isUnlimited = isAdmin || generationLimit === null || planId === 'enterprise'
 
   const uiDetails = isAdmin
-    ? { price: 'Gratuito', period: '', features: PLAN_FEATURES.enterprise.features }
-    : PLAN_FEATURES[planId] || PLAN_FEATURES.free
+    ? { price: 'Gratuito', period: '', features: ADMIN_FEATURES }
+    : {
+        price: PLAN_FEATURES[planId]?.price || 'R$ 0,00',
+        period: PLAN_FEATURES[planId]?.period || '/ mês',
+        features:
+          planDetails?.features || PLAN_FEATURES[planId]?.features || PLAN_FEATURES.free.features,
+      }
 
   const isExpired = isAdmin
     ? false
     : subscription
       ? isPast(new Date(subscription.expires_at))
       : false
+
   const isActive = isAdmin ? true : subscription?.status === 'active' && !isExpired
+
   const usagePercentage = isUnlimited
     ? 0
-    : Math.min(100, (sermonsGenerated / generationLimit) * 100)
+    : Math.min(100, (sermonsGenerated / (generationLimit || 1)) * 100)
+
   const isNearLimit = usagePercentage >= 80
+  const hasReachedLimit = !isUnlimited && sermonsGenerated >= (generationLimit || 1)
+
+  const handleGenerateClick = () => {
+    if (hasReachedLimit) {
+      setShowLimitModal(true)
+    } else {
+      navigate('/')
+    }
+  }
+
+  let limitText = ''
+  if (isAdmin || isUnlimited) {
+    limitText = 'Ilimitado'
+  } else if (planId === 'free') {
+    limitText = `${sermonsGenerated} / 3 pregações para avaliação`
+  } else if (planId === 'pro') {
+    limitText = `${sermonsGenerated} / 15 pregações por mês`
+  } else {
+    limitText = `${sermonsGenerated} / ${generationLimit}`
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in-up duration-500">
@@ -224,16 +279,20 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
               <div className="flex justify-between text-sm font-medium">
                 <span>Gerações utilizadas</span>
                 <span>
-                  {isUnlimited ? (
+                  {isAdmin || isUnlimited ? (
                     <span className="text-muted-foreground">Ilimitado</span>
                   ) : (
-                    <span className={isNearLimit ? 'text-amber-500' : ''}>
-                      {sermonsGenerated} / {generationLimit}
+                    <span
+                      className={
+                        hasReachedLimit ? 'text-destructive' : isNearLimit ? 'text-amber-500' : ''
+                      }
+                    >
+                      {limitText}
                     </span>
                   )}
                 </span>
               </div>
-              {!isUnlimited && (
+              {!isUnlimited && !isAdmin && (
                 <Progress
                   value={usagePercentage}
                   className={cn(
@@ -246,9 +305,9 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
                   )}
                 />
               )}
-              {isUnlimited && (
+              {(isUnlimited || isAdmin) && (
                 <div className="h-3 w-full bg-secondary rounded-full overflow-hidden relative">
-                  <div className="absolute inset-0 bg-primary opacity-50" />
+                  <div className="absolute inset-0 bg-primary opacity-20" />
                 </div>
               )}
             </div>
@@ -259,20 +318,48 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
               </h4>
               {uiDetails.features.map((feature: string, idx: number) => (
                 <div key={idx} className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> {feature}
+                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span>{feature}</span>
                 </div>
               ))}
             </div>
           </CardContent>
-          {planId !== 'enterprise' && !isAdmin && (
-            <CardFooter className="pt-6">
+          <CardFooter className="pt-6 flex flex-col gap-3">
+            <Button onClick={handleGenerateClick} className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Gerar Nova Pregação
+            </Button>
+            {planId !== 'enterprise' && !isAdmin && (
               <Button asChild variant="secondary" className="w-full">
                 <Link to="/planos">Ver todos os planos</Link>
               </Button>
-            </CardFooter>
-          )}
+            )}
+          </CardFooter>
         </Card>
       </div>
+
+      <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Limite de gerações atingido
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Você atingiu o limite de gerações do seu plano atual ({limitText}). Faça um upgrade
+              para continuar gerando pregações com IA.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-end mt-4">
+            <Button variant="outline" onClick={() => setShowLimitModal(false)}>
+              Cancelar
+            </Button>
+            <Button asChild>
+              <Link to="/planos">Ver Planos</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
