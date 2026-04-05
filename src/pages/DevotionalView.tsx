@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, BookHeart, Calendar, Heart } from 'lucide-react'
+import { ArrowLeft, BookHeart, Calendar, Heart, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -47,6 +47,44 @@ export default function DevotionalViewPage() {
         <div className="h-4 w-32 bg-muted/50 rounded"></div>
       </div>
     )
+  }
+
+  const handleShare = async () => {
+    if (!devotional) return
+
+    const url = window.location.href
+    const shareText = `📖 *${devotional.title}*\n${devotional.base_text}\n\nLeia este devocional no Spurgeon:\n${url}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: devotional.title,
+          text: shareText,
+        })
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          copyToClipboard(shareText)
+        }
+      }
+    } else {
+      copyToClipboard(shareText)
+    }
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast({
+        title: 'Copiado!',
+        description: 'Texto copiado para a área de transferência.',
+      })
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível copiar o texto.',
+      })
+    }
   }
 
   if (!devotional) return null
@@ -111,6 +149,17 @@ export default function DevotionalViewPage() {
             </p>
           </CardContent>
         </Card>
+
+        <div className="flex justify-center pt-8 pb-4">
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="rounded-full px-8 shadow-md hover:shadow-lg transition-all duration-300"
+          >
+            <Share2 className="w-5 h-5 mr-2" />
+            Compartilhar Devocional
+          </Button>
+        </div>
       </div>
     </div>
   )
