@@ -5,12 +5,10 @@ import { Youtube } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface PlaylistInfo {
-  title: string
-  description: string
-  thumbnail: string
-  playlistId: string
-  embedUrl: string
-  embedCode: string
+  channel_name: string
+  playlist_name: string
+  description: string | null
+  thumbnail_url: string | null
 }
 
 declare global {
@@ -53,7 +51,7 @@ export default function ChannelPage() {
         const { data, error: invokeError } = await supabase.functions.invoke(
           'get-playlist-preview',
           {
-            body: { playlistId },
+            body: { playlist_id: playlistId },
           },
         )
 
@@ -99,7 +97,7 @@ export default function ChannelPage() {
             <div className="relative w-full aspect-video bg-black flex items-center justify-center">
               <iframe
                 className="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/FLZ4T8ZP9Ck?si=3EdKUUnMRBnF60sU&enablejsapi=1"
+                src="https://www.youtube.com/embed/JgiRvrw1CVg?si=Kp9JN-oHHeELwM06&enablejsapi=1"
                 title="YouTube video player"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -143,16 +141,20 @@ export default function ChannelPage() {
           <Card className="overflow-hidden border-border/50 shadow-elevation">
             {playlistInfo && !error && (
               <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
-                {playlistInfo.thumbnail && (
+                {playlistInfo.thumbnail_url && (
                   <img
-                    src={playlistInfo.thumbnail}
-                    alt={playlistInfo.title}
+                    src={playlistInfo.thumbnail_url}
+                    alt={playlistInfo.playlist_name}
                     className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-md shadow-sm hidden sm:block flex-shrink-0"
                   />
                 )}
                 <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Youtube className="w-4 h-4" />
+                    <span>{playlistInfo.channel_name}</span>
+                  </div>
                   <CardTitle className="text-xl md:text-2xl truncate">
-                    {playlistInfo.title}
+                    {playlistInfo.playlist_name}
                   </CardTitle>
                   {playlistInfo.description && (
                     <CardDescription className="line-clamp-3 text-sm md:text-base">
@@ -164,26 +166,15 @@ export default function ChannelPage() {
             )}
             <CardContent className="p-0">
               <div className="relative w-full aspect-video bg-black flex items-center justify-center">
-                {playlistInfo?.embedUrl ? (
-                  <iframe
-                    className="absolute top-0 left-0 w-full h-full"
-                    src={
-                      playlistInfo.embedUrl.includes('enablejsapi=1')
-                        ? playlistInfo.embedUrl
-                        : `${playlistInfo.embedUrl}&enablejsapi=1`
-                    }
-                    title="YouTube playlist player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                ) : (
-                  <div className="text-muted-foreground flex flex-col items-center gap-2">
-                    <Youtube className="w-8 h-8 opacity-50" />
-                    <p>Vídeo indisponível</p>
-                  </div>
-                )}
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src={`https://www.youtube.com/embed/videoseries?list=${playlistId}&enablejsapi=1`}
+                  title="YouTube playlist player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                ></iframe>
               </div>
             </CardContent>
           </Card>
