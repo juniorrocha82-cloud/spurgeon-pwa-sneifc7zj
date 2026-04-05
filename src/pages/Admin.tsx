@@ -23,6 +23,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const ADMIN_ID = '911d1666-978b-4ead-9be2-5a49028c767f'
 
@@ -32,6 +47,13 @@ export default function AdminPage() {
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+
+  const [resetModalOpen, setResetModalOpen] = useState(false)
+  const [selectedUserForReset, setSelectedUserForReset] = useState<string | null>(null)
+
+  const [editPlanModalOpen, setEditPlanModalOpen] = useState(false)
+  const [selectedUserForPlan, setSelectedUserForPlan] = useState<string | null>(null)
+  const [newPlanId, setNewPlanId] = useState<string>('free')
 
   const fetchData = async () => {
     setLoading(true)
@@ -58,12 +80,13 @@ export default function AdminPage() {
     fetchData()
   }, [user])
 
-  const handleResetUsage = async (userId: string) => {
+  const handleConfirmReset = async () => {
+    if (!selectedUserForReset) return
     try {
       const { error } = await supabase
         .from('user_subscriptions')
         .update({ sermons_generated: 0 })
-        .eq('user_id', userId)
+        .eq('user_id', selectedUserForReset)
 
       if (error) throw error
 
@@ -80,6 +103,38 @@ export default function AdminPage() {
         description: 'Não foi possível zerar o uso deste usuário.',
         variant: 'destructive',
       })
+    } finally {
+      setResetModalOpen(false)
+      setSelectedUserForReset(null)
+    }
+  }
+
+  const handleConfirmEditPlan = async () => {
+    if (!selectedUserForPlan) return
+    try {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ plan_id: newPlanId })
+        .eq('user_id', selectedUserForPlan)
+
+      if (error) throw error
+
+      toast({
+        title: 'Sucesso',
+        description: 'O plano do usuário foi atualizado com sucesso.',
+      })
+
+      fetchData()
+    } catch (err) {
+      console.error('Error updating plan:', err)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar o plano deste usuário.',
+        variant: 'destructive',
+      })
+    } finally {
+      setEditPlanModalOpen(false)
+      setSelectedUserForPlan(null)
     }
   }
 
@@ -191,8 +246,24 @@ export default function AdminPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                            <DropdownMenuItem>Editar plano</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleResetUsage(item.id)}>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUserForPlan(item.id)
+                                const currentPlanId = ['pro', 'enterprise'].includes(item.plan_name)
+                                  ? item.plan_name
+                                  : 'free'
+                                setNewPlanId(currentPlanId)
+                                setEditPlanModalOpen(true)
+                              }}
+                            >
+                              Editar plano
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUserForReset(item.id)
+                                setResetModalOpen(true)
+                              }}
+                            >
                               Zerar Uso
                             </DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600">Suspender</DropdownMenuItem>
@@ -207,6 +278,52 @@ export default function AdminPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={resetModalOpen} onOpenChange={setResetModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar ação</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja zerar o uso deste usuário? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmReset}>
+              Zerar Uso
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editPlanModalOpen} onOpenChange={setEditPlanModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Plano</DialogTitle>
+            <DialogDescription>Selecione o novo plano para este usuário.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={newPlanId} onValueChange={setNewPlanId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um plano" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="free">Gratuito</SelectItem>
+                <SelectItem value="pro">Pro Plan</SelectItem>
+                <SelectItem value="enterprise">Enterprise Plan</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditPlanModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmEditPlan}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

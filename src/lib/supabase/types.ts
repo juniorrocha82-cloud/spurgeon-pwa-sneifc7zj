@@ -144,6 +144,7 @@ export type Database = {
       subscription_plans: {
         Row: {
           created_at: string
+          features: Json | null
           generation_limit: number | null
           id: string
           name: string
@@ -152,6 +153,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          features?: Json | null
           generation_limit?: number | null
           id: string
           name: string
@@ -160,6 +162,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          features?: Json | null
           generation_limit?: number | null
           id?: string
           name?: string
@@ -463,6 +466,7 @@ export const Constants = {
 //   generation_limit: integer (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+//   features: jsonb (nullable, default: '[]'::jsonb)
 // Table: user_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
