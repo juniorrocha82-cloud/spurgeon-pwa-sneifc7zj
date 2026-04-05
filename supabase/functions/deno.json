@@ -3,7 +3,7 @@
     "generate-sermon": 22,
     "generate-slides": 25,
     "generate-devotional": 8,
-    "get-playlist-preview": 10,
+    "get-playlist-preview": 11,
     "create-checkout-session": 8,
     "stripe-webhook": 7,
     "create-subscription": 5
