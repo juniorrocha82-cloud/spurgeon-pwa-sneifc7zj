@@ -1,5 +1,5 @@
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
-import { Feather, History, Settings, BookOpen, Info, Mail, BookHeart, Youtube } from 'lucide-react'
+import { Feather, History, Settings, BookOpen, Info, Mail, BookHeart, Book } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -11,7 +11,7 @@ export default function Layout() {
     { path: '/', label: 'Gerar Sermão', icon: Feather },
     { path: '/history', label: 'Meus Sermões', icon: History },
     { path: '/devotionals', label: 'Devocionais', icon: BookHeart },
-    { path: '/channel', label: 'Canal', icon: Youtube },
+    { path: '/bible', label: 'Bíblia', icon: Book },
   ]
 
   const getPageTitle = () => {
@@ -20,7 +20,7 @@ export default function Layout() {
     if (location.pathname === '/history') return 'Meus Sermões'
     if (location.pathname === '/devotionals') return 'Devocionais'
     if (location.pathname.startsWith('/devotional/')) return 'Devocional Diário'
-    if (location.pathname === '/channel') return 'Canal Oficial'
+    if (location.pathname === '/bible') return 'Bíblia Sagrada'
     if (location.pathname === '/settings') return 'Configurações'
     if (location.pathname === '/about') return 'Sobre'
     if (location.pathname === '/contact') return 'Contato'
