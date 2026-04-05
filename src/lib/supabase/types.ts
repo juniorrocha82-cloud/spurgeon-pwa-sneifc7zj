@@ -561,6 +561,9 @@ export const Constants = {
 // Table: user_subscriptions
 //   Policy "Users can view their own subscriptions" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
+// Table: youtube_playlists
+//   Policy "Allow public read access on youtube_playlists" (SELECT, PERMISSIVE) roles={public}
+//     USING: true
 
 // --- INDEXES ---
 // Table: user_settings

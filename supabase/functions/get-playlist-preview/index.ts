@@ -14,10 +14,21 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { playlistId } = await req.json()
+    let playlist_id = ''
 
-    if (!playlistId) {
-      throw new Error('O ID da playlist é obrigatório para buscar os dados.')
+    if (req.method === 'POST') {
+      const body = await req.json().catch(() => ({}))
+      playlist_id = body.playlist_id || body.playlistId
+    } else if (req.method === 'GET') {
+      const url = new URL(req.url)
+      playlist_id = url.searchParams.get('playlist_id') || url.searchParams.get('playlistId') || ''
+    }
+
+    if (!playlist_id) {
+      return new Response(JSON.stringify({ error: 'O parâmetro playlist_id é obrigatório.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -31,8 +42,8 @@ Deno.serve(async (req: Request) => {
 
     const { data, error } = await supabase
       .from('youtube_playlists')
-      .select('*')
-      .eq('playlist_id', playlistId)
+      .select('channel_name, playlist_name, description, thumbnail_url')
+      .eq('playlist_id', playlist_id)
       .maybeSingle()
 
     if (error) {
@@ -40,32 +51,23 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!data) {
-      throw new Error('Playlist não encontrada na base de dados.')
+      return new Response(JSON.stringify({ error: 'Playlist não encontrada.' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    const embedUrl = `https://www.youtube.com/embed/videoseries?list=${playlistId}&enablejsapi=1`
-    const embedCode = `<iframe width="560" height="315" src="${embedUrl}" title="YouTube playlist player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`
-
-    const result = {
-      title: data.playlist_name,
-      description: data.description || '',
-      thumbnail: data.thumbnail_url || '',
-      playlistId: data.playlist_id,
-      embedUrl,
-      embedCode,
-    }
-
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error: any) {
     console.error('Erro na Edge Function get-playlist-preview:', error.message)
     return new Response(
-      JSON.stringify({ error: error.message || 'Erro desconhecido ao processar a playlist.' }),
+      JSON.stringify({ error: error.message || 'Erro interno no processamento da playlist.' }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 500,
       },
     )
   }
