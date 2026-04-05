@@ -77,6 +77,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<any>(null)
   const [planDetails, setPlanDetails] = useState<any>(null)
+  const [realUsage, setRealUsage] = useState<number>(0)
   const [showLimitModal, setShowLimitModal] = useState(false)
 
   const isAdmin = userId === ADMIN_USER_ID
@@ -110,6 +111,21 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
           .maybeSingle()
 
         setPlanDetails(planData)
+
+        let startDate = new Date()
+        if (activePlanId === 'pro') {
+          startDate.setDate(startDate.getDate() - 30)
+        } else {
+          startDate.setDate(startDate.getDate() - 7)
+        }
+
+        const { count } = await supabase
+          .from('generation_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .gte('created_at', startDate.toISOString())
+
+        setRealUsage(count || 0)
       } catch (error) {
         console.error('Error fetching subscription data:', error)
       } finally {
@@ -140,7 +156,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
     ? null
     : (planDetails?.generation_limit ?? (planId === 'free' ? 3 : planId === 'pro' ? 15 : null))
 
-  const sermonsGenerated = isAdmin ? 0 : subscription?.sermons_generated || 0
+  const sermonsGenerated = isAdmin ? 0 : realUsage
   const isUnlimited = isAdmin || generationLimit === null || planId === 'enterprise'
 
   const uiDetails = isAdmin
@@ -154,7 +170,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
 
   const isExpired = isAdmin
     ? false
-    : subscription
+    : subscription?.expires_at
       ? isPast(new Date(subscription.expires_at))
       : false
 

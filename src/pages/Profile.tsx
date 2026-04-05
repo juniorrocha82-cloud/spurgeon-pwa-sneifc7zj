@@ -5,6 +5,7 @@ import { LogOut, User } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
 import { useState } from 'react'
+import { SubscriptionPanel } from '@/components/SubscriptionPanel'
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth()
@@ -31,7 +32,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto animate-in fade-in duration-500 p-6">
+    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-500 p-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-serif font-bold text-foreground">Meu Perfil</h1>
         <p className="text-muted-foreground">Gerencie suas informações e sessão da conta.</p>
@@ -64,6 +65,8 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {user?.id && <SubscriptionPanel userId={user.id} />}
     </div>
   )
 }
