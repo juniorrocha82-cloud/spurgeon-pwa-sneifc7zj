@@ -19,6 +19,8 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 
+const ADMIN_USER_ID = '911d1666-978b-4ead-9be2-5a49028c767f'
+
 const PLAN_FEATURES: Record<string, { price: string; period: string; features: string[] }> = {
   free: {
     price: 'R$ 0,00',
@@ -52,8 +54,15 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
   const [subscription, setSubscription] = useState<any>(null)
   const [planDetails, setPlanDetails] = useState<any>(null)
 
+  const isAdmin = userId === ADMIN_USER_ID
+
   useEffect(() => {
     async function fetchData() {
+      if (isAdmin) {
+        setLoading(false)
+        return
+      }
+
       try {
         setLoading(true)
 
@@ -83,7 +92,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
       }
     }
     fetchData()
-  }, [userId])
+  }, [userId, isAdmin])
 
   if (loading) {
     return (
@@ -96,18 +105,27 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
     )
   }
 
-  const planId = subscription?.plan_id || 'free'
-  const planName =
-    planDetails?.name || (planId === 'free' ? 'Gratuito' : planId === 'pro' ? 'Pro' : 'Enterprise')
-  const generationLimit =
-    planDetails?.generation_limit ?? (planId === 'free' ? 3 : planId === 'pro' ? 15 : null)
-  const sermonsGenerated = subscription?.sermons_generated || 0
+  const planId = isAdmin ? 'enterprise' : subscription?.plan_id || 'free'
+  const planName = isAdmin
+    ? 'Acesso Ilimitado'
+    : planDetails?.name ||
+      (planId === 'free' ? 'Gratuito' : planId === 'pro' ? 'Pro' : 'Enterprise')
+  const generationLimit = isAdmin
+    ? null
+    : (planDetails?.generation_limit ?? (planId === 'free' ? 3 : planId === 'pro' ? 15 : null))
+  const sermonsGenerated = isAdmin ? 0 : subscription?.sermons_generated || 0
   const isUnlimited = generationLimit === null
 
-  const uiDetails = PLAN_FEATURES[planId] || PLAN_FEATURES.free
+  const uiDetails = isAdmin
+    ? { price: 'Gratuito', period: '', features: PLAN_FEATURES.enterprise.features }
+    : PLAN_FEATURES[planId] || PLAN_FEATURES.free
 
-  const isExpired = subscription ? isPast(new Date(subscription.expires_at)) : false
-  const isActive = subscription?.status === 'active' && !isExpired
+  const isExpired = isAdmin
+    ? false
+    : subscription
+      ? isPast(new Date(subscription.expires_at))
+      : false
+  const isActive = isAdmin ? true : subscription?.status === 'active' && !isExpired
   const usagePercentage = isUnlimited
     ? 0
     : Math.min(100, (sermonsGenerated / generationLimit) * 100)
@@ -115,7 +133,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-6 animate-in fade-in-up duration-500">
-      {isExpired && subscription && (
+      {isExpired && subscription && !isAdmin && (
         <Alert
           variant="destructive"
           className="border-red-500/50 bg-red-500/10 text-red-600 dark:text-red-400"
@@ -145,7 +163,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
                 <Badge variant="default" className="bg-green-500 hover:bg-green-600">
                   Ativo
                 </Badge>
-              ) : subscription ? (
+              ) : subscription && !isAdmin ? (
                 <Badge variant="destructive">Expirado</Badge>
               ) : (
                 <Badge variant="secondary">Gratuito</Badge>
@@ -155,36 +173,38 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
           </CardHeader>
           <CardContent className="space-y-6 flex-1">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Plano Atual</p>
+              <p className="text-sm font-medium text-muted-foreground">Plano</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold">{planName}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {uiDetails.price} {uiDetails.period}
+                Preço: {uiDetails.price} {uiDetails.period}
               </p>
             </div>
-            {subscription && (
+            {(subscription || isAdmin) && (
               <div className="space-y-1 pt-4 border-t">
                 <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {isExpired ? 'Expirou em' : 'Válido até'}
+                  {isAdmin ? 'Válido até' : isExpired ? 'Expirou em' : 'Válido até'}
                 </p>
                 <p className="text-base font-medium">
-                  {format(new Date(subscription.expires_at), "dd 'de' MMMM 'de' yyyy", {
-                    locale: ptBR,
-                  })}
+                  {isAdmin
+                    ? 'Sem expiração'
+                    : format(new Date(subscription.expires_at), "dd 'de' MMMM 'de' yyyy", {
+                        locale: ptBR,
+                      })}
                 </p>
               </div>
             )}
           </CardContent>
           <CardFooter className="pt-6">
-            <Button asChild className="w-full" variant={isExpired ? 'default' : 'outline'}>
+            <Button
+              asChild
+              className="w-full"
+              variant={isExpired && !isAdmin ? 'default' : 'outline'}
+            >
               <Link to="/planos">
-                {isExpired
-                  ? 'Reativar Plano'
-                  : planId === 'free'
-                    ? 'Fazer Upgrade'
-                    : 'Renovar / Alterar Plano'}
+                Renovar / Alterar Plano
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -244,7 +264,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
               ))}
             </div>
           </CardContent>
-          {planId !== 'enterprise' && (
+          {planId !== 'enterprise' && !isAdmin && (
             <CardFooter className="pt-6">
               <Button asChild variant="secondary" className="w-full">
                 <Link to="/planos">Ver todos os planos</Link>
