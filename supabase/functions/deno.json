@@ -7,6 +7,6 @@
     "create-checkout-session": 8,
     "stripe-webhook": 7,
     "create-subscription": 5,
-    "get-admin-users": 2
+    "get-admin-users": 3
   }
 }
