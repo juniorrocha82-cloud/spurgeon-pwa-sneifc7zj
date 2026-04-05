@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Search, MoreHorizontal } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,29 +28,60 @@ const ADMIN_ID = '911d1666-978b-4ead-9be2-5a49028c767f'
 
 export default function AdminPage() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const { data: result, error } = await supabase.functions.invoke('get-admin-users')
+
+      if (error) throw error
+
+      setData(result || [])
+    } catch (err) {
+      console.error('Error fetching admin data:', err)
+      toast({
+        title: 'Erro ao buscar dados',
+        description: 'Não foi possível carregar a lista de usuários.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (user?.id !== ADMIN_ID) return
-
-    const fetchData = async () => {
-      try {
-        const { data: result, error } = await supabase.functions.invoke('get-admin-users')
-
-        if (error) throw error
-
-        setData(result || [])
-      } catch (err) {
-        console.error('Error fetching admin data:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchData()
   }, [user])
+
+  const handleResetUsage = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ sermons_generated: 0 })
+        .eq('user_id', userId)
+
+      if (error) throw error
+
+      toast({
+        title: 'Sucesso',
+        description: 'O uso do usuário foi zerado com sucesso.',
+      })
+
+      fetchData()
+    } catch (err) {
+      console.error('Error resetting usage:', err)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível zerar o uso deste usuário.',
+        variant: 'destructive',
+      })
+    }
+  }
 
   if (!user || user.id !== ADMIN_ID) {
     return <Navigate to="/" replace />
@@ -158,6 +190,9 @@ export default function AdminPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
                             <DropdownMenuItem>Editar plano</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleResetUsage(item.id)}>
+                              Zerar Uso
+                            </DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600">Suspender</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
