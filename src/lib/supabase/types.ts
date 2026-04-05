@@ -578,6 +578,34 @@ export const Constants = {
 //   Policy "Allow public read access on youtube_playlists" (SELECT, PERMISSIVE) roles={public}
 //     USING: true
 
+// --- DATABASE FUNCTIONS ---
+// FUNCTION handle_new_user()
+//   CREATE OR REPLACE FUNCTION public.handle_new_user()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     -- Insert default free subscription
+//     INSERT INTO public.user_subscriptions (user_id, plan_id, status, expires_at, sermons_generated)
+//     VALUES (
+//       NEW.id,
+//       'free',
+//       'active',
+//       NOW() + INTERVAL '10 years',
+//       0
+//     );
+//
+//     -- Insert default user settings
+//     INSERT INTO public.user_settings (user_id, primary_color, font_family)
+//     VALUES (NEW.id, '#d97706', 'Arial')
+//     ON CONFLICT (user_id) DO NOTHING;
+//
+//     RETURN NEW;
+//   END;
+//   $function$
+//
+
 // --- INDEXES ---
 // Table: user_settings
 //   CREATE UNIQUE INDEX user_settings_user_id_key ON public.user_settings USING btree (user_id)
