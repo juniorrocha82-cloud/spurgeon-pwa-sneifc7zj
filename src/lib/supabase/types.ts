@@ -586,15 +586,17 @@ export const Constants = {
 //    SECURITY DEFINER
 //   AS $function$
 //   BEGIN
-//     -- Insert default free subscription
-//     INSERT INTO public.user_subscriptions (user_id, plan_id, status, expires_at, sermons_generated)
-//     VALUES (
-//       NEW.id,
-//       'free',
-//       'active',
-//       NOW() + INTERVAL '10 years',
-//       0
-//     );
+//     -- Insert default free subscription if it doesn't exist
+//     IF NOT EXISTS (SELECT 1 FROM public.user_subscriptions WHERE user_id = NEW.id) THEN
+//       INSERT INTO public.user_subscriptions (user_id, plan_id, status, expires_at, sermons_generated)
+//       VALUES (
+//         NEW.id,
+//         'free',
+//         'active',
+//         NOW() + INTERVAL '10 years',
+//         0
+//       );
+//     END IF;
 //
 //     -- Insert default user settings
 //     INSERT INTO public.user_settings (user_id, primary_color, font_family)

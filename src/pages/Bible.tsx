@@ -210,13 +210,13 @@ export default function BiblePage() {
     const shareTitle = `${bookName} ${chapter}:${verseRef}`
     const shareText = `"${versesText}"\n\n${bookName} ${chapter}:${verseRef} (${versionAbbrev})`
     const shareUrl = 'https://spurgeon.one'
+    const fullText = `${shareText}\n\nLeia a Bíblia diariamente em:\n${shareUrl}`
 
     if (action === 'share' && typeof navigator.share === 'function') {
       try {
         await navigator.share({
           title: shareTitle,
-          text: shareText,
-          url: shareUrl,
+          text: fullText,
         })
       } catch (e: any) {
         if (e.name !== 'AbortError') {
@@ -230,7 +230,7 @@ export default function BiblePage() {
       }
     } else {
       try {
-        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
+        await navigator.clipboard.writeText(fullText)
         toast({
           title: 'Copiado!',
           description: 'Versículo(s) copiado(s) para a área de transferência.',
@@ -247,143 +247,145 @@ export default function BiblePage() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-12">
-      <div className="flex items-center space-x-4">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shadow-inner flex-shrink-0">
-          <BookIcon className="w-8 h-8 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-serif font-bold text-foreground">Bíblia Sagrada</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Leia e medite na Palavra de Deus com navegação offline instantânea.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground pl-1">Versão</label>
-          <Select value={selectedVersion} onValueChange={setSelectedVersion} disabled={loading}>
-            <SelectTrigger className="bg-card border-border shadow-subtle h-12">
-              <SelectValue placeholder="Selecione a versão" />
-            </SelectTrigger>
-            <SelectContent>
-              {VERSIONS.map((v) => (
-                <SelectItem key={v.id} value={v.id}>
-                  {v.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+    <>
+      <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-12">
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shadow-inner flex-shrink-0">
+            <BookIcon className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-foreground">Bíblia Sagrada</h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base">
+              Leia e medite na Palavra de Deus com navegação offline instantânea.
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground pl-1">Livro</label>
-          <Select value={selectedBook} onValueChange={setSelectedBook} disabled={loading}>
-            <SelectTrigger className="bg-card border-border shadow-subtle h-12">
-              <SelectValue placeholder="Selecione o livro" />
-            </SelectTrigger>
-            <SelectContent>
-              {BIBLE_BOOKS.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground pl-1">Versão</label>
+            <Select value={selectedVersion} onValueChange={setSelectedVersion} disabled={loading}>
+              <SelectTrigger className="bg-card border-border shadow-subtle h-12">
+                <SelectValue placeholder="Selecione a versão" />
+              </SelectTrigger>
+              <SelectContent>
+                {VERSIONS.map((v) => (
+                  <SelectItem key={v.id} value={v.id}>
+                    {v.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground pl-1">Livro</label>
+            <Select value={selectedBook} onValueChange={setSelectedBook} disabled={loading}>
+              <SelectTrigger className="bg-card border-border shadow-subtle h-12">
+                <SelectValue placeholder="Selecione o livro" />
+              </SelectTrigger>
+              <SelectContent>
+                {BIBLE_BOOKS.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground pl-1">Capítulo</label>
+            <Select
+              value={selectedChapter}
+              onValueChange={setSelectedChapter}
+              disabled={!selectedBook || loading}
+            >
+              <SelectTrigger className="bg-card border-border shadow-subtle h-12">
+                <SelectValue placeholder="Capítulo" />
+              </SelectTrigger>
+              <SelectContent>
+                {chapterOptions.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    Capítulo {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground pl-1">Capítulo</label>
-          <Select
-            value={selectedChapter}
-            onValueChange={setSelectedChapter}
-            disabled={!selectedBook || loading}
-          >
-            <SelectTrigger className="bg-card border-border shadow-subtle h-12">
-              <SelectValue placeholder="Capítulo" />
-            </SelectTrigger>
-            <SelectContent>
-              {chapterOptions.map((c) => (
-                <SelectItem key={c} value={c}>
-                  Capítulo {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Card className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm">
-        <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
-          {loading ? (
-            <div className="space-y-4 w-full h-full">
-              <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className={`h-6 ${i % 3 === 0 ? 'w-[95%]' : i % 2 === 0 ? 'w-full' : 'w-[90%]'}`}
-                />
-              ))}
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
-              <BookIcon className="w-12 h-12 text-muted-foreground/50" />
-              <p className="text-muted-foreground text-lg">{error}</p>
-              <button
-                onClick={() => setRetryCount((r) => r + 1)}
-                className="mt-4 px-4 py-2 border border-border bg-card rounded-md shadow-sm hover:bg-accent transition-colors text-foreground"
-              >
-                Recarregar Versão
-              </button>
-            </div>
-          ) : verses.length > 0 ? (
-            <div className="relative w-full h-full animate-fade-in">
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground/90 mb-8 text-center border-b border-border/50 pb-4">
-                {currentStaticBook.name} {selectedChapter}
-              </h2>
-              <div className="font-serif text-lg md:text-xl leading-relaxed md:leading-[2.2] text-foreground/90 text-justify">
-                {verses.map((v) => {
-                  const isSelected = selectedVerses.includes(v.verse)
-                  return (
-                    <span
-                      key={v.verse}
-                      onClick={() => {
-                        setSelectedVerses((prev) =>
-                          prev.includes(v.verse)
-                            ? prev.filter((id) => id !== v.verse)
-                            : [...prev, v.verse],
-                        )
-                      }}
-                      className={cn(
-                        'mr-2 inline-block mb-1 cursor-pointer rounded px-1 transition-colors',
-                        isSelected ? 'bg-primary/20 text-foreground' : 'hover:bg-accent',
-                      )}
-                    >
-                      <sup
+        <Card className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm">
+          <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
+            {loading ? (
+              <div className="space-y-4 w-full h-full">
+                <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    className={`h-6 ${i % 3 === 0 ? 'w-[95%]' : i % 2 === 0 ? 'w-full' : 'w-[90%]'}`}
+                  />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+                <BookIcon className="w-12 h-12 text-muted-foreground/50" />
+                <p className="text-muted-foreground text-lg">{error}</p>
+                <button
+                  onClick={() => setRetryCount((r) => r + 1)}
+                  className="mt-4 px-4 py-2 border border-border bg-card rounded-md shadow-sm hover:bg-accent transition-colors text-foreground"
+                >
+                  Recarregar Versão
+                </button>
+              </div>
+            ) : verses.length > 0 ? (
+              <div className="relative w-full h-full animate-fade-in">
+                <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground/90 mb-8 text-center border-b border-border/50 pb-4">
+                  {currentStaticBook.name} {selectedChapter}
+                </h2>
+                <div className="font-serif text-lg md:text-xl leading-relaxed md:leading-[2.2] text-foreground/90 text-justify">
+                  {verses.map((v) => {
+                    const isSelected = selectedVerses.includes(v.verse)
+                    return (
+                      <span
+                        key={v.verse}
+                        onClick={() => {
+                          setSelectedVerses((prev) =>
+                            prev.includes(v.verse)
+                              ? prev.filter((id) => id !== v.verse)
+                              : [...prev, v.verse],
+                          )
+                        }}
                         className={cn(
-                          'font-sans font-bold mr-1.5 select-none text-[0.65rem] md:text-xs',
-                          isSelected ? 'text-foreground' : 'text-primary',
+                          'mr-2 inline-block mb-1 cursor-pointer rounded px-1 transition-colors',
+                          isSelected ? 'bg-primary/20 text-foreground' : 'hover:bg-accent',
                         )}
                       >
-                        {v.verse}
-                      </sup>
-                      {v.text}
-                    </span>
-                  )
-                })}
+                        <sup
+                          className={cn(
+                            'font-sans font-bold mr-1.5 select-none text-[0.65rem] md:text-xs',
+                            isSelected ? 'text-foreground' : 'text-primary',
+                          )}
+                        >
+                          {v.verse}
+                        </sup>
+                        {v.text}
+                      </span>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
-              <p className="text-muted-foreground">Nenhum versículo encontrado neste capítulo.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+                <p className="text-muted-foreground">Nenhum versículo encontrado neste capítulo.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {selectedVerses.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border shadow-elevation rounded-full px-4 py-2 flex items-center space-x-2 md:space-x-4 animate-fade-in-up z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border shadow-elevation rounded-full px-4 py-2 flex items-center space-x-2 md:space-x-4 animate-fade-in-up z-[9999]">
           <span className="text-sm font-medium bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">
             {selectedVerses.length}
           </span>
@@ -422,6 +424,6 @@ export default function BiblePage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
