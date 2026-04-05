@@ -83,10 +83,29 @@ export default function AdminPage() {
   const handleConfirmReset = async () => {
     if (!selectedUserForReset) return
     try {
-      const { error } = await supabase
+      const { data: existingSub } = await supabase
         .from('user_subscriptions')
-        .update({ sermons_generated: 0 })
+        .select('id')
         .eq('user_id', selectedUserForReset)
+        .maybeSingle()
+
+      let error
+      if (existingSub) {
+        const res = await supabase
+          .from('user_subscriptions')
+          .update({ sermons_generated: 0 })
+          .eq('id', existingSub.id)
+        error = res.error
+      } else {
+        const res = await supabase.from('user_subscriptions').insert({
+          user_id: selectedUserForReset,
+          plan_id: 'free',
+          status: 'active',
+          sermons_generated: 0,
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        error = res.error
+      }
 
       if (error) throw error
 
@@ -112,10 +131,29 @@ export default function AdminPage() {
   const handleConfirmEditPlan = async () => {
     if (!selectedUserForPlan) return
     try {
-      const { error } = await supabase
+      const { data: existingSub } = await supabase
         .from('user_subscriptions')
-        .update({ plan_id: newPlanId })
+        .select('id')
         .eq('user_id', selectedUserForPlan)
+        .maybeSingle()
+
+      let error
+      if (existingSub) {
+        const res = await supabase
+          .from('user_subscriptions')
+          .update({ plan_id: newPlanId })
+          .eq('id', existingSub.id)
+        error = res.error
+      } else {
+        const res = await supabase.from('user_subscriptions').insert({
+          user_id: selectedUserForPlan,
+          plan_id: newPlanId,
+          status: 'active',
+          sermons_generated: 0,
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        error = res.error
+      }
 
       if (error) throw error
 
@@ -145,6 +183,22 @@ export default function AdminPage() {
   const filteredData = data.filter((item) =>
     item.email?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  const getUsageDisplay = (item: any) => {
+    if (item.id === ADMIN_ID) return 'Ilimitado (Admin)'
+
+    let limit = item.generation_limit
+
+    if (limit === null || limit === undefined) {
+      const planName = (item.plan_name || '').toLowerCase()
+      if (planName.includes('free') || planName.includes('gratuito')) limit = 3
+      else if (planName.includes('pro')) limit = 15
+      else limit = null
+    }
+
+    if (limit === null) return 'Ilimitado'
+    return `${item.sermons_generated || 0} / ${limit}`
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -215,7 +269,7 @@ export default function AdminPage() {
                   filteredData.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.email}</TableCell>
-                      <TableCell>{item.plan_name}</TableCell>
+                      <TableCell>{item.plan_name || 'Gratuito'}</TableCell>
                       <TableCell>
                         <Badge
                           variant={item.status === 'active' ? 'default' : 'secondary'}
@@ -225,16 +279,12 @@ export default function AdminPage() {
                               : ''
                           }
                         >
-                          {item.status}
+                          {item.status || 'inactive'}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">
-                            {item.generation_limit === null
-                              ? 'Ilimitado'
-                              : `${item.sermons_generated || 0} / ${item.generation_limit}`}
-                          </span>
+                          <span className="text-sm">{getUsageDisplay(item)}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -245,13 +295,15 @@ export default function AdminPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
                                 setSelectedUserForPlan(item.id)
-                                const currentPlanId = ['pro', 'enterprise'].includes(item.plan_name)
-                                  ? item.plan_name
-                                  : 'free'
+                                const planName = (item.plan_name || '').toLowerCase()
+                                const currentPlanId = planName.includes('pro')
+                                  ? 'pro'
+                                  : planName.includes('enterprise')
+                                    ? 'enterprise'
+                                    : 'free'
                                 setNewPlanId(currentPlanId)
                                 setEditPlanModalOpen(true)
                               }}
@@ -266,7 +318,6 @@ export default function AdminPage() {
                             >
                               Zerar Uso
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Suspender</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
