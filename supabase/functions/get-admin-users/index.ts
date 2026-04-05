@@ -3,6 +3,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
+  console.log('--- Iniciando chamada get-admin-users ---')
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -15,59 +16,92 @@ Deno.serve(async (req: Request) => {
       throw new Error('Variáveis de ambiente do Supabase ausentes.')
     }
 
-    // Usando a SERVICE_ROLE_KEY para ignorar RLS
+    // 1. Usar a SERVICE_ROLE_KEY para contornar RLS
+    console.log('Etapa 1: Inicializando cliente Supabase com SERVICE_ROLE_KEY')
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // 1. Buscar todos os usuários
+    // 2. Buscar todos os usuários da tabela 'auth.users'
+    console.log('Etapa 2: Buscando usuários em auth.users')
     const { data: authData, error: authError } = await supabase.auth.admin.listUsers()
-    if (authError) throw authError
+    if (authError) {
+      console.error('Erro ao buscar usuários:', authError)
+      throw authError
+    }
     const users = authData.users || []
+    console.log(`Etapa 2.1: ${users.length} usuários encontrados.`)
 
-    // 2. Buscar assinaturas e planos correspondentes
+    // 3 e 4. Fazer o LEFT JOIN com user_subscriptions e subscription_plans
+    console.log(
+      'Etapa 3 e 4: Buscando user_subscriptions e realizando LEFT JOIN com subscription_plans usando plan_id (TEXT)',
+    )
     const { data: subs, error: subsError } = await supabase.from('user_subscriptions').select(`
         user_id,
         status,
         sermons_generated,
+        plan_id,
         plan:subscription_plans(name, generation_limit)
       `)
-    if (subsError) throw subsError
 
-    // 3. Cruzar os dados
+    if (subsError) {
+      console.error('Erro ao buscar assinaturas:', subsError)
+      throw subsError
+    }
+    console.log(`Etapa 4.1: ${subs?.length || 0} assinaturas encontradas.`)
+
+    // 5. Retornar um JSON com os campos solicitados
+    console.log('Etapa 5: Cruzando dados para formatar o JSON de resposta')
     const mergedData = users.map((user) => {
       const sub = subs?.find((s) => s.user_id === user.id)
-      const planData = sub?.plan
 
+      // 6. Se não tiver assinatura, retornar null para os campos
+      if (!sub) {
+        return {
+          id: user.id,
+          email: user.email,
+          plan_name: null,
+          status: null,
+          sermons_generated: null,
+          generation_limit: null,
+        }
+      }
+
+      const planData = sub.plan
       const planName = Array.isArray(planData) ? planData[0]?.name : planData?.name
       let genLimit = Array.isArray(planData)
         ? planData[0]?.generation_limit
         : planData?.generation_limit
 
-      const planId = sub?.plan_id
-      if (genLimit === undefined) {
-        if (planId === 'pro') genLimit = 15
-        else if (planId === 'free') genLimit = 3
-        else if (planId === 'enterprise') genLimit = null
+      // Fallback em caso de erro na query interna
+      if (genLimit === undefined && sub.plan_id) {
+        if (sub.plan_id === 'pro') genLimit = 15
+        else if (sub.plan_id === 'free') genLimit = 3
+        else if (sub.plan_id === 'enterprise') genLimit = null
       }
 
       return {
         id: user.id,
         email: user.email,
-        plan_name: planName || 'Nenhum',
-        status: sub?.status || 'inactive',
-        sermons_generated: sub?.sermons_generated || 0,
+        plan_name: planName || sub.plan_id || null,
+        status: sub.status || null,
+        sermons_generated: sub.sermons_generated ?? 0,
         generation_limit: genLimit ?? null,
       }
     })
 
+    console.log('Etapa 6: Dados cruzados com sucesso.')
+
+    // 8. Retornar um status 200 com o array de usuários
+    console.log('Etapa 7: Retornando resposta (Status 200)')
     return new Response(JSON.stringify(mergedData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error: any) {
+    // 7. Adicione console.log() para debugar
     console.error('Erro na Edge Function get-admin-users:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+      status: 500,
     })
   }
 })
