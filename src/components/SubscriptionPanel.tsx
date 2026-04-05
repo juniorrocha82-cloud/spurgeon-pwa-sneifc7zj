@@ -19,53 +19,47 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 
-interface PlanDetails {
-  id: string
-  name: string
-  price: string
-  limit: number
-  period: string
-  isUnlimited: boolean
-}
-
-const PLAN_MAP: Record<string, PlanDetails> = {
+const PLAN_FEATURES: Record<string, { price: string; period: string; features: string[] }> = {
   free: {
-    id: 'free',
-    name: 'Gratuito',
     price: 'R$ 0,00',
-    limit: 3,
-    period: 'por semana',
-    isUnlimited: false,
+    period: '/ mês',
+    features: ['3 gerações em 7 dias', 'Acesso básico aos recursos', 'Suporte comunitário'],
   },
   pro: {
-    id: 'pro',
-    name: 'Pro',
-    price: 'R$ 29,90 / mês',
-    limit: 15,
-    period: 'por mês',
-    isUnlimited: false,
+    price: 'R$ 40,00',
+    period: '/ mês',
+    features: [
+      '15 gerações por mês',
+      'Exportação em PDF e PPTX',
+      'Acesso a todas as ferramentas',
+      'Suporte prioritário',
+    ],
   },
   enterprise: {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 'Personalizado',
-    limit: 999999,
-    period: 'ilimitado',
-    isUnlimited: true,
+    price: 'R$ 99,00',
+    period: '/ mês',
+    features: [
+      'Gerações ilimitadas',
+      'Recursos exclusivos',
+      'Treinamento dedicado',
+      'Acesso antecipado a novas funções',
+    ],
   },
 }
 
 export function SubscriptionPanel({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<any>(null)
-  const [usage, setUsage] = useState(0)
+  const [planDetails, setPlanDetails] = useState<any>(null)
 
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoading(true)
+
         const { data: sub } = await supabase
           .from('user_subscriptions')
-          .select('*')
+          .select('status, expires_at, sermons_generated, plan_id')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(1)
@@ -73,21 +67,15 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
 
         setSubscription(sub)
 
-        const planId = sub?.plan_id || 'free'
-        const startDate = new Date()
-        if (planId === 'pro') {
-          startDate.setDate(startDate.getDate() - 30)
-        } else {
-          startDate.setDate(startDate.getDate() - 7)
-        }
+        const activePlanId = sub?.plan_id || 'free'
 
-        const { count } = await supabase
-          .from('generation_logs')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .gte('created_at', startDate.toISOString())
+        const { data: planData } = await supabase
+          .from('subscription_plans')
+          .select('name, generation_limit')
+          .eq('id', activePlanId)
+          .maybeSingle()
 
-        setUsage(count || 0)
+        setPlanDetails(planData)
       } catch (error) {
         console.error('Error fetching subscription data:', error)
       } finally {
@@ -101,18 +89,28 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
     return (
       <div className="space-y-8 animate-in fade-in-up duration-500">
         <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-64 rounded-xl" />
-          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-[350px] rounded-xl" />
+          <Skeleton className="h-[350px] rounded-xl" />
         </div>
       </div>
     )
   }
 
   const planId = subscription?.plan_id || 'free'
-  const plan = PLAN_MAP[planId] || PLAN_MAP.free
+  const planName =
+    planDetails?.name || (planId === 'free' ? 'Gratuito' : planId === 'pro' ? 'Pro' : 'Enterprise')
+  const generationLimit =
+    planDetails?.generation_limit || (planId === 'free' ? 3 : planId === 'pro' ? 15 : 999999)
+  const sermonsGenerated = subscription?.sermons_generated || 0
+  const isUnlimited = generationLimit >= 999999
+
+  const uiDetails = PLAN_FEATURES[planId] || PLAN_FEATURES.free
+
   const isExpired = subscription ? isPast(new Date(subscription.expires_at)) : false
   const isActive = subscription?.status === 'active' && !isExpired
-  const usagePercentage = plan.isUnlimited ? 0 : Math.min(100, (usage / plan.limit) * 100)
+  const usagePercentage = isUnlimited
+    ? 0
+    : Math.min(100, (sermonsGenerated / generationLimit) * 100)
   const isNearLimit = usagePercentage >= 80
 
   return (
@@ -126,7 +124,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
           <AlertTitle>Plano Expirado</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
             <span>
-              Sua assinatura {plan.name} expirou. Reative agora para continuar gerando sermões.
+              Sua assinatura {planName} expirou. Reative agora para continuar gerando sermões.
             </span>
             <Button asChild size="sm" variant="destructive">
               <Link to="/planos">Reativar Assinatura</Link>
@@ -159,9 +157,11 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Plano Atual</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">{plan.name}</span>
+                <span className="text-3xl font-bold">{planName}</span>
               </div>
-              <p className="text-sm text-muted-foreground">{plan.price}</p>
+              <p className="text-sm text-muted-foreground">
+                {uiDetails.price} {uiDetails.period}
+              </p>
             </div>
             {subscription && (
               <div className="space-y-1 pt-4 border-t">
@@ -197,23 +197,23 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
               <Zap className="h-5 w-5 text-primary" />
               Uso e Limites
             </CardTitle>
-            <CardDescription>Acompanhe suas gerações {plan.period}</CardDescription>
+            <CardDescription>Acompanhe suas gerações do plano</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 flex-1">
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-medium">
                 <span>Gerações utilizadas</span>
                 <span>
-                  {plan.isUnlimited ? (
-                    <span className="text-muted-foreground">{usage} / ∞</span>
+                  {isUnlimited ? (
+                    <span className="text-muted-foreground">{sermonsGenerated} / ∞</span>
                   ) : (
                     <span className={isNearLimit ? 'text-amber-500' : ''}>
-                      {usage} / {plan.limit}
+                      {sermonsGenerated} / {generationLimit}
                     </span>
                   )}
                 </span>
               </div>
-              {!plan.isUnlimited && (
+              {!isUnlimited && (
                 <Progress
                   value={usagePercentage}
                   className={cn(
@@ -226,7 +226,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
                   )}
                 />
               )}
-              {plan.isUnlimited && (
+              {isUnlimited && (
                 <div className="h-3 w-full bg-secondary rounded-full overflow-hidden relative">
                   <div className="absolute inset-0 bg-primary opacity-50" />
                 </div>
@@ -235,21 +235,13 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
 
             <div className="space-y-3 pt-4 border-t">
               <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                O que está incluído no {plan.name}:
+                O que está incluído no {planName}:
               </h4>
-              <div className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                {plan.isUnlimited ? 'Gerações ilimitadas' : `${plan.limit} gerações ${plan.period}`}
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="h-4 w-4 text-green-500" /> Pregações temáticas e
-                expositivas
-              </div>
-              {planId !== 'free' && (
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Geração de slides automático
+              {uiDetails.features.map((feature: string, idx: number) => (
+                <div key={idx} className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> {feature}
                 </div>
-              )}
+              ))}
             </div>
           </CardContent>
           {planId !== 'enterprise' && (
