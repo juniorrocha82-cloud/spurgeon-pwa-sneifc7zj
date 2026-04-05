@@ -36,23 +36,25 @@ Deno.serve(async (req: Request) => {
     const users = authData.users || []
     console.log(`Etapa 2.1: ${users.length} usuários encontrados.`)
 
-    // 3 e 4. Fazer o LEFT JOIN com user_subscriptions e subscription_plans
-    console.log(
-      'Etapa 3 e 4: Buscando user_subscriptions e realizando LEFT JOIN com subscription_plans usando plan_id (TEXT)',
-    )
-    const { data: subs, error: subsError } = await supabase.from('user_subscriptions').select(`
-        user_id,
-        status,
-        sermons_generated,
-        plan_id,
-        plan:subscription_plans(name, generation_limit)
-      `)
+    // 3. Buscar user_subscriptions
+    console.log('Etapa 3: Buscando user_subscriptions')
+    const { data: subs, error: subsError } = await supabase.from('user_subscriptions').select('*')
 
     if (subsError) {
       console.error('Erro ao buscar assinaturas:', subsError)
       throw subsError
     }
-    console.log(`Etapa 4.1: ${subs?.length || 0} assinaturas encontradas.`)
+    console.log(`Etapa 3.1: ${subs?.length || 0} assinaturas encontradas.`)
+
+    // 4. Buscar subscription_plans
+    console.log('Etapa 4: Buscando subscription_plans')
+    const { data: plans, error: plansError } = await supabase.from('subscription_plans').select('*')
+
+    if (plansError) {
+      console.error('Erro ao buscar planos:', plansError)
+      throw plansError
+    }
+    console.log(`Etapa 4.1: ${plans?.length || 0} planos encontrados.`)
 
     // 5. Retornar um JSON com os campos solicitados
     console.log('Etapa 5: Cruzando dados para formatar o JSON de resposta')
@@ -71,11 +73,9 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      const planData = sub.plan
-      const planName = Array.isArray(planData) ? planData[0]?.name : planData?.name
-      let genLimit = Array.isArray(planData)
-        ? planData[0]?.generation_limit
-        : planData?.generation_limit
+      const planData = plans?.find((p) => p.id === sub.plan_id)
+      const planName = planData?.name
+      let genLimit = planData?.generation_limit
 
       // Fallback em caso de erro na query interna
       if (genLimit === undefined && sub.plan_id) {
