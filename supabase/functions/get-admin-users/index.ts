@@ -28,7 +28,9 @@ Deno.serve(async (req: Request) => {
 
     // 2. Buscar todos os usuários da tabela 'auth.users'
     console.log('Etapa 2: Buscando usuários em auth.users')
-    const { data: authData, error: authError } = await supabase.auth.admin.listUsers()
+    const { data: authData, error: authError } = await supabase.auth.admin.listUsers({
+      perPage: 1000,
+    })
     if (authError) {
       console.error('Erro ao buscar usuários:', authError)
       throw authError

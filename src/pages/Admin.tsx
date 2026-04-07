@@ -111,18 +111,23 @@ export default function AdminPage() {
   const handleConfirmReset = async () => {
     if (!selectedUserForReset) return
     try {
-      const { data: existingSub } = await supabase
+      const { data: existingSubs, error: selectErr } = await supabase
         .from('user_subscriptions')
         .select('id')
         .eq('user_id', selectedUserForReset)
-        .maybeSingle()
+        .order('created_at', { ascending: false })
+
+      if (selectErr) throw selectErr
 
       let error
-      if (existingSub) {
+      if (existingSubs && existingSubs.length > 0) {
         const res = await supabase
           .from('user_subscriptions')
-          .update({ sermons_generated: 0 })
-          .eq('id', existingSub.id)
+          .update({
+            sermons_generated: 0,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingSubs[0].id)
         error = res.error
       } else {
         const res = await supabase.from('user_subscriptions').insert({
@@ -159,18 +164,23 @@ export default function AdminPage() {
   const handleConfirmEditPlan = async () => {
     if (!selectedUserForPlan) return
     try {
-      const { data: existingSub } = await supabase
+      const { data: existingSubs, error: selectErr } = await supabase
         .from('user_subscriptions')
         .select('id')
         .eq('user_id', selectedUserForPlan)
-        .maybeSingle()
+        .order('created_at', { ascending: false })
+
+      if (selectErr) throw selectErr
 
       let error
-      if (existingSub) {
+      if (existingSubs && existingSubs.length > 0) {
         const res = await supabase
           .from('user_subscriptions')
-          .update({ plan_id: newPlanId })
-          .eq('id', existingSub.id)
+          .update({
+            plan_id: newPlanId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingSubs[0].id)
         error = res.error
       } else {
         const res = await supabase.from('user_subscriptions').insert({
@@ -297,7 +307,13 @@ export default function AdminPage() {
                   filteredData.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.email}</TableCell>
-                      <TableCell>{item.plan_name || 'Gratuito'}</TableCell>
+                      <TableCell>
+                        {item.plan_name?.toLowerCase() === 'free'
+                          ? 'Gratuito'
+                          : item.plan_name?.toLowerCase() === 'pro'
+                            ? 'Pro Plan'
+                            : item.plan_name || 'Gratuito'}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={item.status === 'active' ? 'default' : 'secondary'}
