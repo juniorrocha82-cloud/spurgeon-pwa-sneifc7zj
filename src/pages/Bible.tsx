@@ -124,9 +124,16 @@ export default function BiblePage() {
       try {
         setLoading(true)
         setError(null)
-        const response = await fetch(
-          `https://raw.githubusercontent.com/thiagobodruk/bible/master/json/${selectedVersion}.json`,
+        let response = await fetch(
+          `https://raw.githubusercontent.com/gpalleschi/holybible_api/master/json/${selectedVersion}.json`,
         )
+
+        if (!response.ok) {
+          response = await fetch(
+            `https://raw.githubusercontent.com/gpalleschi/holybible_api/main/json/${selectedVersion}.json`,
+          )
+        }
+
         if (!response.ok) {
           throw new Error(`Falha ao baixar a versão da Bíblia (Status: ${response.status}).`)
         }
