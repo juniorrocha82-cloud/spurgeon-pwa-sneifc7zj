@@ -124,20 +124,59 @@ export default function BiblePage() {
       try {
         setLoading(true)
         setError(null)
-        let response = await fetch(
-          `https://raw.githubusercontent.com/gpalleschi/holybible_api/master/json/${selectedVersion}.json`,
-        )
 
-        if (!response.ok) {
-          response = await fetch(
-            `https://raw.githubusercontent.com/gpalleschi/holybible_api/main/json/${selectedVersion}.json`,
+        let data = null
+        try {
+          const cache = await caches.open('bible-versions-cache')
+          const urlsToTry = [
+            `https://raw.githubusercontent.com/MaatheusGois/bible/master/json/${selectedVersion}.json`,
+            `https://raw.githubusercontent.com/MaatheusGois/bible/master/json/${selectedVersion.replace('pt_', '')}.json`,
+            `https://raw.githubusercontent.com/thiagobodruk/bible/master/json/${selectedVersion}.json`,
+          ]
+
+          let response: Response | undefined
+
+          for (const url of urlsToTry) {
+            const cachedRes = await cache.match(url)
+            if (cachedRes) {
+              response = cachedRes
+              break
+            }
+          }
+
+          if (!response) {
+            for (const url of urlsToTry) {
+              const fetchRes = await fetch(url)
+              if (fetchRes.ok) {
+                response = fetchRes
+                await cache.put(url, response.clone())
+                break
+              }
+            }
+          }
+
+          if (!response || !response.ok) {
+            throw new Error(
+              `Falha ao baixar a versão da Bíblia (Status: ${response?.status || 'desconhecido'}).`,
+            )
+          }
+          data = await response.json()
+        } catch (e) {
+          // Fallback se a API de Cache falhar ou não estiver disponível
+          let response = await fetch(
+            `https://raw.githubusercontent.com/MaatheusGois/bible/master/json/${selectedVersion}.json`,
           )
+          if (!response.ok) {
+            response = await fetch(
+              `https://raw.githubusercontent.com/thiagobodruk/bible/master/json/${selectedVersion}.json`,
+            )
+          }
+          if (!response.ok) {
+            throw new Error(`Falha ao baixar a versão da Bíblia.`)
+          }
+          data = await response.json()
         }
 
-        if (!response.ok) {
-          throw new Error(`Falha ao baixar a versão da Bíblia (Status: ${response.status}).`)
-        }
-        const data = await response.json()
         if (!Array.isArray(data) || data.length === 0) {
           throw new Error('Dados da Bíblia inválidos.')
         }
