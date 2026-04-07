@@ -343,6 +343,7 @@ export type Database = {
           status: string
           stripe_subscription_id: string | null
           updated_at: string
+          usage_reset_at: string | null
           user_id: string
         }
         Insert: {
@@ -354,6 +355,7 @@ export type Database = {
           status: string
           stripe_subscription_id?: string | null
           updated_at?: string
+          usage_reset_at?: string | null
           user_id: string
         }
         Update: {
@@ -365,6 +367,7 @@ export type Database = {
           status?: string
           stripe_subscription_id?: string | null
           updated_at?: string
+          usage_reset_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -645,6 +648,7 @@ export const Constants = {
 //   updated_at: timestamp with time zone (not null, default: now())
 //   stripe_subscription_id: text (nullable)
 //   sermons_generated: integer (nullable, default: 0)
+//   usage_reset_at: timestamp with time zone (nullable)
 // Table: youtube_playlists
 //   id: uuid (not null, default: gen_random_uuid())
 //   channel_name: text (not null)
@@ -795,6 +799,25 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION handle_reset_usage()
+//   CREATE OR REPLACE FUNCTION public.handle_reset_usage()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//   AS $function$
+//   BEGIN
+//     -- Se o admin atualizou explicitamente o sermons_generated para 0 via Painel Admin,
+//     -- marcamos o momento do reset. Essa data sera usada para ignorar logs anteriores a este momento.
+//     IF NEW.sermons_generated = 0 THEN
+//       NEW.usage_reset_at = NOW();
+//     END IF;
+//     RETURN NEW;
+//   END;
+//   $function$
+//
+
+// --- TRIGGERS ---
+// Table: user_subscriptions
+//   on_reset_usage_before: CREATE TRIGGER on_reset_usage_before BEFORE UPDATE OF sermons_generated ON public.user_subscriptions FOR EACH ROW EXECUTE FUNCTION handle_reset_usage()
 
 // --- INDEXES ---
 // Table: bible_versions
