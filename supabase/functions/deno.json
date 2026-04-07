@@ -7,6 +7,7 @@
     "create-checkout-session": 8,
     "stripe-webhook": 7,
     "create-subscription": 5,
-    "get-admin-users": 4
+    "get-admin-users": 4,
+    "import-bible-data": 1
   }
 }
