@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase/client'
+import { getTrueUsageCount } from '@/services/billing'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -31,7 +32,6 @@ export default function ProfilePage() {
           .maybeSingle()
 
         if (subData) {
-          setSubscription(subData)
           const { data: planData } = await supabase
             .from('subscription_plans')
             .select('*')
@@ -54,10 +54,14 @@ export default function ProfilePage() {
               features: [],
             })
           }
+
+          const trueCount = await getTrueUsageCount(user.id)
+          setSubscription({ ...subData, sermons_generated: trueCount })
         } else {
+          const trueCount = await getTrueUsageCount(user.id)
           setSubscription({
             status: 'active',
-            sermons_generated: 0,
+            sermons_generated: trueCount,
             plan_id: 'free',
           })
           setPlan({

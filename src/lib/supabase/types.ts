@@ -692,6 +692,7 @@ export const Constants = {
 // Table: user_subscriptions
 //   PRIMARY KEY user_subscriptions_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY user_subscriptions_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   UNIQUE user_subscriptions_user_id_key: UNIQUE (user_id)
 // Table: youtube_playlists
 //   PRIMARY KEY youtube_playlists_pkey: PRIMARY KEY (id)
 //   UNIQUE youtube_playlists_playlist_id_key: UNIQUE (playlist_id)
@@ -756,6 +757,8 @@ export const Constants = {
 //     USING: (auth.uid() = user_id)
 //   Policy "admin_insert_user_subscriptions" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
+//   Policy "admin_select_user_subscriptions" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
 //   Policy "admin_update_user_subscriptions" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
 //     WITH CHECK: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
@@ -799,5 +802,7 @@ export const Constants = {
 //   CREATE UNIQUE INDEX bible_versions_name_key ON public.bible_versions USING btree (name)
 // Table: user_settings
 //   CREATE UNIQUE INDEX user_settings_user_id_key ON public.user_settings USING btree (user_id)
+// Table: user_subscriptions
+//   CREATE UNIQUE INDEX user_subscriptions_user_id_key ON public.user_subscriptions USING btree (user_id)
 // Table: youtube_playlists
 //   CREATE UNIQUE INDEX youtube_playlists_playlist_id_key ON public.youtube_playlists USING btree (playlist_id)
