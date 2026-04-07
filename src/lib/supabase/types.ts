@@ -9,6 +9,135 @@ export type Database = {
   }
   public: {
     Tables: {
+      bible_books: {
+        Row: {
+          abbreviation: string
+          book_number: number
+          chapters_count: number
+          created_at: string | null
+          id: string
+          name: string
+          testament: string
+          version_id: string
+        }
+        Insert: {
+          abbreviation: string
+          book_number: number
+          chapters_count: number
+          created_at?: string | null
+          id?: string
+          name: string
+          testament: string
+          version_id: string
+        }
+        Update: {
+          abbreviation?: string
+          book_number?: number
+          chapters_count?: number
+          created_at?: string | null
+          id?: string
+          name?: string
+          testament?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'bible_books_version_id_fkey'
+            columns: ['version_id']
+            isOneToOne: false
+            referencedRelation: 'bible_versions'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      bible_chapters: {
+        Row: {
+          book_id: string
+          chapter_number: number
+          created_at: string | null
+          id: string
+          verses_count: number
+        }
+        Insert: {
+          book_id: string
+          chapter_number: number
+          created_at?: string | null
+          id?: string
+          verses_count: number
+        }
+        Update: {
+          book_id?: string
+          chapter_number?: number
+          created_at?: string | null
+          id?: string
+          verses_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'bible_chapters_book_id_fkey'
+            columns: ['book_id']
+            isOneToOne: false
+            referencedRelation: 'bible_books'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      bible_verses: {
+        Row: {
+          chapter_id: string
+          created_at: string | null
+          id: string
+          text: string
+          verse_number: number
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string | null
+          id?: string
+          text: string
+          verse_number: number
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string | null
+          id?: string
+          text?: string
+          verse_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'bible_verses_chapter_id_fkey'
+            columns: ['chapter_id']
+            isOneToOne: false
+            referencedRelation: 'bible_chapters'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      bible_versions: {
+        Row: {
+          abbreviation: string
+          created_at: string | null
+          id: string
+          language: string | null
+          name: string
+        }
+        Insert: {
+          abbreviation: string
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          name: string
+        }
+        Update: {
+          abbreviation?: string
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -426,6 +555,33 @@ export const Constants = {
 // --- COLUMN TYPES (actual PostgreSQL types) ---
 // Use this to know the real database type when writing migrations.
 // "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: bible_books
+//   id: uuid (not null, default: gen_random_uuid())
+//   version_id: uuid (not null)
+//   book_number: integer (not null)
+//   name: text (not null)
+//   abbreviation: text (not null)
+//   testament: text (not null)
+//   chapters_count: integer (not null)
+//   created_at: timestamp without time zone (nullable, default: now())
+// Table: bible_chapters
+//   id: uuid (not null, default: gen_random_uuid())
+//   book_id: uuid (not null)
+//   chapter_number: integer (not null)
+//   verses_count: integer (not null)
+//   created_at: timestamp without time zone (nullable, default: now())
+// Table: bible_verses
+//   id: uuid (not null, default: gen_random_uuid())
+//   chapter_id: uuid (not null)
+//   verse_number: integer (not null)
+//   text: text (not null)
+//   created_at: timestamp without time zone (nullable, default: now())
+// Table: bible_versions
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   abbreviation: text (not null)
+//   language: text (nullable, default: 'pt-BR'::text)
+//   created_at: timestamp without time zone (nullable, default: now())
 // Table: contact_messages
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (nullable)
@@ -502,6 +658,19 @@ export const Constants = {
 //   updated_at: timestamp without time zone (nullable, default: now())
 
 // --- CONSTRAINTS ---
+// Table: bible_books
+//   PRIMARY KEY bible_books_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY bible_books_version_id_fkey: FOREIGN KEY (version_id) REFERENCES bible_versions(id) ON DELETE CASCADE
+// Table: bible_chapters
+//   FOREIGN KEY bible_chapters_book_id_fkey: FOREIGN KEY (book_id) REFERENCES bible_books(id) ON DELETE CASCADE
+//   PRIMARY KEY bible_chapters_pkey: PRIMARY KEY (id)
+// Table: bible_verses
+//   FOREIGN KEY bible_verses_chapter_id_fkey: FOREIGN KEY (chapter_id) REFERENCES bible_chapters(id) ON DELETE CASCADE
+//   PRIMARY KEY bible_verses_pkey: PRIMARY KEY (id)
+// Table: bible_versions
+//   UNIQUE bible_versions_abbreviation_key: UNIQUE (abbreviation)
+//   UNIQUE bible_versions_name_key: UNIQUE (name)
+//   PRIMARY KEY bible_versions_pkey: PRIMARY KEY (id)
 // Table: contact_messages
 //   PRIMARY KEY contact_messages_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY contact_messages_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
@@ -528,6 +697,18 @@ export const Constants = {
 //   UNIQUE youtube_playlists_playlist_id_key: UNIQUE (playlist_id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
+// Table: bible_books
+//   Policy "Permitir leitura de livros" (SELECT, PERMISSIVE) roles={public}
+//     USING: true
+// Table: bible_chapters
+//   Policy "Permitir leitura de capítulos" (SELECT, PERMISSIVE) roles={public}
+//     USING: true
+// Table: bible_verses
+//   Policy "Permitir leitura de versículos" (SELECT, PERMISSIVE) roles={public}
+//     USING: true
+// Table: bible_versions
+//   Policy "Permitir leitura de versões" (SELECT, PERMISSIVE) roles={public}
+//     USING: true
 // Table: contact_messages
 //   Policy "Users can insert their own messages" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (auth.uid() = user_id)
@@ -613,6 +794,9 @@ export const Constants = {
 //
 
 // --- INDEXES ---
+// Table: bible_versions
+//   CREATE UNIQUE INDEX bible_versions_abbreviation_key ON public.bible_versions USING btree (abbreviation)
+//   CREATE UNIQUE INDEX bible_versions_name_key ON public.bible_versions USING btree (name)
 // Table: user_settings
 //   CREATE UNIQUE INDEX user_settings_user_id_key ON public.user_settings USING btree (user_id)
 // Table: youtube_playlists
