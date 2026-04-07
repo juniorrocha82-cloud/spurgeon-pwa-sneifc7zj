@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Book as BookIcon, Share2, Copy, X } from 'lucide-react'
+import { Book as BookIcon, Share2, Copy, X, Search } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import {
   Select,
@@ -28,6 +29,11 @@ export default function BiblePage() {
 
   const [verses, setVerses] = useState<any[]>([])
   const [selectedVerses, setSelectedVerses] = useState<number[]>([])
+
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -134,6 +140,66 @@ export default function BiblePage() {
     }
     fetchVerses()
   }, [selectedChapter, chapters, selectedBook])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  useEffect(() => {
+    if (!debouncedSearchTerm || !selectedVersion) {
+      setSearchResults([])
+      setIsSearching(false)
+      return
+    }
+
+    const fetchSearchResults = async () => {
+      setIsSearching(true)
+      try {
+        const { data, error } = await supabase
+          .from('bible_verses')
+          .select(`
+            id,
+            verse_number,
+            text,
+            chapter:bible_chapters!inner(
+              id,
+              chapter_number,
+              book:bible_books!inner(
+                id,
+                name,
+                version_id
+              )
+            )
+          `)
+          .eq('chapter.book.version_id', selectedVersion)
+          .ilike('text', `%${debouncedSearchTerm}%`)
+          .limit(100)
+
+        if (error) throw error
+        setSearchResults(data || [])
+      } catch (err: any) {
+        console.error(err)
+        toast({
+          title: 'Erro na busca',
+          description: 'Não foi possível realizar a busca.',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsSearching(false)
+      }
+    }
+
+    fetchSearchResults()
+  }, [debouncedSearchTerm, selectedVersion, toast])
+
+  const handleResultClick = (bookId: string, chapterNumber: number) => {
+    setSelectedBook(bookId)
+    setSelectedChapter(chapterNumber.toString())
+    setSearchTerm('')
+  }
 
   const currentBookData = useMemo(
     () => books.find((b) => b.id === selectedBook),
@@ -307,9 +373,69 @@ export default function BiblePage() {
           </div>
         </div>
 
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Buscar versículo por texto..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-12 bg-card border-border shadow-subtle"
+            disabled={loading || versions.length === 0}
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground"
+              onClick={() => setSearchTerm('')}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
         <Card className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm">
           <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
-            {loading && verses.length === 0 ? (
+            {searchTerm ? (
+              isSearching ? (
+                <div className="space-y-4 w-full h-full">
+                  <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="w-full h-full animate-fade-in">
+                  <h2 className="text-xl font-serif font-bold text-foreground/90 mb-6 border-b border-border/50 pb-2">
+                    Resultados para "{debouncedSearchTerm}"
+                  </h2>
+                  <div className="grid gap-4">
+                    {searchResults.map((result: any) => (
+                      <div
+                        key={result.id}
+                        className="p-4 rounded-lg bg-accent/50 hover:bg-accent cursor-pointer transition-colors border border-border/50 text-left"
+                        onClick={() =>
+                          handleResultClick(result.chapter.book.id, result.chapter.chapter_number)
+                        }
+                      >
+                        <div className="text-sm font-bold text-primary mb-1">
+                          {result.chapter.book.name} {result.chapter.chapter_number}:
+                          {result.verse_number}
+                        </div>
+                        <div className="font-serif text-foreground/90">"{result.text}"</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+                  <Search className="w-12 h-12 text-muted-foreground/50" />
+                  <p className="text-muted-foreground text-lg">
+                    Nenhum resultado encontrado para "{debouncedSearchTerm}".
+                  </p>
+                </div>
+              )
+            ) : loading && verses.length === 0 ? (
               <div className="space-y-4 w-full h-full">
                 <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
                 {Array.from({ length: 8 }).map((_, i) => (
