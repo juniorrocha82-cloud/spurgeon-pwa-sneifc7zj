@@ -93,7 +93,7 @@ ${sermon.content.intro}
 ${sermon.content.proposition ? `PROPOSIÇÃO\n${sermon.content.proposition}\n\n` : ''}DESENVOLVIMENTO
 ${sermon.content.points.map((p, i) => `${i + 1}. ${p.title}\n${p.text}`).join('\n\n')}
 
-${sermon.content.illustration ? `ILUSTRAÇÃO\n${sermon.content.illustration}\n\n` : ''}CONCLUSÃO
+${sermon.content.illustration ? `ILUSTRAÇÃO\n${sermon.content.illustration}\n\n` : ''}${(sermon.content as any).application ? `APLICAÇÃO PRÁTICA\n${(sermon.content as any).application}\n\n` : ''}CONCLUSÃO
 ${sermon.content.conclusion}`
 
     try {
@@ -442,6 +442,17 @@ ${sermon.content.conclusion}`
               </h2>
               <p className="text-lg leading-relaxed text-foreground/90 print:text-black">
                 {sermon.content.illustration}
+              </p>
+            </section>
+          )}
+
+          {(sermon.content as any).application && (
+            <section className="space-y-4 bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid print:mt-8">
+              <h2 className="text-xl font-serif font-semibold text-amber-600 flex items-center print:text-black">
+                <Check className="w-5 h-5 mr-2" /> Aplicação Prática
+              </h2>
+              <p className="text-lg leading-relaxed text-foreground/90 print:text-black">
+                {(sermon.content as any).application}
               </p>
             </section>
           )}

@@ -75,7 +75,8 @@ A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
 2. Proposição (A ideia central do sermão)
 3. Tópicos Principais (Desenvolvimento, mínimo de 3)
 4. Ilustração
-5. Conclusão
+5. Aplicação Prática (A ponte entre a verdade bíblica e a vida dos ouvintes)
+6. Conclusão
 
 Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
 {
@@ -87,6 +88,7 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
       { "title": "Título do ponto 1 (in ${langName})", "text": "Desenvolvimento do ponto 1... (in ${langName})" }
     ],
     "illustration": "Texto da ilustração... (in ${langName})",
+    "application": "Texto da aplicação prática... (in ${langName})",
     "conclusion": "Texto da conclusão e apelo... (in ${langName})"
   },
   "insights": [

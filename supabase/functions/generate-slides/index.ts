@@ -81,6 +81,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       textoBase: sermon.baseText,
       introducao: sermon.content.intro,
       pontos: sermon.content.points,
+      aplicacao: sermon.content.application || '',
       conclusao: sermon.content.conclusion,
     })
 
