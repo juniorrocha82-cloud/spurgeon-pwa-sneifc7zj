@@ -8,6 +8,6 @@
     "stripe-webhook": 7,
     "create-subscription": 5,
     "get-admin-users": 4,
-    "import-bible-data": 1
+    "import-bible-data": 2
   }
 }

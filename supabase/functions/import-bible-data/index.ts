@@ -41,9 +41,24 @@ Deno.serve(async (req: Request) => {
     const { version } = await req.json()
 
     const BIBLE_VERSIONS = {
-      pt_acf: { name: 'Almeida Corrigida Fiel', abbrev: 'ACF', lang: 'pt-BR' },
-      pt_nvi: { name: 'Nova Versão Internacional', abbrev: 'NVI', lang: 'pt-BR' },
-      en_kjv: { name: 'King James Version', abbrev: 'KJV', lang: 'en-US' },
+      pt_acf: {
+        name: 'Almeida Corrigida Fiel',
+        abbrev: 'ACF',
+        lang: 'pt-BR',
+        url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json',
+      },
+      pt_nvi: {
+        name: 'Nova Versão Internacional',
+        abbrev: 'NVI',
+        lang: 'pt-BR',
+        url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json',
+      },
+      en_kjv: {
+        name: 'King James Version',
+        abbrev: 'KJV',
+        lang: 'en-US',
+        url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/en_kjv.json',
+      },
     }
 
     const verInfo = BIBLE_VERSIONS[version as keyof typeof BIBLE_VERSIONS]
@@ -51,11 +66,9 @@ Deno.serve(async (req: Request) => {
       throw new Error('Versão inválida. Escolha pt_acf, pt_nvi ou en_kjv.')
     }
 
-    const res = await fetch(
-      `https://raw.githubusercontent.com/MaatheusGois/bible/master/json/${version}.json`,
-    )
+    const res = await fetch(verInfo.url)
     if (!res.ok) {
-      throw new Error(`Falha ao baixar JSON da versão ${version}`)
+      throw new Error(`Falha ao baixar JSON da versão ${version} (${res.status} ${res.statusText})`)
     }
     const books = await res.json()
 
