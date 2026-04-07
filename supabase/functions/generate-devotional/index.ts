@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -19,18 +20,53 @@ Deno.serve(async (req: Request) => {
       )
     }
 
+    let language = 'pt'
+    let langName = 'Portuguese'
+    const authHeader = req.headers.get('Authorization')
+
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+        const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+        if (supabaseUrl && supabaseKey) {
+          const supabase = createClient(supabaseUrl, supabaseKey)
+          const token = authHeader.replace('Bearer ', '')
+          const {
+            data: { user },
+          } = await supabase.auth.getUser(token)
+          if (user) {
+            const { data: settings } = await supabase
+              .from('user_settings')
+              .select('language')
+              .eq('user_id', user.id)
+              .maybeSingle()
+            if (settings?.language) {
+              language = settings.language
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching user settings:', e)
+      }
+    }
+
+    if (language === 'en') langName = 'English'
+    if (language === 'es') langName = 'Spanish'
+
     const systemPrompt = `Você é um pastor e escritor cristão experiente e inspirador.
 Sua tarefa é gerar um devocional diário profundo, reconfortante e prático.
 
 Escolha aleatoriamente um texto bíblico edificante para o devocional de hoje.
 
+IMPORTANT: All generated content (title, baseText, reading, reflection, prayer) MUST be translated to and written in ${langName}.
+
 Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
 {
-  "title": "Um título chamativo e reflexivo para o devocional",
+  "title": "Um título chamativo e reflexivo para o devocional (in ${langName})",
   "baseText": "Referência Bíblica (ex: Salmos 23:1-3)",
-  "reading": "O texto bíblico completo da referência",
-  "reflection": "Uma reflexão profunda, encorajadora e prática sobre o texto (aproximadamente 3 ou 4 parágrafos)",
-  "prayer": "Uma oração final curta e inspiradora baseada na reflexão"
+  "reading": "O texto bíblico completo da referência (in ${langName})",
+  "reflection": "Uma reflexão profunda, encorajadora e prática sobre o texto (aproximadamente 3 ou 4 parágrafos) (in ${langName})",
+  "prayer": "Uma oração final curta e inspiradora baseada na reflexão (in ${langName})"
 }`
 
     const userPrompt = 'Gere o devocional diário de hoje.'

@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import PptxGenJS from 'npm:pptxgenjs@3.12.0'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -24,17 +25,52 @@ Deno.serve(async (req: Request) => {
       await req.json()
     const outline = custom_outline || customOutline || sermon?.content?.custom_outline || ''
 
+    let language = 'pt'
+    let langName = 'Portuguese'
+    const authHeader = req.headers.get('Authorization')
+
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+        const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+        if (supabaseUrl && supabaseKey) {
+          const supabase = createClient(supabaseUrl, supabaseKey)
+          const token = authHeader.replace('Bearer ', '')
+          const {
+            data: { user },
+          } = await supabase.auth.getUser(token)
+          if (user) {
+            const { data: userSettings } = await supabase
+              .from('user_settings')
+              .select('language')
+              .eq('user_id', user.id)
+              .maybeSingle()
+            if (userSettings?.language) {
+              language = userSettings.language
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching user settings:', e)
+      }
+    }
+
+    if (language === 'en') langName = 'English'
+    if (language === 'es') langName = 'Spanish'
+
     const systemPrompt = `Você é um especialista em criar apresentações de slides impactantes para pregações cristãs.
 A partir do sermão fornecido, crie um roteiro de slides.
 Número de slides desejado: ${slideCount === 'auto' ? 'Aproximadamente 6 a 8' : slideCount}.
 Incluir sugestão de imagens: ${hasImages === 'yes' ? 'Sim' : 'Não'}.
 
+IMPORTANT: All generated slide content MUST be written in ${langName}. The imageQuery must remain in English.
+
 Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
 {
   "slides": [
     {
-      "title": "Título do slide (curto e impactante)",
-      "content": "Tópicos ou texto para o slide (máximo 3 linhas para ficar legível durante a apresentação)",
+      "title": "Título do slide (curto e impactante, in ${langName})",
+      "content": "Tópicos ou texto para o slide (máximo 3 linhas para ficar legível durante a apresentação, in ${langName})",
       "imageQuery": "termo de busca em inglês para imagem realista e elegante (ex: 'cross silhouette', 'praying hands', 'bible study', 'nature landscape') - apenas se hasImages for yes, senão deixe vazio"
     }
   ]

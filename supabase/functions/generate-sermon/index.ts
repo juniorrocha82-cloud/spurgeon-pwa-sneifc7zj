@@ -1,8 +1,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -13,12 +13,44 @@ Deno.serve(async (req: Request) => {
     if (!apiKey) {
       return new Response(
         JSON.stringify({
-          error:
-            "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
+          error: 'API Key do Gemini não encontrada.',
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
     }
+
+    let language = 'pt'
+    let langName = 'Portuguese'
+    const authHeader = req.headers.get('Authorization')
+
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+        const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+        if (supabaseUrl && supabaseKey) {
+          const supabase = createClient(supabaseUrl, supabaseKey)
+          const token = authHeader.replace('Bearer ', '')
+          const {
+            data: { user },
+          } = await supabase.auth.getUser(token)
+          if (user) {
+            const { data: settings } = await supabase
+              .from('user_settings')
+              .select('language')
+              .eq('user_id', user.id)
+              .maybeSingle()
+            if (settings?.language) {
+              language = settings.language
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching user settings:', e)
+      }
+    }
+
+    if (language === 'en') langName = 'English'
+    if (language === 'es') langName = 'Spanish'
 
     const {
       baseText,
@@ -36,6 +68,8 @@ Sua tarefa é gerar um sermão estruturado com base no texto ou tema fornecido, 
 O estilo da pregação será: ${sermonType} (Expositivo ou Temático).
 A duração estimada é de ${duration} minutos.
 
+IMPORTANT: All generated content (title, intro, points, conclusion, insights) MUST be translated to and written in ${langName}.
+
 A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
 1. Introdução
 2. Proposição (A ideia central do sermão)
@@ -45,24 +79,21 @@ A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
 
 Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
 {
-  "title": "Um título chamativo e profundo para o sermão",
+  "title": "Um título chamativo e profundo para o sermão (in ${langName})",
   "content": {
-    "intro": "Texto da introdução...",
-    "proposition": "Texto da proposição...",
+    "intro": "Texto da introdução... (in ${langName})",
+    "proposition": "Texto da proposição... (in ${langName})",
     "points": [
-      { "title": "Título do ponto 1", "text": "Desenvolvimento do ponto 1..." },
-      { "title": "Título do ponto 2", "text": "Desenvolvimento do ponto 2..." }
+      { "title": "Título do ponto 1 (in ${langName})", "text": "Desenvolvimento do ponto 1... (in ${langName})" }
     ],
-    "illustration": "Texto da ilustração...",
-    "conclusion": "Texto da conclusão e apelo..."
+    "illustration": "Texto da ilustração... (in ${langName})",
+    "conclusion": "Texto da conclusão e apelo... (in ${langName})"
   },
   "insights": [
-    "Dica prática para o pregador 1...",
-    "Dica prática para o pregador 2..."
+    "Dica prática para o pregador 1... (in ${langName})"
   ],
   "references": [
-    "Livro Capítulo:Versículo - Breve explicação da relevância",
-    "Livro Capítulo:Versículo - Breve explicação da relevância"
+    "Livro Capítulo:Versículo - Breve explicação da relevância (in ${langName})"
   ]
 }`
 
@@ -104,8 +135,6 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
     }
 
     let responseText = data.candidates[0].content.parts[0].text
-
-    // Tratamento extra de segurança contra blocos markdown
     responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
 
     const generatedContent = JSON.parse(responseText)
@@ -114,7 +143,7 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
-  } catch (error) {
+  } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

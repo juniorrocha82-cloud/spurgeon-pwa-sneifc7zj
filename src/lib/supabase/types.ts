@@ -176,6 +176,7 @@ export type Database = {
           created_at: string
           font_family: string
           id: string
+          language: string
           logo_base64: string | null
           primary_color: string
           updated_at: string
@@ -185,6 +186,7 @@ export type Database = {
           created_at?: string
           font_family?: string
           id?: string
+          language?: string
           logo_base64?: string | null
           primary_color?: string
           updated_at?: string
@@ -194,6 +196,7 @@ export type Database = {
           created_at?: string
           font_family?: string
           id?: string
+          language?: string
           logo_base64?: string | null
           primary_color?: string
           updated_at?: string
@@ -475,6 +478,7 @@ export const Constants = {
 //   logo_base64: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+//   language: text (not null, default: 'pt'::text)
 // Table: user_subscriptions
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)

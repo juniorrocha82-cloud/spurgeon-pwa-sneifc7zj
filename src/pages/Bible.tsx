@@ -374,6 +374,60 @@ export default function BiblePage() {
                     )
                   })}
                 </div>
+
+                <div className="mt-12 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto flex items-center justify-center h-12 px-6"
+                    onClick={async () => {
+                      const text = verses.map((v) => `${v.verse} ${v.text}`).join('\n')
+                      const fullText = `${currentStaticBook.name} ${selectedChapter}\n\n${text}\n\nLeia a Bíblia diariamente em:\nhttps://spurgeon.one`
+                      try {
+                        await navigator.clipboard.writeText(fullText)
+                        toast({
+                          title: 'Copiado!',
+                          description: 'Capítulo copiado para a área de transferência.',
+                        })
+                      } catch (e) {
+                        toast({
+                          title: 'Erro',
+                          description: 'Não foi possível copiar o capítulo.',
+                          variant: 'destructive',
+                        })
+                      }
+                    }}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copiar Capítulo Completo
+                  </Button>
+                  {typeof navigator.share === 'function' && (
+                    <Button
+                      variant="default"
+                      className="w-full sm:w-auto flex items-center justify-center h-12 px-6"
+                      onClick={async () => {
+                        const text = verses.map((v) => `${v.verse} ${v.text}`).join('\n')
+                        const fullText = `${currentStaticBook.name} ${selectedChapter}\n\n${text}\n\nLeia a Bíblia diariamente em:\nhttps://spurgeon.one`
+                        try {
+                          await navigator.share({
+                            title: `${currentStaticBook.name} ${selectedChapter}`,
+                            text: fullText,
+                          })
+                        } catch (e: any) {
+                          if (e.name !== 'AbortError') {
+                            toast({
+                              title: 'Erro',
+                              description: 'Não foi possível compartilhar o capítulo.',
+                              variant: 'destructive',
+                            })
+                          }
+                        }
+                      }}
+                    >
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Compartilhar Capítulo
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
