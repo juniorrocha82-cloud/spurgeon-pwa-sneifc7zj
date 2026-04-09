@@ -1,13 +1,13 @@
 {
   "_versions": {
-    "generate-sermon": 25,
-    "generate-slides": 28,
-    "generate-devotional": 10,
-    "get-playlist-preview": 12,
-    "create-checkout-session": 8,
-    "stripe-webhook": 7,
-    "create-subscription": 5,
-    "get-admin-users": 6,
-    "import-bible-data": 2
+    "generate-sermon": 26,
+    "generate-slides": 29,
+    "generate-devotional": 11,
+    "get-playlist-preview": 13,
+    "create-checkout-session": 9,
+    "stripe-webhook": 9,
+    "create-subscription": 6,
+    "get-admin-users": 7,
+    "import-bible-data": 3
   }
 }
