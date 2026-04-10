@@ -1,8 +1,8 @@
 {
   "_versions": {
-    "generate-sermon": 30,
+    "generate-sermon": 31,
     "generate-slides": 31,
-    "generate-devotional": 15,
+    "generate-devotional": 16,
     "get-playlist-preview": 13,
     "create-checkout-session": 9,
     "stripe-webhook": 9,

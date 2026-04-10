@@ -117,17 +117,17 @@ Sua tarefa é gerar 2 devocionais diários profundos, reconfortantes e práticos
 
 Escolha aleatoriamente textos bíblicos edificantes para os devocionais de hoje.
 
-IMPORTANT: All generated content (title, baseText, reading, reflection, prayer) MUST be translated to and written in ${langName}.
+Responda SEMPRE em português brasileiro. Não use inglês em nenhuma circunstância.
 
 Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
 {
   "devotionals": [
     {
-      "title": "Um título chamativo e reflexivo para o devocional (in ${langName})",
+      "title": "Um título chamativo e reflexivo para o devocional",
       "baseText": "Referência Bíblica (ex: Salmos 23:1-3)",
-      "reading": "O texto bíblico completo da referência (in ${langName})",
-      "reflection": "Uma reflexão profunda, encorajadora e prática sobre o texto (aproximadamente 3 ou 4 parágrafos) (in ${langName})",
-      "prayer": "Uma oração final curta e inspiradora baseada na reflexão (in ${langName})"
+      "reading": "O texto bíblico completo da referência",
+      "reflection": "Uma reflexão profunda, encorajadora e prática sobre o texto (aproximadamente 3 ou 4 parágrafos)",
+      "prayer": "Uma oração final curta e inspiradora baseada na reflexão"
     },
     {
       "title": "Outro título...",

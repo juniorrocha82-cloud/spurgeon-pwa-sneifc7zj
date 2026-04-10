@@ -138,7 +138,7 @@ Sua tarefa é gerar um sermão estruturado com base no texto ou tema fornecido, 
 O estilo da pregação será: ${sermonType} (Expositivo ou Temático).
 A duração estimada é de ${duration} minutos.
 
-IMPORTANT: All generated content (title, intro, points, conclusion, insights) MUST be translated to and written in ${langName}.
+Responda SEMPRE em português brasileiro. Não use inglês em nenhuma circunstância. Gere a pregação completa em português.
 
 A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
 1. Introdução
@@ -150,22 +150,22 @@ A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
 
 Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
 {
-  "title": "Um título chamativo e profundo para o sermão (in ${langName})",
+  "title": "Um título chamativo e profundo para o sermão",
   "content": {
-    "intro": "Texto da introdução... (in ${langName})",
-    "proposition": "Texto da proposição... (in ${langName})",
+    "intro": "Texto da introdução...",
+    "proposition": "Texto da proposição...",
     "points": [
-      { "title": "Título do ponto 1 (in ${langName})", "text": "Desenvolvimento do ponto 1... (in ${langName})" }
+      { "title": "Título do ponto 1", "text": "Desenvolvimento do ponto 1..." }
     ],
-    "illustration": "Texto da ilustração... (in ${langName})",
-    "application": "Texto da aplicação prática... (in ${langName})",
-    "conclusion": "Texto da conclusão e apelo... (in ${langName})"
+    "illustration": "Texto da ilustração...",
+    "application": "Texto da aplicação prática...",
+    "conclusion": "Texto da conclusão e apelo..."
   },
   "insights": [
-    "Dica prática para o pregador 1... (in ${langName})"
+    "Dica prática para o pregador 1..."
   ],
   "references": [
-    "Livro Capítulo:Versículo - Breve explicação da relevância (in ${langName})"
+    "Livro Capítulo:Versículo - Breve explicação da relevância"
   ]
 }`
 
