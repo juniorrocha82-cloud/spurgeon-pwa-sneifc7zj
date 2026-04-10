@@ -34,6 +34,30 @@ Deno.serve(async (req: Request) => {
             data: { user },
           } = await supabase.auth.getUser(token)
           if (user) {
+            // Admin tem acesso ilimitado
+            if (user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
+              const { data: sub } = await supabase
+                .from('user_subscriptions')
+                .select('plan_id, sermons_generated')
+                .eq('user_id', user.id)
+                .maybeSingle()
+
+              if (sub && sub.plan_id === 'free') {
+                const generated = sub.sermons_generated || 0
+                if (generated >= 3) {
+                  return new Response(
+                    JSON.stringify({
+                      error: 'Limite de 3 sermões atingido. Faça upgrade para continuar',
+                    }),
+                    {
+                      status: 403,
+                      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    },
+                  )
+                }
+              }
+            }
+
             const { data: settings } = await supabase
               .from('user_settings')
               .select('language')
@@ -45,7 +69,7 @@ Deno.serve(async (req: Request) => {
           }
         }
       } catch (e) {
-        console.error('Error fetching user settings:', e)
+        console.error('Error fetching user settings ou checando limites:', e)
       }
     }
 

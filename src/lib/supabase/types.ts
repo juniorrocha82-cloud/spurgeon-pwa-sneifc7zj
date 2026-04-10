@@ -168,12 +168,38 @@ export type Database = {
         }
         Relationships: []
       }
+      devotional_limits: {
+        Row: {
+          count: number
+          created_at: string
+          date: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          date: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       devotionals: {
         Row: {
           base_text: string
           content: Json
           created_at: string
           date: string
+          devotional_date: string | null
+          devotional_text: string | null
           id: string
           title: string
           user_id: string
@@ -183,6 +209,8 @@ export type Database = {
           content: Json
           created_at?: string
           date?: string
+          devotional_date?: string | null
+          devotional_text?: string | null
           id?: string
           title: string
           user_id: string
@@ -192,6 +220,8 @@ export type Database = {
           content?: Json
           created_at?: string
           date?: string
+          devotional_date?: string | null
+          devotional_text?: string | null
           id?: string
           title?: string
           user_id?: string
@@ -593,6 +623,12 @@ export const Constants = {
 //   subject: text (not null)
 //   message: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: devotional_limits
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   date: date (not null)
+//   count: integer (not null, default: 0)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: devotionals
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -601,6 +637,8 @@ export const Constants = {
 //   content: jsonb (not null)
 //   date: timestamp with time zone (not null, default: now())
 //   created_at: timestamp with time zone (not null, default: now())
+//   devotional_text: text (nullable)
+//   devotional_date: date (nullable)
 // Table: generation_logs
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -678,6 +716,9 @@ export const Constants = {
 // Table: contact_messages
 //   PRIMARY KEY contact_messages_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY contact_messages_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
+// Table: devotional_limits
+//   PRIMARY KEY devotional_limits_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY devotional_limits_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: devotionals
 //   PRIMARY KEY devotionals_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY devotionals_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -717,6 +758,16 @@ export const Constants = {
 // Table: contact_messages
 //   Policy "Users can insert their own messages" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (auth.uid() = user_id)
+// Table: devotional_limits
+//   Policy "Users can delete their own devotional limits" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//   Policy "Users can insert their own devotional limits" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (auth.uid() = user_id)
+//   Policy "Users can update their own devotional limits" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//     WITH CHECK: (auth.uid() = user_id)
+//   Policy "Users can view their own devotional limits" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
 // Table: devotionals
 //   Policy "Users can delete their own devotionals" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
