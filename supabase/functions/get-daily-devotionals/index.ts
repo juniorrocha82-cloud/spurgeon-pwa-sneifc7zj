@@ -26,7 +26,11 @@ Deno.serve(async (req: Request) => {
       throw new Error('Configurações do Supabase ausentes no ambiente.')
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: { Authorization: authHeader },
+      },
+    })
     const token = authHeader.replace('Bearer ', '')
     const {
       data: { user },
