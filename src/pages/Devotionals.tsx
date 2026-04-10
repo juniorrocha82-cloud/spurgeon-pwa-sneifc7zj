@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookHeart, Sparkles, Quote, Calendar, Trash2, BookOpen } from 'lucide-react'
+import { BookHeart, Sparkles, Quote, Calendar, Trash2 } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -13,8 +13,17 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   aiGenerateDevotional,
-  saveDevotionalToDb,
   getRecentDevotionals,
   deleteDevotional,
   Devotional,
@@ -35,6 +44,7 @@ export default function DevotionalsPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [quoteIndex, setQuoteIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   useEffect(() => {
     fetchRecent()
@@ -66,16 +76,26 @@ export default function DevotionalsPage() {
 
     try {
       const generatedData = await aiGenerateDevotional()
-      const savedDevotional = await saveDevotionalToDb(generatedData)
 
-      navigate(`/devotional/${savedDevotional.id}`)
+      if (generatedData?.devotionals && generatedData.devotionals.length > 0) {
+        navigate(`/devotional/${generatedData.devotionals[0].id}`)
+      } else {
+        await fetchRecent()
+      }
     } catch (error: any) {
-      console.error(error)
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao gerar devocional',
-        description: error.message || 'Ocorreu um erro inesperado. Tente novamente.',
-      })
+      console.error('Generate error:', error)
+      const errorMsg = error?.message || ''
+
+      if (errorMsg === 'LIMIT_REACHED' || errorMsg.includes('limite')) {
+        setShowUpgradeDialog(true)
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Erro ao gerar devocional',
+          description: errorMsg || 'Ocorreu um erro inesperado. Tente novamente.',
+        })
+      }
+    } finally {
       setIsGenerating(false)
     }
   }
@@ -230,6 +250,32 @@ export default function DevotionalsPage() {
           `}</style>
         </div>
       )}
+
+      {/* Upgrade Dialog */}
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <AlertDialogContent className="border-border shadow-elevation">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-serif text-xl flex items-center text-foreground">
+              <Sparkles className="w-5 h-5 mr-2 text-primary" />
+              Limite Diário Atingido
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base text-muted-foreground mt-2">
+              Seu plano gratuito permite gerar <strong>2 devocionais por dia</strong>. Faça o
+              upgrade para o plano Pro e tenha acesso ilimitado para continuar se aprofundando na
+              Palavra!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="border-border">Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => navigate('/planos')}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+            >
+              Ver Planos
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

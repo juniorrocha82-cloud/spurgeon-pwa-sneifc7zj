@@ -48,6 +48,22 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Verifica plano do usuário
+    let isFree = true
+    if (user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
+      const { data: sub } = await supabase
+        .from('user_subscriptions')
+        .select('plan_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (sub && sub.plan_id !== 'free') {
+        isFree = false
+      }
+    } else {
+      isFree = false // Admin tem acesso ilimitado
+    }
+
     // Verifica limite de devocionais do dia
     const { data: existingLimits } = await supabase
       .from('devotional_limits')
@@ -58,20 +74,18 @@ Deno.serve(async (req: Request) => {
 
     const count = existingLimits?.count || 0
 
-    // Se já gerou 2, retorna os existentes do dia
-    if (count >= 2) {
-      const { data: existingDevotionals } = await supabase
-        .from('devotionals')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('devotional_date', date)
-        .order('created_at', { ascending: false })
-        .limit(2)
-
-      return new Response(JSON.stringify({ devotionals: existingDevotionals || [] }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
+    // Se for plano gratuito e já gerou 2, bloqueia
+    if (isFree && count >= 2) {
+      return new Response(
+        JSON.stringify({
+          error: 'LIMIT_REACHED',
+          message: 'Seu plano gratuito permite 2 devocionais por dia.',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        },
+      )
     }
 
     // Se não gerou, chama a API Gemini

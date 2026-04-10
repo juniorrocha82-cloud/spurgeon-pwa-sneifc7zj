@@ -17,31 +17,22 @@ export const aiGenerateDevotional = async () => {
   const { data, error } = await supabase.functions.invoke('generate-devotional', {
     body: {},
   })
-  if (error) throw new Error(error.message || 'Erro ao gerar devocional')
+
+  if (error) {
+    if (error.context) {
+      try {
+        const errBody = await error.context.json()
+        if (errBody.error) throw new Error(errBody.error)
+      } catch (e) {}
+    }
+    throw new Error(error.message || 'Erro ao gerar devocional')
+  }
+
+  if (data?.error) {
+    throw new Error(data.error)
+  }
+
   return data
-}
-
-export const saveDevotionalToDb = async (devotional: any) => {
-  const { data: user } = await supabase.auth.getUser()
-  if (!user.user) throw new Error('Usuário não autenticado')
-
-  const { data, error } = await supabase
-    .from('devotionals' as any)
-    .insert({
-      user_id: user.user.id,
-      title: devotional.title,
-      base_text: devotional.baseText,
-      content: {
-        reading: devotional.reading,
-        reflection: devotional.reflection,
-        prayer: devotional.prayer,
-      },
-    })
-    .select()
-    .single()
-
-  if (error) throw new Error(error.message)
-  return data as Devotional
 }
 
 export const getRecentDevotionals = async (limit = 3) => {
