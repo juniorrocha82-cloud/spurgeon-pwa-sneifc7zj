@@ -23,7 +23,9 @@ export const aiGenerateDevotional = async () => {
       try {
         const errBody = await error.context.json()
         if (errBody.error) throw new Error(errBody.error)
-      } catch (e) {}
+      } catch (e) {
+        // ignore JSON parse errors
+      }
     }
     throw new Error(error.message || 'Erro ao gerar devocional')
   }
