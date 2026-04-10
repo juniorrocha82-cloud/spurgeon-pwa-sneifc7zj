@@ -48,23 +48,59 @@ Deno.serve(async (req: Request) => {
             if (user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
               const { data: sub } = await supabase
                 .from('user_subscriptions')
-                .select('plan_id, sermons_generated')
+                .select('plan_id, status, expires_at, usage_reset_at')
                 .eq('user_id', user.id)
                 .maybeSingle()
 
-              if (sub && sub.plan_id === 'free') {
-                const generated = sub.sermons_generated || 0
-                if (generated >= 3) {
-                  return new Response(
-                    JSON.stringify({
-                      error: 'Limite de 3 sermões atingido. Faça upgrade para continuar',
-                    }),
-                    {
-                      status: 200,
-                      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                    },
-                  )
+              const planId = sub?.plan_id || 'free'
+              const status = sub?.status || 'active'
+              const expiresAt = sub?.expires_at ? new Date(sub.expires_at) : null
+              const now = new Date()
+
+              // Fallback para free se o plano pago estiver vencido ou inativo
+              const isPaidAndValid =
+                planId !== 'free' && status === 'active' && expiresAt && expiresAt > now
+              const activePlan = isPaidAndValid ? planId : 'free'
+
+              let isBlocked = false
+              let blockMessage = ''
+
+              if (activePlan === 'free') {
+                const { count } = await supabase
+                  .from('generation_logs')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('user_id', user.id)
+                  .eq('resource_type', 'sermon')
+
+                if ((count || 0) >= 3) {
+                  isBlocked = true
+                  blockMessage = 'Seu plano gratuito permite gerar até 3 sermões no total.'
                 }
+              } else if (activePlan === 'pro') {
+                let startDate = new Date()
+                startDate.setDate(startDate.getDate() - 30)
+                if (sub?.usage_reset_at && new Date(sub.usage_reset_at) > startDate) {
+                  startDate = new Date(sub.usage_reset_at)
+                }
+
+                const { count } = await supabase
+                  .from('generation_logs')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('user_id', user.id)
+                  .eq('resource_type', 'sermon')
+                  .gte('created_at', startDate.toISOString())
+
+                if ((count || 0) >= 15) {
+                  isBlocked = true
+                  blockMessage = 'Seu plano Pro permite gerar 15 sermões por mês.'
+                }
+              }
+
+              if (isBlocked) {
+                return new Response(
+                  JSON.stringify({ error: 'LIMIT_REACHED', message: blockMessage }),
+                  { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+                )
               }
             }
 
@@ -174,6 +210,31 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
     responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
 
     const generatedContent = JSON.parse(responseText)
+
+    // Registrar o uso no banco de dados
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+        const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+        if (supabaseUrl && supabaseKey) {
+          const supabase = createClient(supabaseUrl, supabaseKey, {
+            global: { headers: { Authorization: authHeader } },
+          })
+          const token = authHeader.replace('Bearer ', '')
+          const {
+            data: { user },
+          } = await supabase.auth.getUser(token)
+          if (user && user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
+            await supabase.from('generation_logs').insert({
+              user_id: user.id,
+              resource_type: 'sermon',
+            })
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao registrar log de geração:', e)
+      }
+    }
 
     return new Response(JSON.stringify(generatedContent), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -1,7 +1,7 @@
 {
   "_versions": {
-    "generate-sermon": 29,
-    "generate-slides": 30,
+    "generate-sermon": 30,
+    "generate-slides": 31,
     "generate-devotional": 15,
     "get-playlist-preview": 13,
     "create-checkout-session": 9,

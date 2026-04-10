@@ -68,6 +68,8 @@ export default function SermonPage() {
   const [generatedHtml, setGeneratedHtml] = useState<string | null>(null)
   const [generatedPptxBase64, setGeneratedPptxBase64] = useState<string | null>(null)
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [limitMessage, setLimitMessage] = useState('')
 
   useEffect(() => {
     if (!loading) {
@@ -124,7 +126,26 @@ ${sermon.content.conclusion}`
         body: { sermon, theme, slideCount, hasImages, settings: userSettings },
       })
 
-      if (error) throw error
+      if (error) {
+        const err = error as any
+        if (
+          err.context?.status === 403 ||
+          err.status === 403 ||
+          (err.message && err.message.includes('403'))
+        ) {
+          const limitError = new Error('LIMIT_REACHED')
+          limitError.name = 'LimitReachedError'
+          throw limitError
+        }
+        throw error
+      }
+
+      if (data?.error === 'LIMIT_REACHED') {
+        const limitError = new Error(data.message || 'Limite atingido')
+        limitError.name = 'LimitReachedError'
+        throw limitError
+      }
+
       if (data?.error) throw new Error(data.error)
 
       clearInterval(progressInterval)
@@ -223,6 +244,18 @@ ${sermon.content.conclusion}`
     } catch (err: any) {
       clearInterval(progressInterval)
       console.error(err)
+
+      if (
+        err.name === 'LimitReachedError' ||
+        (err.message && err.message.includes('LIMIT_REACHED'))
+      ) {
+        setLimitMessage(err.message.replace('LIMIT_REACHED', '').trim())
+        setShowUpgradeModal(true)
+        setGenerationState('idle')
+        setIsModalOpen(false)
+        return
+      }
+
       toast.error('Erro ao gerar apresentação', {
         description: err.message || 'Tente novamente mais tarde.',
       })
@@ -771,6 +804,33 @@ ${sermon.content.conclusion}`
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-amber-600">
+              <Lightbulb className="w-5 h-5 mr-2" />
+              Limite Atingido
+            </DialogTitle>
+            <DialogDescription className="pt-3 text-base text-foreground">
+              {limitMessage ||
+                'Seu plano atingiu o limite de gerações permitido. Faça o upgrade para continuar gerando apresentações incríveis para seus sermões.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
+            <Button variant="outline" onClick={() => setShowUpgradeModal(false)}>
+              Agora não
+            </Button>
+            <Button
+              onClick={() => navigate('/planos')}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              Ver Planos
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

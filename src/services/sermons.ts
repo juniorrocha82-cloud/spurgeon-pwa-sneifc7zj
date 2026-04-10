@@ -12,7 +12,26 @@ export const aiGenerateSermon = async (
     body: { baseText, version, duration, sermonType, customOutline },
   })
 
-  if (error) throw error
+  if (error) {
+    const err = error as any
+    if (
+      err.context?.status === 403 ||
+      err.status === 403 ||
+      (err.message && err.message.includes('403'))
+    ) {
+      const limitError = new Error('LIMIT_REACHED')
+      limitError.name = 'LimitReachedError'
+      throw limitError
+    }
+    throw error
+  }
+
+  if (data?.error === 'LIMIT_REACHED') {
+    const limitError = new Error(data.message || 'Limite atingido')
+    limitError.name = 'LimitReachedError'
+    throw limitError
+  }
+
   if (data?.error) throw new Error(data.error)
 
   return data
