@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
                       error: 'Limite de 3 sermões atingido. Faça upgrade para continuar',
                     }),
                     {
-                      status: 403,
+                      status: 200,
                       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                     },
                   )
