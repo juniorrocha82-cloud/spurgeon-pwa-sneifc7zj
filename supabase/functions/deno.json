@@ -11,6 +11,7 @@
     "import-bible-data": 19,
     "send-contact-email": 18,
     "get-daily-devotionals": 18,
-    "create-payment-intent": 8
+    "create-payment-intent": 8,
+    "route-api-request": 1
   }
 }
