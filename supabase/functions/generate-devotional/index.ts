@@ -158,40 +158,42 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
     if (cachedData && cachedData.response && (cachedData.response as any).devotionals) {
       generatedDevotionals = (cachedData.response as any).devotionals
     } else {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-      const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
-
-      const routerRes = await fetch(`${supabaseUrl}/functions/v1/route-api-request`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: authHeader || `Bearer ${supabaseKey}`,
+      const { data: routerData, error: routerError } = await supabase.functions.invoke(
+        'route-api-request',
+        {
+          body: {
+            model: 'gemini-1.5-flash',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.8,
+            max_tokens: 3000,
+          },
         },
-        body: JSON.stringify({
-          model: 'gemini-1.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.8,
-          max_tokens: 3000,
-        }),
-      })
+      )
 
-      if (!routerRes.ok) {
-        if (routerRes.status === 429) {
+      if (routerError) {
+        let errMsg = 'Erro ao chamar o roteador de APIs'
+        if (routerError.context) {
+          try {
+            const errBody = await routerError.context.json()
+            if (errBody.error) errMsg = errBody.error
+          } catch (e) {
+            // fallback
+          }
+        }
+        console.error('Router error:', routerError)
+        throw new Error(errMsg)
+      }
+
+      if (routerData?.error) {
+        if (routerData.error === 'RATE_LIMIT_EXCEEDED') {
           return new Response(JSON.stringify({ error: 'RATE_LIMIT_EXCEEDED' }), {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           })
         }
-        const errText = await routerRes.text()
-        console.error('Router error:', errText)
-        throw new Error('Erro ao chamar o roteador de APIs')
-      }
-
-      const routerData = await routerRes.json()
-      if (routerData.error) {
         throw new Error(routerData.error)
       }
 
