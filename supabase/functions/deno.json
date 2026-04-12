@@ -12,6 +12,6 @@
     "send-contact-email": 22,
     "get-daily-devotionals": 22,
     "create-payment-intent": 12,
-    "route-api-request": 8
+    "route-api-request": 9
   }
 }
