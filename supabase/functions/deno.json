@@ -7,7 +7,7 @@
     "create-checkout-session": 37,
     "stripe-webhook": 37,
     "create-subscription": 34,
-    "get-admin-users": 36,
+    "get-admin-users": 37,
     "import-bible-data": 31,
     "send-contact-email": 30,
     "get-daily-devotionals": 30,

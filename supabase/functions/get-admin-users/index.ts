@@ -21,29 +21,59 @@ Deno.serve(async (req: Request) => {
       throw new Error('Variáveis de ambiente do Supabase ausentes.')
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Sem autorização' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
-    const { data: authData, error: authError } = await supabase.auth.admin.listUsers({
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+      global: { headers: { Authorization: authHeader } },
+    })
+
+    const token = authHeader.replace('Bearer ', '')
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseClient.auth.getUser(token)
+
+    if (userError || !user || user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
+      return new Response(JSON.stringify({ error: 'Acesso não autorizado' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers({
       perPage: 1000,
     })
     if (authError) throw authError
     const users = authData.users || []
 
-    const { data: subs, error: subsError } = await supabase.from('user_subscriptions').select('*')
+    const { data: subs, error: subsError } = await supabaseAdmin
+      .from('user_subscriptions')
+      .select('*')
     if (subsError) throw subsError
 
-    const { data: plans, error: plansError } = await supabase.from('subscription_plans').select('*')
+    const { data: plans, error: plansError } = await supabaseAdmin
+      .from('subscription_plans')
+      .select('*')
     if (plansError) throw plansError
 
-    // Buscar logs dos últimos 30 dias para otimizar uso de memória
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    const { data: logs, error: logsError } = await supabase
+    const { data: logs, error: logsError } = await supabaseAdmin
       .from('generation_logs')
       .select('user_id, created_at, resource_type')
       .gte('created_at', thirtyDaysAgo.toISOString())
     if (logsError) throw logsError
+
+    const ADMIN_ID = '911d1666-978b-4ead-9be2-5a49028c767f'
 
     const mergedData = users.map((user) => {
       const sub = subs?.find((s) => s.user_id === user.id)
@@ -69,7 +99,8 @@ Deno.serve(async (req: Request) => {
         else if (sub.plan_id === 'enterprise') genLimit = null
       }
 
-      // Calcula a quantidade real baseada na janela de tempo (rolling window)
+      if (user.id === ADMIN_ID) genLimit = null
+
       let startDate = new Date()
       if (sub.plan_id === 'pro') {
         startDate.setDate(startDate.getDate() - 30)
@@ -82,7 +113,7 @@ Deno.serve(async (req: Request) => {
       }
 
       let realCount = 0
-      if (sub.plan_id !== 'enterprise') {
+      if (sub.plan_id !== 'enterprise' && user.id !== ADMIN_ID) {
         const userLogs = logs?.filter(
           (log) =>
             log.user_id === user.id &&
