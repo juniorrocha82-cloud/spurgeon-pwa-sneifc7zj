@@ -9,6 +9,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_providers: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          endpoint: string | null
+          id: string
+          is_active: boolean
+          priority: number
+          provider_name: string
+          rate_limit: number | null
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          is_active?: boolean
+          priority: number
+          provider_name: string
+          rate_limit?: number | null
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: number
+          provider_name?: string
+          rate_limit?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bible_books: {
         Row: {
           abbreviation: string
@@ -606,6 +642,16 @@ export const Constants = {
 // --- COLUMN TYPES (actual PostgreSQL types) ---
 // Use this to know the real database type when writing migrations.
 // "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: api_providers
+//   id: uuid (not null, default: gen_random_uuid())
+//   provider_name: text (not null)
+//   api_key: text (nullable)
+//   endpoint: text (nullable)
+//   rate_limit: integer (nullable)
+//   priority: integer (not null)
+//   is_active: boolean (not null, default: true)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 // Table: bible_books
 //   id: uuid (not null, default: gen_random_uuid())
 //   version_id: uuid (not null)
@@ -722,6 +768,9 @@ export const Constants = {
 //   usage_reset_at: timestamp with time zone (nullable)
 
 // --- CONSTRAINTS ---
+// Table: api_providers
+//   PRIMARY KEY api_providers_pkey: PRIMARY KEY (id)
+//   UNIQUE api_providers_provider_name_key: UNIQUE (provider_name)
 // Table: bible_books
 //   PRIMARY KEY bible_books_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY bible_books_version_id_fkey: FOREIGN KEY (version_id) REFERENCES bible_versions(id) ON DELETE CASCADE
@@ -767,6 +816,12 @@ export const Constants = {
 //   UNIQUE user_subscriptions_user_id_key: UNIQUE (user_id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
+// Table: api_providers
+//   Policy "Allow admin all access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
+//     WITH CHECK: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
+//   Policy "Allow read access for authenticated users" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 // Table: bible_books
 //   Policy "Permitir leitura de livros" (SELECT, PERMISSIVE) roles={public}
 //     USING: true
@@ -857,6 +912,17 @@ export const Constants = {
 //     WITH CHECK: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
 
 // --- DATABASE FUNCTIONS ---
+// FUNCTION handle_api_providers_updated_at()
+//   CREATE OR REPLACE FUNCTION public.handle_api_providers_updated_at()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//   AS $function$
+//   BEGIN
+//     NEW.updated_at = NOW();
+//     RETURN NEW;
+//   END;
+//   $function$
+//
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -902,10 +968,14 @@ export const Constants = {
 //
 
 // --- TRIGGERS ---
+// Table: api_providers
+//   set_api_providers_updated_at: CREATE TRIGGER set_api_providers_updated_at BEFORE UPDATE ON public.api_providers FOR EACH ROW EXECUTE FUNCTION handle_api_providers_updated_at()
 // Table: user_subscriptions
 //   on_reset_usage_before: CREATE TRIGGER on_reset_usage_before BEFORE UPDATE OF sermons_generated ON public.user_subscriptions FOR EACH ROW EXECUTE FUNCTION handle_reset_usage()
 
 // --- INDEXES ---
+// Table: api_providers
+//   CREATE UNIQUE INDEX api_providers_provider_name_key ON public.api_providers USING btree (provider_name)
 // Table: bible_versions
 //   CREATE UNIQUE INDEX bible_versions_abbreviation_key ON public.bible_versions USING btree (abbreviation)
 //   CREATE UNIQUE INDEX bible_versions_name_key ON public.bible_versions USING btree (name)
