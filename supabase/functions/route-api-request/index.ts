@@ -85,20 +85,28 @@ Deno.serve(async (req: Request) => {
     for (const provider of providers) {
       const providerName = provider.provider_name.toLowerCase()
       const envKeyName = `${providerName.toUpperCase()}_API_KEY` // Ex: GROQ_API_KEY, GEMINI_API_KEY
+
+      console.log(
+        `[ROUTE] [${provider.provider_name}] Tentando ler a chave de API do Supabase Secrets (${envKeyName}) ou do banco de dados...`,
+      )
       let apiKey = Deno.env.get(envKeyName) || provider.api_key
 
       if (!apiKey) {
-        console.warn(
-          `[ROUTE] [${provider.provider_name}] Ignorado: Chave de API não encontrada (nem em Secrets nem no banco).`,
+        console.error(
+          `[ROUTE] [${provider.provider_name}] ERRO: Chave de API não encontrada (${envKeyName}).`,
         )
-        logs.push({
-          provider: provider.provider_name,
-          status: 'skipped',
-          reason: 'Missing API Key',
-        })
-        continue
+        return new Response(
+          JSON.stringify({
+            error: `Chave de API ausente para o provedor ${provider.provider_name}. Verifique se a variável de ambiente ${envKeyName} está configurada no Supabase Secrets.`,
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          },
+        )
       }
 
+      console.log(`[ROUTE] [${provider.provider_name}] Chave de API lida com sucesso.`)
       console.log(`[ROUTE] Tentando provedor: ${provider.provider_name}...`)
       const startTime = Date.now()
 

@@ -1,17 +1,17 @@
 {
   "_versions": {
-    "generate-sermon": 60,
-    "generate-slides": 61,
-    "generate-devotional": 45,
-    "get-playlist-preview": 33,
-    "create-checkout-session": 29,
-    "stripe-webhook": 29,
-    "create-subscription": 26,
-    "get-admin-users": 28,
-    "import-bible-data": 23,
-    "send-contact-email": 22,
-    "get-daily-devotionals": 22,
-    "create-payment-intent": 12,
-    "route-api-request": 9
+    "generate-sermon": 68,
+    "generate-slides": 69,
+    "generate-devotional": 53,
+    "get-playlist-preview": 41,
+    "create-checkout-session": 37,
+    "stripe-webhook": 37,
+    "create-subscription": 34,
+    "get-admin-users": 36,
+    "import-bible-data": 31,
+    "send-contact-email": 30,
+    "get-daily-devotionals": 30,
+    "create-payment-intent": 20,
+    "route-api-request": 18
   }
 }
