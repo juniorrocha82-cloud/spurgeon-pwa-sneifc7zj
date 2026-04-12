@@ -20,6 +20,8 @@ import ContactPage from './pages/Contact'
 import PlansPage from './pages/Plans'
 import SuccessPage from './pages/Success'
 import AdminPage from './pages/Admin'
+import TermsPage from './pages/Terms'
+import PrivacyPage from './pages/Privacy'
 import { SermonProvider } from './store/SermonContext'
 import { AuthProvider, useAuth } from './hooks/use-auth'
 
@@ -41,6 +43,8 @@ const AppRoutes = () => {
           element={user ? <Navigate to="/" replace /> : <ForgotPasswordPage />}
         />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route
           element={
             <ProtectedRoute>

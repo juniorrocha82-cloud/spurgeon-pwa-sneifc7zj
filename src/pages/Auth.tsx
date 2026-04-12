@@ -150,6 +150,18 @@ export default function AuthPage() {
               {isLogin ? 'Cadastre-se' : 'Faça login'}
             </button>
           </p>
+
+          <div className="mt-8 text-center text-xs text-muted-foreground">
+            Ao continuar, você concorda com nossos{' '}
+            <Link to="/terms" className="underline hover:text-primary">
+              Termos de Serviço
+            </Link>{' '}
+            e{' '}
+            <Link to="/privacy" className="underline hover:text-primary">
+              Política de Privacidade
+            </Link>
+            .
+          </div>
         </div>
       </div>
 

@@ -86,15 +86,13 @@ export function UsersTab() {
           .update({ sermons_generated: 0, updated_at: new Date().toISOString() })
           .eq('id', existingSubs[0].id)
       } else {
-        await supabase
-          .from('user_subscriptions')
-          .insert({
-            user_id: selectedUserForReset,
-            plan_id: 'free',
-            status: 'active',
-            sermons_generated: 0,
-            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          })
+        await supabase.from('user_subscriptions').insert({
+          user_id: selectedUserForReset,
+          plan_id: 'free',
+          status: 'active',
+          sermons_generated: 0,
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        })
       }
       toast({ title: 'Sucesso', description: 'O uso do usuário foi zerado com sucesso.' })
       fetchData()
@@ -125,15 +123,13 @@ export function UsersTab() {
           .update({ plan_id: newPlanId, updated_at: new Date().toISOString() })
           .eq('id', existingSubs[0].id)
       } else {
-        await supabase
-          .from('user_subscriptions')
-          .insert({
-            user_id: selectedUserForPlan,
-            plan_id: newPlanId,
-            status: 'active',
-            sermons_generated: 0,
-            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          })
+        await supabase.from('user_subscriptions').insert({
+          user_id: selectedUserForPlan,
+          plan_id: newPlanId,
+          status: 'active',
+          sermons_generated: 0,
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        })
       }
       toast({ title: 'Sucesso', description: 'O plano foi atualizado com sucesso.' })
       fetchData()
