@@ -108,9 +108,19 @@ Deno.serve(async (req: Request) => {
           if (systemInstruction) requestBody.systemInstruction = systemInstruction
 
           const targetModel = model?.includes('gemini') ? model : 'gemini-2.5-flash-lite'
-          const baseUrl =
-            provider.endpoint ||
-            `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent`
+          let baseUrl = provider.endpoint
+
+          if (!baseUrl) {
+            baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent`
+          } else if (!baseUrl.includes(':generateContent')) {
+            if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1)
+            if (baseUrl.includes('/models/')) {
+              baseUrl = `${baseUrl}:generateContent`
+            } else {
+              baseUrl = `${baseUrl}/models/${targetModel}:generateContent`
+            }
+          }
+
           const fetchUrl = baseUrl.includes('?')
             ? `${baseUrl}&key=${apiKey}`
             : `${baseUrl}?key=${apiKey}`
@@ -142,41 +152,71 @@ Deno.serve(async (req: Request) => {
           const data = await res.json()
           resultText = data.choices?.[0]?.message?.content
         } else if (providerName === 'cohere') {
-          let chatHistory: any[] = []
-          let message = ''
-          let preamble = ''
-
-          for (const msg of messages) {
-            if (msg.role === 'system') preamble += msg.content + '\n'
-            else if (msg === messages[messages.length - 1]) message = msg.content
-            else
-              chatHistory.push({
-                role: msg.role === 'assistant' ? 'CHATBOT' : 'USER',
-                message: msg.content,
-              })
-          }
-
           const targetModel = model?.includes('command') ? model : 'command-r-plus'
           const baseUrl = provider.endpoint || 'https://api.cohere.ai/v1/chat'
-          const res = await fetch(baseUrl, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-            body: JSON.stringify({
-              model: targetModel,
-              message,
-              chat_history: chatHistory.length > 0 ? chatHistory : undefined,
-              preamble: preamble || undefined,
-              temperature: Number(temperature),
-              max_tokens: Number(max_tokens),
-            }),
-          })
-          if (!res.ok) throw new Error(`Status ${res.status}: ${await res.text()}`)
-          const data = await res.json()
-          resultText = data.text
+
+          if (baseUrl.includes('/generate')) {
+            const promptStr =
+              messages
+                .map(
+                  (m: any) =>
+                    `${m.role === 'system' ? 'System' : m.role === 'assistant' ? 'Assistant' : 'User'}: ${m.content}`,
+                )
+                .join('\n\n') + '\n\nAssistant:'
+
+            const res = await fetch(baseUrl, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'Cohere-Version': '2022-12-06',
+              },
+              body: JSON.stringify({
+                model: targetModel,
+                prompt: promptStr,
+                temperature: Number(temperature),
+                max_tokens: Number(max_tokens),
+              }),
+            })
+            if (!res.ok) throw new Error(`Status ${res.status}: ${await res.text()}`)
+            const data = await res.json()
+            resultText = data.generations?.[0]?.text || data.text
+          } else {
+            let chatHistory: any[] = []
+            let message = ''
+            let preamble = ''
+
+            for (const msg of messages) {
+              if (msg.role === 'system') preamble += msg.content + '\n'
+              else if (msg === messages[messages.length - 1]) message = msg.content
+              else
+                chatHistory.push({
+                  role: msg.role === 'assistant' ? 'CHATBOT' : 'USER',
+                  message: msg.content,
+                })
+            }
+
+            const res = await fetch(baseUrl, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+              },
+              body: JSON.stringify({
+                model: targetModel,
+                message,
+                chat_history: chatHistory.length > 0 ? chatHistory : undefined,
+                preamble: preamble || undefined,
+                temperature: Number(temperature),
+                max_tokens: Number(max_tokens),
+              }),
+            })
+            if (!res.ok) throw new Error(`Status ${res.status}: ${await res.text()}`)
+            const data = await res.json()
+            resultText = data.text
+          }
         } else if (providerName === 'together') {
           const targetModel = model || 'meta-llama/Llama-3-70b-chat-hf'
           const baseUrl = provider.endpoint || 'https://api.together.xyz/v1/chat/completions'
