@@ -215,7 +215,7 @@ export default function BiblePage() {
 
     const sortedVerses = [...selectedVerses].sort((a, b) => a - b)
     const versesText = sortedVerses
-      .map((vNum) => verses.find((v) => v.verse_number === vNum)?.text)
+      .map((vNum) => (verses.find((v) => v.verse_number === vNum)?.text || '').trim())
       .join(' ')
 
     const bookName = currentBookData.name
@@ -265,7 +265,7 @@ export default function BiblePage() {
 
   const handleCopyChapter = async () => {
     if (!currentBookData) return
-    const text = verses.map((v) => `${v.verse_number} ${v.text}`).join('\n')
+    const text = verses.map((v) => `${v.verse_number} ${(v.text || '').trim()}`).join('\n')
     const fullText = `${currentBookData.name} ${selectedChapter}\n\n${text}\n\nLeia a Bíblia diariamente em:\nhttps://spurgeon.one`
     try {
       await navigator.clipboard.writeText(fullText)
@@ -281,7 +281,7 @@ export default function BiblePage() {
 
   const handleShareChapter = async () => {
     if (!currentBookData) return
-    const text = verses.map((v) => `${v.verse_number} ${v.text}`).join('\n')
+    const text = verses.map((v) => `${v.verse_number} ${(v.text || '').trim()}`).join('\n')
     const fullText = `${currentBookData.name} ${selectedChapter}\n\n${text}\n\nLeia a Bíblia diariamente em:\nhttps://spurgeon.one`
     try {
       await navigator.share({ title: `${currentBookData.name} ${selectedChapter}`, text: fullText })
@@ -422,7 +422,9 @@ export default function BiblePage() {
                           {result.chapter.book.name} {result.chapter.chapter_number}:
                           {result.verse_number}
                         </div>
-                        <div className="font-serif text-foreground/90">"{result.text}"</div>
+                        <div className="font-serif text-foreground/90">
+                          "{(result.text || '').trim()}"
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -481,7 +483,7 @@ export default function BiblePage() {
                         >
                           {v.verse_number}
                         </sup>
-                        {v.text}
+                        {(v.text || '').trim()}
                       </span>
                     )
                   })}
