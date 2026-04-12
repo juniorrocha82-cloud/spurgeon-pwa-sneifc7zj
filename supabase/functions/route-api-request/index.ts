@@ -102,14 +102,17 @@ Deno.serve(async (req: Request) => {
           if (systemInstruction) requestBody.systemInstruction = systemInstruction
 
           const targetModel = model?.includes('gemini') ? model : 'gemini-1.5-flash'
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(requestBody),
-            },
-          )
+          const baseUrl =
+            provider.endpoint ||
+            `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent`
+          const fetchUrl = baseUrl.includes('?')
+            ? `${baseUrl}&key=${apiKey}`
+            : `${baseUrl}?key=${apiKey}`
+          const res = await fetch(fetchUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          })
 
           if (!res.ok) throw new Error(`Status ${res.status}: ${await res.text()}`)
           const data = await res.json()
@@ -117,7 +120,8 @@ Deno.serve(async (req: Request) => {
         } else if (providerName === 'groq') {
           const targetModel =
             model?.includes('llama') || model?.includes('mixtral') ? model : 'llama3-70b-8192'
-          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          const baseUrl = provider.endpoint || 'https://api.groq.com/openai/v1/chat/completions'
+          const res = await fetch(baseUrl, {
             method: 'POST',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -147,7 +151,8 @@ Deno.serve(async (req: Request) => {
           }
 
           const targetModel = model?.includes('command') ? model : 'command-r-plus'
-          const res = await fetch('https://api.cohere.ai/v1/chat', {
+          const baseUrl = provider.endpoint || 'https://api.cohere.ai/v1/chat'
+          const res = await fetch(baseUrl, {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${apiKey}`,
@@ -168,7 +173,8 @@ Deno.serve(async (req: Request) => {
           resultText = data.text
         } else if (providerName === 'together') {
           const targetModel = model || 'meta-llama/Llama-3-70b-chat-hf'
-          const res = await fetch('https://api.together.xyz/v1/chat/completions', {
+          const baseUrl = provider.endpoint || 'https://api.together.xyz/v1/chat/completions'
+          const res = await fetch(baseUrl, {
             method: 'POST',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
