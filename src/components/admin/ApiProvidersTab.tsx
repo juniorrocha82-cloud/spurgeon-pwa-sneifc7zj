@@ -126,7 +126,7 @@ export function ApiProvidersTab() {
           <CardDescription>Gerencie provedores, prioridades e endpoints.</CardDescription>
         </div>
         <Button onClick={() => setIsAdding(true)}>
-          <Plus className="w-4 h-4 mr-2" /> Novo Provedor
+          <Plus className="w-4 h-4 mr-2" aria-hidden="true" /> Novo Provedor
         </Button>
       </CardHeader>
       <CardContent>
@@ -180,8 +180,13 @@ export function ApiProvidersTab() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label={`Opções do provedor ${p.provider_name}`}
+                            >
+                              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">

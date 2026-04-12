@@ -119,7 +119,7 @@ export default function SettingsPage() {
         <Card className="border-border/50 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center text-xl font-serif">
-              <Palette className="w-5 h-5 mr-2 text-primary" />
+              <Palette className="w-5 h-5 mr-2 text-primary" aria-hidden="true" />
               Cor Primária
             </CardTitle>
             <CardDescription>
@@ -162,7 +162,7 @@ export default function SettingsPage() {
         <Card className="border-border/50 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center text-xl font-serif">
-              <Type className="w-5 h-5 mr-2 text-primary" />
+              <Type className="w-5 h-5 mr-2 text-primary" aria-hidden="true" />
               Fonte do Texto
             </CardTitle>
             <CardDescription>
@@ -174,7 +174,10 @@ export default function SettingsPage() {
               value={settings.fontFamily}
               onValueChange={(val) => setSettings({ ...settings, fontFamily: val })}
             >
-              <SelectTrigger className="w-full md:w-[300px]">
+              <SelectTrigger
+                aria-label="Selecione a fonte principal do sistema"
+                className="w-full md:w-[300px]"
+              >
                 <SelectValue placeholder="Selecione uma fonte" />
               </SelectTrigger>
               <SelectContent>

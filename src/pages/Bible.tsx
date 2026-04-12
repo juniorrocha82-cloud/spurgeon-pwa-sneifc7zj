@@ -300,7 +300,10 @@ export default function BiblePage() {
     <>
       <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-12">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shadow-inner flex-shrink-0">
+          <div
+            className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shadow-inner flex-shrink-0"
+            aria-hidden="true"
+          >
             <BookIcon className="w-8 h-8 text-primary" />
           </div>
           <div>
@@ -313,13 +316,18 @@ export default function BiblePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground pl-1">Versão</label>
+            <label id="version-label" className="text-sm font-medium text-muted-foreground pl-1">
+              Versão
+            </label>
             <Select
               value={selectedVersion}
               onValueChange={setSelectedVersion}
               disabled={loading || versions.length === 0}
             >
-              <SelectTrigger className="bg-card border-border shadow-subtle h-12">
+              <SelectTrigger
+                aria-labelledby="version-label"
+                className="bg-card border-border shadow-subtle h-12"
+              >
                 <SelectValue placeholder="Selecione a versão" />
               </SelectTrigger>
               <SelectContent>
@@ -333,13 +341,18 @@ export default function BiblePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground pl-1">Livro</label>
+            <label id="book-label" className="text-sm font-medium text-muted-foreground pl-1">
+              Livro
+            </label>
             <Select
               value={selectedBook}
               onValueChange={setSelectedBook}
               disabled={loading || books.length === 0}
             >
-              <SelectTrigger className="bg-card border-border shadow-subtle h-12">
+              <SelectTrigger
+                aria-labelledby="book-label"
+                className="bg-card border-border shadow-subtle h-12"
+              >
                 <SelectValue placeholder="Selecione o livro" />
               </SelectTrigger>
               <SelectContent>
@@ -353,13 +366,18 @@ export default function BiblePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground pl-1">Capítulo</label>
+            <label id="chapter-label" className="text-sm font-medium text-muted-foreground pl-1">
+              Capítulo
+            </label>
             <Select
               value={selectedChapter}
               onValueChange={setSelectedChapter}
               disabled={loading || chapters.length === 0}
             >
-              <SelectTrigger className="bg-card border-border shadow-subtle h-12">
+              <SelectTrigger
+                aria-labelledby="chapter-label"
+                className="bg-card border-border shadow-subtle h-12"
+              >
                 <SelectValue placeholder="Capítulo" />
               </SelectTrigger>
               <SelectContent>
@@ -374,8 +392,12 @@ export default function BiblePage() {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+            aria-hidden="true"
+          />
           <Input
+            aria-label="Pesquisar por versículos na Bíblia"
             placeholder="Buscar versículo por texto..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -386,10 +408,11 @@ export default function BiblePage() {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Limpar campo de pesquisa"
               className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground"
               onClick={() => setSearchTerm('')}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -431,7 +454,7 @@ export default function BiblePage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
-                  <Search className="w-12 h-12 text-muted-foreground/50" />
+                  <Search className="w-12 h-12 text-muted-foreground/50" aria-hidden="true" />
                   <p className="text-muted-foreground text-lg">
                     Nenhum resultado encontrado para "{debouncedSearchTerm}".
                   </p>
@@ -449,7 +472,7 @@ export default function BiblePage() {
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
-                <BookIcon className="w-12 h-12 text-muted-foreground/50" />
+                <BookIcon className="w-12 h-12 text-muted-foreground/50" aria-hidden="true" />
                 <p className="text-muted-foreground text-lg max-w-md">{error}</p>
               </div>
             ) : verses.length > 0 && currentBookData ? (
@@ -495,11 +518,11 @@ export default function BiblePage() {
                     className="w-full sm:w-auto h-12 px-6"
                     onClick={handleCopyChapter}
                   >
-                    <Copy className="w-4 h-4 mr-2" /> Copiar Capítulo
+                    <Copy className="w-4 h-4 mr-2" aria-hidden="true" /> Copiar Capítulo
                   </Button>
                   {typeof navigator.share === 'function' && (
                     <Button className="w-full sm:w-auto h-12 px-6" onClick={handleShareChapter}>
-                      <Share2 className="w-4 h-4 mr-2" /> Compartilhar Capítulo
+                      <Share2 className="w-4 h-4 mr-2" aria-hidden="true" /> Compartilhar Capítulo
                     </Button>
                   )}
                 </div>

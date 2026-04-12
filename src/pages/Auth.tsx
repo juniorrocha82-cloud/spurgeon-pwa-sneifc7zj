@@ -119,8 +119,14 @@ export default function AuthPage() {
             </div>
           </div>
 
-          <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
-            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+          <Button
+            aria-label="Entrar ou cadastrar-se com o Google"
+            variant="outline"
+            type="button"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+          >
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -167,10 +173,10 @@ export default function AuthPage() {
 
       {/* Right CTA Section */}
       <div className="hidden lg:flex lg:w-1/2 lg:flex-col lg:items-center lg:justify-center lg:p-12 border-l relative overflow-hidden bg-zinc-950">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" aria-hidden="true">
           <img
             src="https://img.usecurling.com/p/800/1000?q=bible%20study&color=black&dpr=2"
-            alt="Bible Study"
+            alt="Fundo com a imagem de uma pessoa estudando a Bíblia e as escrituras"
             className="w-full h-full object-cover opacity-20"
           />
         </div>
@@ -184,7 +190,10 @@ export default function AuthPage() {
           </p>
           <div className="space-y-6">
             <div className="flex items-start gap-4">
-              <div className="bg-primary/20 p-3 rounded-xl border border-primary/30 text-primary">
+              <div
+                className="bg-primary/20 p-3 rounded-xl border border-primary/30 text-primary"
+                aria-hidden="true"
+              >
                 <Sparkles className="w-6 h-6" />
               </div>
               <div>
@@ -195,7 +204,10 @@ export default function AuthPage() {
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="bg-primary/20 p-3 rounded-xl border border-primary/30 text-primary">
+              <div
+                className="bg-primary/20 p-3 rounded-xl border border-primary/30 text-primary"
+                aria-hidden="true"
+              >
                 <FileText className="w-6 h-6" />
               </div>
               <div>
@@ -206,7 +218,10 @@ export default function AuthPage() {
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="bg-primary/20 p-3 rounded-xl border border-primary/30 text-primary">
+              <div
+                className="bg-primary/20 p-3 rounded-xl border border-primary/30 text-primary"
+                aria-hidden="true"
+              >
                 <BookOpen className="w-6 h-6" />
               </div>
               <div>

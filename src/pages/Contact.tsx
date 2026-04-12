@@ -87,7 +87,7 @@ export default function ContactPage() {
         <Card className="border-border/50 shadow-sm overflow-hidden">
           <CardHeader className="bg-primary/5 border-b border-border/50 pb-4">
             <CardTitle className="flex items-center text-xl font-serif text-primary">
-              <Mail className="w-5 h-5 mr-3 text-primary" />
+              <Mail className="w-5 h-5 mr-3 text-primary" aria-hidden="true" />
               Email
             </CardTitle>
           </CardHeader>
@@ -110,7 +110,7 @@ export default function ContactPage() {
         <Card className="border-border/50 shadow-sm overflow-hidden">
           <CardHeader className="bg-primary/5 border-b border-border/50 pb-4">
             <CardTitle className="flex items-center text-xl font-serif text-primary">
-              <ClipboardList className="w-5 h-5 mr-3 text-primary" />
+              <ClipboardList className="w-5 h-5 mr-3 text-primary" aria-hidden="true" />
               Formulário de Contato
             </CardTitle>
           </CardHeader>
@@ -184,14 +184,17 @@ export default function ContactPage() {
                   disabled={isSubmitting || isSuccess}
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center animate-pulse">Enviando...</span>
+                    <span className="flex items-center animate-pulse" aria-live="polite">
+                      Enviando...
+                    </span>
                   ) : isSuccess ? (
-                    <span className="flex items-center">
-                      <CheckCircle2 className="w-4 h-4 mr-2" /> Enviado com sucesso
+                    <span className="flex items-center" aria-live="polite">
+                      <CheckCircle2 className="w-4 h-4 mr-2" aria-hidden="true" /> Enviado com
+                      sucesso
                     </span>
                   ) : (
                     <span className="flex items-center">
-                      <Send className="w-4 h-4 mr-2" /> Enviar Mensagem
+                      <Send className="w-4 h-4 mr-2" aria-hidden="true" /> Enviar Mensagem
                     </span>
                   )}
                 </Button>
@@ -203,7 +206,7 @@ export default function ContactPage() {
         <Card className="border-border/50 shadow-sm overflow-hidden">
           <CardHeader className="bg-primary/5 border-b border-border/50 pb-4">
             <CardTitle className="flex items-center text-xl font-serif text-primary">
-              <Clock className="w-5 h-5 mr-3 text-primary" />
+              <Clock className="w-5 h-5 mr-3 text-primary" aria-hidden="true" />
               Horário de Atendimento
             </CardTitle>
           </CardHeader>

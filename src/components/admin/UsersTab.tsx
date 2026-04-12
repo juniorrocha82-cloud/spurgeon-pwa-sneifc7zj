@@ -166,8 +166,12 @@ export function UsersTab() {
       <CardContent>
         <div className="flex items-center space-x-2 mb-6">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search
+              className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
+              aria-label="Buscar usuários por e-mail"
               placeholder="Buscar por email..."
               className="pl-9"
               value={searchTerm}
@@ -218,7 +222,12 @@ export function UsersTab() {
                   <TableRow key={item.id}>
                     <TableCell className="font-medium flex items-center gap-2">
                       {item.email}{' '}
-                      {item.id === ADMIN_ID && <ShieldAlert className="w-4 h-4 text-primary" />}
+                      {item.id === ADMIN_ID && (
+                        <ShieldAlert
+                          className="w-4 h-4 text-primary"
+                          aria-label="Acesso Administrador"
+                        />
+                      )}
                     </TableCell>
                     <TableCell>
                       {item.plan_name?.toLowerCase() === 'free'
@@ -241,8 +250,13 @@ export function UsersTab() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            aria-label={`Opções do usuário ${item.email}`}
+                          >
+                            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -306,7 +320,7 @@ export function UsersTab() {
             </DialogHeader>
             <div className="py-4">
               <Select value={newPlanId} onValueChange={setNewPlanId}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Selecione um novo plano">
                   <SelectValue placeholder="Selecione um plano" />
                 </SelectTrigger>
                 <SelectContent>

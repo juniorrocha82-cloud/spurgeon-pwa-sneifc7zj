@@ -31,8 +31,12 @@ export default function HistoryPage() {
           </p>
         </div>
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+            aria-hidden="true"
+          />
           <Input
+            aria-label="Buscar sermão por título ou referência bíblica"
             placeholder="Buscar por título ou base..."
             className="pl-9 bg-card border-border/50 focus-visible:ring-primary/50"
             value={searchTerm}
@@ -43,7 +47,7 @@ export default function HistoryPage() {
 
       {recentSermons.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-card/30 border border-border/30 rounded-2xl border-dashed">
-          <BookOpen className="w-16 h-16 text-muted-foreground/30 mb-4" />
+          <BookOpen className="w-16 h-16 text-muted-foreground/30 mb-4" aria-hidden="true" />
           <h3 className="text-xl font-serif font-medium text-foreground mb-2">
             Nenhum sermão gerado
           </h3>
@@ -84,13 +88,14 @@ export default function HistoryPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                    aria-label={`Excluir sermão: ${sermon.title}`}
+                    className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity focus:opacity-100"
                     onClick={(e) => {
                       e.stopPropagation()
                       deleteSermon(sermon.id)
                     }}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </Button>
                 </div>
                 <CardTitle className="text-lg font-serif leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-2">

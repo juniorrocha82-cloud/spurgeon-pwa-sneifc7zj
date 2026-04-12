@@ -390,8 +390,9 @@ ${sermon.content.conclusion}`
           variant="ghost"
           className="-ml-4 text-muted-foreground hover:text-foreground"
           onClick={() => navigate(-1)}
+          aria-label="Voltar para a página anterior"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
           Voltar
         </Button>
 
@@ -400,19 +401,20 @@ ${sermon.content.conclusion}`
           size="sm"
           onClick={() => navigate('/settings')}
           className="text-muted-foreground"
+          aria-label="Abrir configurações de estilo da marca"
         >
-          <Settings className="w-4 h-4 mr-2" />
+          <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
           Estilos da Marca
         </Button>
       </div>
 
       <div className="mb-8 space-y-4 print:space-y-6">
-        <div className="flex flex-wrap gap-2 mb-2 print:hidden">
+        <div className="flex flex-wrap gap-2 mb-2 print:hidden" aria-label="Metadados do sermão">
           <Badge variant="outline" className="border-primary/30 text-primary">
             {sermon.version}
           </Badge>
           <Badge variant="secondary">
-            <Clock className="w-3 h-3 mr-1" />
+            <Clock className="w-3 h-3 mr-1" aria-hidden="true" />
             {sermon.duration} min
           </Badge>
           <Badge variant="secondary" className="bg-secondary/50">
@@ -431,9 +433,12 @@ ${sermon.content.conclusion}`
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 print:block">
         <div className="lg:col-span-2 space-y-8 print:w-full print:block">
-          <section className="space-y-4 print:break-inside-avoid">
-            <h2 className="text-2xl font-serif font-semibold text-primary flex items-center print:text-black">
-              <BookOpen className="w-5 h-5 mr-2" /> Introdução
+          <section aria-labelledby="intro-heading" className="space-y-4 print:break-inside-avoid">
+            <h2
+              id="intro-heading"
+              className="text-2xl font-serif font-semibold text-primary flex items-center print:text-black"
+            >
+              <BookOpen className="w-5 h-5 mr-2" aria-hidden="true" /> Introdução
             </h2>
             <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap print:text-black">
               {sermon.content.intro}
@@ -441,9 +446,15 @@ ${sermon.content.conclusion}`
           </section>
 
           {sermon.content.proposition && (
-            <section className="space-y-4 bg-primary/5 border border-primary/20 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid">
-              <h2 className="text-xl font-serif font-semibold text-primary flex items-center print:text-black">
-                <Presentation className="w-5 h-5 mr-2" /> Proposição
+            <section
+              aria-labelledby="prop-heading"
+              className="space-y-4 bg-primary/5 border border-primary/20 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid"
+            >
+              <h2
+                id="prop-heading"
+                className="text-xl font-serif font-semibold text-primary flex items-center print:text-black"
+              >
+                <Presentation className="w-5 h-5 mr-2" aria-hidden="true" /> Proposição
               </h2>
               <p className="text-lg font-medium leading-relaxed text-foreground/90 italic print:text-black">
                 "{sermon.content.proposition}"
@@ -451,12 +462,15 @@ ${sermon.content.conclusion}`
             </section>
           )}
 
-          <div className="space-y-8 mt-8">
-            <h2 className="text-2xl font-serif font-semibold text-primary flex items-center print:text-black print:mt-12">
-              <Bookmark className="w-5 h-5 mr-2" /> Desenvolvimento
+          <section aria-labelledby="dev-heading" className="space-y-8 mt-8">
+            <h2
+              id="dev-heading"
+              className="text-2xl font-serif font-semibold text-primary flex items-center print:text-black print:mt-12"
+            >
+              <Bookmark className="w-5 h-5 mr-2" aria-hidden="true" /> Desenvolvimento
             </h2>
             {sermon.content.points.map((point, i) => (
-              <div key={i} className="space-y-3 print:break-inside-avoid print:mt-6">
+              <article key={i} className="space-y-3 print:break-inside-avoid print:mt-6">
                 <h3 className="text-xl font-serif font-medium text-foreground flex items-baseline print:text-black">
                   <span className="text-primary text-sm mr-3 print:text-gray-600">{i + 1}.</span>
                   {point.title}
@@ -464,14 +478,15 @@ ${sermon.content.conclusion}`
                 <p className="text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap pl-6 print:text-black">
                   {point.text}
                 </p>
-              </div>
+              </article>
             ))}
-          </div>
+          </section>
 
           {sermon.content.illustration && (
             <section className="space-y-4 bg-secondary/20 border border-secondary/30 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid print:mt-8">
               <h2 className="text-xl font-serif font-semibold text-foreground flex items-center print:text-black">
-                <ImageIcon className="w-5 h-5 mr-2 text-muted-foreground" /> Ilustração
+                <ImageIcon className="w-5 h-5 mr-2 text-muted-foreground" aria-hidden="true" />{' '}
+                Ilustração
               </h2>
               <p className="text-lg leading-relaxed text-foreground/90 print:text-black">
                 {sermon.content.illustration}
@@ -482,7 +497,7 @@ ${sermon.content.conclusion}`
           {(sermon.content as any).application && (
             <section className="space-y-4 bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid print:mt-8">
               <h2 className="text-xl font-serif font-semibold text-amber-600 flex items-center print:text-black">
-                <Check className="w-5 h-5 mr-2" /> Aplicação Prática
+                <Check className="w-5 h-5 mr-2" aria-hidden="true" /> Aplicação Prática
               </h2>
               <p className="text-lg leading-relaxed text-foreground/90 print:text-black">
                 {(sermon.content as any).application}
@@ -494,7 +509,7 @@ ${sermon.content.conclusion}`
 
           <section className="space-y-4 print:break-inside-avoid">
             <h2 className="text-2xl font-serif font-semibold text-primary flex items-center print:text-black">
-              <Quote className="w-5 h-5 mr-2" /> Conclusão
+              <Quote className="w-5 h-5 mr-2" aria-hidden="true" /> Conclusão
             </h2>
             <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap print:text-black">
               {sermon.content.conclusion}

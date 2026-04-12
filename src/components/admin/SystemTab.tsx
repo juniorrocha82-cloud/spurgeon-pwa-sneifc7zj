@@ -38,7 +38,7 @@ export function SystemTab() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Database className="h-5 w-5 text-primary" />
+          <Database className="h-5 w-5 text-primary" aria-hidden="true" />
           Banco de Dados
         </CardTitle>
         <CardDescription>
@@ -51,6 +51,7 @@ export function SystemTab() {
             variant="outline"
             onClick={() => handleImportBible('pt_acf')}
             disabled={importingVersion !== null}
+            aria-busy={importingVersion === 'pt_acf'}
           >
             {importingVersion === 'pt_acf' ? 'Importando ACF...' : 'Importar Bíblia ACF'}
           </Button>
@@ -58,6 +59,7 @@ export function SystemTab() {
             variant="outline"
             onClick={() => handleImportBible('pt_nvi')}
             disabled={importingVersion !== null}
+            aria-busy={importingVersion === 'pt_nvi'}
           >
             {importingVersion === 'pt_nvi' ? 'Importando NVI...' : 'Importar Bíblia NVI'}
           </Button>
@@ -65,6 +67,7 @@ export function SystemTab() {
             variant="outline"
             onClick={() => handleImportBible('en_kjv')}
             disabled={importingVersion !== null}
+            aria-busy={importingVersion === 'en_kjv'}
           >
             {importingVersion === 'en_kjv' ? 'Importando KJV...' : 'Importar Bíblia KJV'}
           </Button>

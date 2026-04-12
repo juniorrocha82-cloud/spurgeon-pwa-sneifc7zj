@@ -199,7 +199,7 @@ export default function Index() {
       <Card className="border-border/50 shadow-elevation bg-card/50 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center font-serif text-primary">
-            <Sparkles className="w-5 h-5 mr-2" />
+            <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
             Parâmetros da sua Pregação
           </CardTitle>
           <CardDescription>Defina a base e o estilo da sua pregação.</CardDescription>
@@ -283,8 +283,8 @@ export default function Index() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base flex items-center">
-                    <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <Label id="duration-slider-label" className="text-base flex items-center">
+                    <Clock className="w-4 h-4 mr-2 text-muted-foreground" aria-hidden="true" />{' '}
                     Duração Estimada
                   </Label>
                   <span className="text-primary font-medium font-serif">{duration[0]} min</span>
@@ -296,6 +296,7 @@ export default function Index() {
                   min={10}
                   step={5}
                   className="pt-2"
+                  aria-labelledby="duration-slider-label"
                 />
               </div>
             </div>
@@ -307,8 +308,9 @@ export default function Index() {
               disabled={
                 isGenerating || (hasCustomOutline ? !customOutline.trim() : !baseText.trim())
               }
+              aria-busy={isGenerating}
             >
-              <BookOpen className="mr-2 h-5 w-5" />
+              <BookOpen className="mr-2 h-5 w-5" aria-hidden="true" />
               Gerar Pregação
             </Button>
           </form>
@@ -320,7 +322,10 @@ export default function Index() {
         <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
           <div className="relative flex items-center justify-center mb-12">
             <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full w-32 h-32 mx-auto animate-pulse"></div>
-            <BookOpen className="w-20 h-20 text-primary animate-float relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
+            <BookOpen
+              className="w-20 h-20 text-primary animate-float relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]"
+              aria-hidden="true"
+            />
           </div>
 
           <div className="h-16 flex items-center justify-center px-6 text-center max-w-md">

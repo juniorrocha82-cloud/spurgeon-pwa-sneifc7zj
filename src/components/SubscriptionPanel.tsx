@@ -209,7 +209,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
           variant="destructive"
           className="border-red-500/50 bg-red-500/10 text-red-600 dark:text-red-400"
         >
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>Plano Expirado</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
             <span>
@@ -227,7 +227,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" />
+                <CreditCard className="h-5 w-5 text-primary" aria-hidden="true" />
                 Detalhes do Plano
               </CardTitle>
               {isActive ? (
@@ -255,7 +255,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
             {(subscription || isAdmin) && (
               <div className="space-y-1 pt-4 border-t">
                 <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
                   {isAdmin ? 'Válido até' : isExpired ? 'Expirou em' : 'Válido até'}
                 </p>
                 <p className="text-base font-medium">
@@ -276,7 +276,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
             >
               <Link to="/planos">
                 Renovar / Alterar Plano
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
           </CardFooter>
@@ -285,7 +285,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
+              <Zap className="h-5 w-5 text-primary" aria-hidden="true" />
               Uso e Limites
             </CardTitle>
             <CardDescription>Acompanhe suas gerações do plano</CardDescription>
@@ -334,15 +334,22 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
               </h4>
               {uiDetails.features.map((feature: string, idx: number) => (
                 <div key={idx} className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <CheckCircle2
+                    className="h-4 w-4 text-green-500 flex-shrink-0"
+                    aria-hidden="true"
+                  />
                   <span>{feature}</span>
                 </div>
               ))}
             </div>
           </CardContent>
           <CardFooter className="pt-6 flex flex-col gap-3">
-            <Button onClick={handleGenerateClick} className="w-full">
-              <Plus className="w-4 h-4 mr-2" />
+            <Button
+              aria-label="Gerar Nova Pregação"
+              onClick={handleGenerateClick}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
               Gerar Nova Pregação
             </Button>
             {planId !== 'enterprise' && !isAdmin && (
@@ -358,7 +365,7 @@ export function SubscriptionPanel({ userId }: { userId: string }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
+              <AlertCircle className="h-5 w-5" aria-hidden="true" />
               Limite de gerações atingido
             </DialogTitle>
             <DialogDescription className="pt-2">

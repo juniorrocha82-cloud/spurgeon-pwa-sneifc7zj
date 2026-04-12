@@ -94,8 +94,13 @@ export default function DevotionalViewPage() {
   if (loading) {
     return (
       <div className="w-full max-w-3xl mx-auto space-y-6 animate-fade-in pb-12">
-        <Button variant="ghost" disabled className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />
+        <Button
+          variant="ghost"
+          disabled
+          className="mb-4"
+          aria-label="Voltar para a página anterior"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
           Voltar
         </Button>
         <Skeleton className="h-12 w-3/4" />
@@ -127,15 +132,16 @@ export default function DevotionalViewPage() {
         variant="ghost"
         onClick={() => navigate('/devotionals')}
         className="mb-6 hover:bg-accent"
+        aria-label="Voltar para a lista de Devocionais"
       >
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
         Voltar para Devocionais
       </Button>
 
       <Card className="overflow-hidden border-border/50 shadow-elevation bg-card">
         <CardContent className="p-6 md:p-10">
           <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4" aria-hidden="true" />
             <span>
               {devDate.toLocaleDateString('pt-BR', {
                 day: '2-digit',
@@ -152,7 +158,7 @@ export default function DevotionalViewPage() {
           <div className="space-y-10">
             <section className="bg-primary/5 rounded-xl p-6 border border-primary/10">
               <div className="flex items-center space-x-3 mb-4">
-                <BookOpen className="w-5 h-5 text-primary" />
+                <BookOpen className="w-5 h-5 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold text-lg text-foreground">{devotional.base_text}</h3>
               </div>
               <p className="text-foreground/80 font-serif text-lg leading-relaxed italic">
@@ -162,7 +168,7 @@ export default function DevotionalViewPage() {
 
             <section>
               <div className="flex items-center space-x-3 mb-4">
-                <Activity className="w-5 h-5 text-primary" />
+                <Activity className="w-5 h-5 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold text-xl text-foreground">Reflexão</h3>
               </div>
               <div className="text-foreground/90 font-serif text-lg leading-[1.8] whitespace-pre-wrap">
@@ -172,7 +178,7 @@ export default function DevotionalViewPage() {
 
             <section className="bg-accent/50 rounded-xl p-6 border border-border">
               <div className="flex items-center space-x-3 mb-4">
-                <Heart className="w-5 h-5 text-primary" />
+                <Heart className="w-5 h-5 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold text-xl text-foreground">Oração</h3>
               </div>
               <p className="text-foreground/90 font-serif text-lg leading-relaxed italic">

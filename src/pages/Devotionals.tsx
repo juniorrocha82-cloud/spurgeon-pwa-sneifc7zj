@@ -132,7 +132,7 @@ export default function DevotionalsPage() {
       <Card className="border-border/50 shadow-elevation bg-card/50 backdrop-blur-sm mb-12">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center font-serif text-primary">
-            <Sparkles className="w-5 h-5 mr-2" />
+            <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
             Inspiração Diária
           </CardTitle>
           <CardDescription>
@@ -145,8 +145,9 @@ export default function DevotionalsPage() {
             size="lg"
             className="w-full h-16 text-lg font-serif tracking-wide btn-gold-glow mt-2"
             disabled={isGenerating}
+            aria-busy={isGenerating}
           >
-            <BookHeart className="mr-3 h-6 w-6" />
+            <BookHeart className="mr-3 h-6 w-6" aria-hidden="true" />
             Gerar Devocional de Hoje
           </Button>
         </CardContent>
@@ -165,7 +166,7 @@ export default function DevotionalsPage() {
         </div>
       ) : recentDevotionals.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-card/30 border border-border/30 rounded-2xl border-dashed">
-          <BookHeart className="w-12 h-12 text-muted-foreground/30 mb-4" />
+          <BookHeart className="w-12 h-12 text-muted-foreground/30 mb-4" aria-hidden="true" />
           <h3 className="text-lg font-serif font-medium text-foreground mb-2">
             Nenhum devocional ainda
           </h3>
@@ -192,10 +193,11 @@ export default function DevotionalsPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                    aria-label={`Excluir devocional: ${devotional.title}`}
+                    className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity focus:opacity-100"
                     onClick={(e) => handleDelete(e, devotional.id)}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </Button>
                 </div>
                 <CardTitle className="text-lg font-serif leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-2">
