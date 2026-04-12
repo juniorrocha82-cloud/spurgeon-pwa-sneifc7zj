@@ -1,8 +1,8 @@
 {
   "_versions": {
-    "generate-sermon": 59,
-    "generate-slides": 60,
-    "generate-devotional": 44,
+    "generate-sermon": 60,
+    "generate-slides": 61,
+    "generate-devotional": 45,
     "get-playlist-preview": 33,
     "create-checkout-session": 29,
     "stripe-webhook": 29,
@@ -12,6 +12,6 @@
     "send-contact-email": 22,
     "get-daily-devotionals": 22,
     "create-payment-intent": 12,
-    "route-api-request": 6
+    "route-api-request": 7
   }
 }

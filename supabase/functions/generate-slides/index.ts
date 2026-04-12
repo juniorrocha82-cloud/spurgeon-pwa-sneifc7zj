@@ -217,7 +217,7 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       'route-api-request',
       {
         body: {
-          model: 'gemini-1.5-flash',
+          model: 'gemini-2.5-flash-lite',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPromptText },

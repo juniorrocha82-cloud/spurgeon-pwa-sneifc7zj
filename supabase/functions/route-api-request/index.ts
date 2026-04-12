@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
           }
           if (systemInstruction) requestBody.systemInstruction = systemInstruction
 
-          const targetModel = model?.includes('gemini') ? model : 'gemini-1.5-flash'
+          const targetModel = model?.includes('gemini') ? model : 'gemini-2.5-flash-lite'
           const baseUrl =
             provider.endpoint ||
             `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent`
