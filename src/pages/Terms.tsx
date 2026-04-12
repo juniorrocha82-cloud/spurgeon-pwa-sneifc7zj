@@ -1,84 +1,164 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, BookOpen } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Link
-          to="/auth"
-          className="mb-8 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar
+    <div className="min-h-screen bg-background selection:bg-primary/30 flex flex-col">
+      <header className="h-16 border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-40 flex items-center px-4 md:px-8">
+        <Link to="/auth" className="flex items-center group">
+          <BookOpen className="w-6 h-6 text-primary mr-2 transition-transform group-hover:scale-110" />
+          <span className="font-serif text-xl font-bold text-primary">Spurgeon</span>
         </Link>
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Termos de Serviço</h1>
-            <p className="mt-2 text-muted-foreground">Última atualização: 15 de Abril de 2026</p>
+      </header>
+
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Button
+          variant="ghost"
+          asChild
+          className="-ml-4 mb-6 text-muted-foreground hover:text-foreground"
+        >
+          <Link to="/auth">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Link>
+        </Button>
+
+        <div className="bg-card border border-border shadow-elevation rounded-xl overflow-hidden">
+          <div className="px-6 py-8 md:px-10 md:py-12 border-b border-border/50 bg-secondary/30">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground font-serif">
+              Termos de Serviço
+            </h1>
+            <p className="mt-3 text-muted-foreground">Última atualização: 15 de Abril de 2026</p>
           </div>
 
-          <div className="prose prose-zinc max-w-none dark:prose-invert">
-            <h2>1. Aceitação dos Termos</h2>
-            <p>
-              Ao acessar e usar o Spurgeon, você concorda em cumprir e ficar vinculado a estes
-              Termos de Serviço. O Spurgeon é um serviço de geração de pregações bíblicas e
-              devocionais com auxílio de Inteligência Artificial.
-            </p>
+          <div className="px-6 py-8 md:px-10 md:py-12 space-y-10 text-foreground/90 leading-relaxed">
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  1
+                </span>
+                Aceitação dos Termos
+              </h2>
+              <div className="pl-11 space-y-4 text-muted-foreground">
+                <p>
+                  Ao acessar e usar o Spurgeon, você concorda em cumprir e ficar vinculado a estes
+                  Termos de Serviço. O Spurgeon é um serviço de geração de pregações bíblicas e
+                  devocionais com auxílio de Inteligência Artificial.
+                </p>
+              </div>
+            </section>
 
-            <h2>2. Uso Permitido</h2>
-            <p>
-              Você concorda em usar o serviço apenas para fins legais e de maneira que não infrinja
-              os direitos de terceiros ou restrinja o uso e aproveitamento do serviço por qualquer
-              outra pessoa.
-            </p>
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  2
+                </span>
+                Uso Permitido
+              </h2>
+              <div className="pl-11 space-y-4 text-muted-foreground">
+                <p>
+                  Você concorda em usar o serviço apenas para fins legais e de maneira que não
+                  infrinja os direitos de terceiros ou restrinja o uso e aproveitamento do serviço
+                  por qualquer outra pessoa.
+                </p>
+              </div>
+            </section>
 
-            <h2>3. Nossos Planos</h2>
-            <p>Oferecemos diferentes níveis de acesso ao nosso serviço:</p>
-            <ul>
-              <li>
-                <strong>Gratuito:</strong> Acesso básico com limite de gerações por período.
-              </li>
-              <li>
-                <strong>Pro:</strong> Acesso expandido com maior limite de gerações mensais e
-                recursos adicionais.
-              </li>
-              <li>
-                <strong>Enterprise:</strong> Acesso ilimitado e recursos exclusivos para igrejas e
-                grandes organizações.
-              </li>
-            </ul>
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  3
+                </span>
+                Nossos Planos
+              </h2>
+              <div className="pl-11 space-y-4 text-muted-foreground">
+                <p>Oferecemos diferentes níveis de acesso ao nosso serviço:</p>
+                <ul className="list-disc pl-5 space-y-2 marker:text-primary/50">
+                  <li>
+                    <strong className="text-foreground">Gratuito:</strong> Acesso básico com limite
+                    de gerações por período.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Pro:</strong> Acesso expandido com maior
+                    limite de gerações mensais e recursos adicionais.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Enterprise:</strong> Acesso ilimitado e
+                    recursos exclusivos para igrejas e grandes organizações.
+                  </li>
+                </ul>
+              </div>
+            </section>
 
-            <h2>4. Restrições</h2>
-            <p>Você não deve:</p>
-            <ul>
-              <li>Modificar, copiar ou criar trabalhos derivados baseados no serviço.</li>
-              <li>Compartilhar sua conta ou credenciais com terceiros.</li>
-              <li>Tentar contornar quaisquer limitações técnicas ou de faturamento do serviço.</li>
-            </ul>
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  4
+                </span>
+                Restrições
+              </h2>
+              <div className="pl-11 space-y-4 text-muted-foreground">
+                <p>Você não deve:</p>
+                <ul className="list-disc pl-5 space-y-2 marker:text-primary/50">
+                  <li>Modificar, copiar ou criar trabalhos derivados baseados no serviço.</li>
+                  <li>Compartilhar sua conta ou credenciais com terceiros.</li>
+                  <li>
+                    Tentar contornar quaisquer limitações técnicas ou de faturamento do serviço.
+                  </li>
+                </ul>
+              </div>
+            </section>
 
-            <h2>5. Limitação de Responsabilidade</h2>
-            <p>
-              O Spurgeon é uma ferramenta de auxílio. O conteúdo gerado (pregações, devocionais,
-              slides) deve ser revisado pelo usuário. Não nos responsabilizamos por interpretações
-              teológicas ou pelo uso final do conteúdo gerado na plataforma.
-            </p>
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  5
+                </span>
+                Limitação de Responsabilidade
+              </h2>
+              <div className="pl-11 space-y-4 text-muted-foreground">
+                <p>
+                  O Spurgeon é uma ferramenta de auxílio. O conteúdo gerado (pregações, devocionais,
+                  slides) deve ser revisado pelo usuário. Não nos responsabilizamos por
+                  interpretações teológicas ou pelo uso final do conteúdo gerado na plataforma.
+                </p>
+              </div>
+            </section>
 
-            <h2>6. Cancelamento</h2>
-            <p>
-              Você pode cancelar sua assinatura a qualquer momento. O cancelamento interromperá as
-              cobranças futuras, mas não haverá reembolso para períodos já faturados.
-            </p>
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  6
+                </span>
+                Cancelamento
+              </h2>
+              <div className="pl-11 space-y-4 text-muted-foreground">
+                <p>
+                  Você pode cancelar sua assinatura a qualquer momento. O cancelamento interromperá
+                  as cobranças futuras, mas não haverá reembolso para períodos já faturados.
+                </p>
+              </div>
+            </section>
 
-            <h2>7. Modificações</h2>
-            <p>
-              Reservamo-nos o direito de modificar estes termos a qualquer momento. Notificaremos os
-              usuários sobre mudanças significativas através do email cadastrado ou de um aviso na
-              plataforma.
-            </p>
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  7
+                </span>
+                Modificações
+              </h2>
+              <div className="pl-11 space-y-4 text-muted-foreground">
+                <p>
+                  Reservamo-nos o direito de modificar estes termos a qualquer momento.
+                  Notificaremos os usuários sobre mudanças significativas através do email
+                  cadastrado ou de um aviso na plataforma.
+                </p>
+              </div>
+            </section>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
