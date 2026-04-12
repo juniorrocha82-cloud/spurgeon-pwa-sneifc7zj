@@ -96,7 +96,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Se não gerou, chama o roteador
+    // Se não gerou, continua a geração
     let language = 'pt'
     let langName = 'Portuguese'
     const { data: settings } = await supabase
