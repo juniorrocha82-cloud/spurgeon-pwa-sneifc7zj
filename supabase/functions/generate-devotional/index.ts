@@ -1,6 +1,13 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
+async function generateHash(message: string): Promise<string> {
+  const msgUint8 = new TextEncoder().encode(message)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -79,7 +86,8 @@ Deno.serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           error: 'LIMIT_REACHED',
-          message: 'Seu plano gratuito permite 2 devocionais por dia.',
+          message:
+            'Você atingiu o limite de 2 devocionais diários do plano Gratuito. Faça um upgrade para o plano Pro e mergulhe na Palavra sem restrições!',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -88,15 +96,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Se não gerou, chama a API Gemini
-    const apiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'API Key do Gemini não encontrada.' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
+    // Se não gerou, chama o roteador
     let language = 'pt'
     let langName = 'Portuguese'
     const { data: settings } = await supabase
@@ -141,49 +141,83 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
 
     const userPrompt = 'Gere 2 devocionais diários de hoje.'
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
-      {
+    const promptForHash = systemPrompt + userPrompt + date + language
+    const promptHash = await generateHash(promptForHash)
+
+    const { data: cachedData } = await supabase
+      .from('gemini_cache')
+      .select('response')
+      .eq('prompt_hash', promptHash)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle()
+
+    let generatedDevotionals = []
+    let providerUsed = 'cache'
+    let metadata: any = { provider_used: 'cache', tempo_total: 0, tentativas: 0 }
+
+    if (cachedData && cachedData.response && (cachedData.response as any).devotionals) {
+      generatedDevotionals = (cachedData.response as any).devotionals
+    } else {
+      const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+      if (!geminiApiKey) throw new Error('Chave de API do Gemini não configurada.')
+
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`
+
+      const geminiRes = await fetch(geminiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }],
-          },
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: userPrompt }],
-            },
-          ],
+          contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }],
           generationConfig: {
             temperature: 0.8,
             responseMimeType: 'application/json',
           },
         }),
-      },
-    )
+      })
 
-    const data = await response.json()
+      if (!geminiRes.ok) {
+        if (geminiRes.status === 429) {
+          return new Response(JSON.stringify({ error: 'RATE_LIMIT_EXCEEDED' }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        const errText = await geminiRes.text()
+        console.error('Gemini error:', errText)
+        throw new Error('Erro ao chamar a API do Gemini')
+      }
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Erro ao chamar API do Gemini')
-    }
+      const geminiData = await geminiRes.json()
+      const textResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
 
-    if (!data.candidates || data.candidates.length === 0) {
-      throw new Error('Nenhuma resposta gerada pela API do Gemini.')
-    }
+      if (!textResponse) {
+        throw new Error('Nenhuma resposta válida gerada pela API.')
+      }
 
-    let responseText = data.candidates[0].content.parts[0].text
-    responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+      const generatedContent = JSON.parse(textResponse)
+      metadata = { provider_used: 'gemini', tempo_total: 0, tentativas: 1 }
+      providerUsed = 'gemini'
+      generatedDevotionals = generatedContent.devotionals || []
 
-    const generatedContent = JSON.parse(responseText)
-    const generatedDevotionals = generatedContent.devotionals || []
+      if (generatedDevotionals.length === 0) {
+        throw new Error('Formato inválido retornado pela API')
+      }
 
-    if (generatedDevotionals.length === 0) {
-      throw new Error('Formato inválido retornado pelo Gemini')
+      // Save to cache
+      try {
+        const expiresAt = new Date()
+        expiresAt.setHours(expiresAt.getHours() + 24)
+        await supabase.from('gemini_cache').upsert(
+          {
+            prompt_hash: promptHash,
+            response: generatedContent,
+            expires_at: expiresAt.toISOString(),
+          },
+          { onConflict: 'prompt_hash' },
+        )
+      } catch (e) {
+        console.error('Erro ao salvar no cache:', e)
+      }
     }
 
     // Insere os devocionais na tabela 'devotionals' com a data do dia
@@ -218,11 +252,37 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
         .insert({ user_id: user.id, date: date, count: generatedDevotionals.length })
     }
 
+    if (user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
+      try {
+        await (supabase as any).from('generation_logs').insert({
+          user_id: user.id,
+          resource_type: 'devotional',
+          provider_used: providerUsed,
+          metadata: metadata,
+        })
+      } catch (e) {
+        console.error('Erro ao registrar log de geração de devocionais:', e)
+      }
+    }
+
     return new Response(JSON.stringify({ devotionals: insertedDevotionals }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error: any) {
+    const isRateLimit =
+      error.message &&
+      (error.message.includes('Quota exceeded') ||
+        error.message.includes('429') ||
+        error.message.includes('RESOURCE_EXHAUSTED'))
+
+    if (isRateLimit) {
+      return new Response(JSON.stringify({ error: 'RATE_LIMIT_EXCEEDED' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: logs, error: logsError } = await supabase
       .from('generation_logs')
-      .select('user_id, created_at')
+      .select('user_id, created_at, resource_type')
       .gte('created_at', thirtyDaysAgo.toISOString())
     if (logsError) throw logsError
 
@@ -84,7 +84,10 @@ Deno.serve(async (req: Request) => {
       let realCount = 0
       if (sub.plan_id !== 'enterprise') {
         const userLogs = logs?.filter(
-          (log) => log.user_id === user.id && new Date(log.created_at) >= startDate,
+          (log) =>
+            log.user_id === user.id &&
+            log.resource_type === 'sermon' &&
+            new Date(log.created_at) >= startDate,
         )
         realCount = userLogs?.length || 0
       }

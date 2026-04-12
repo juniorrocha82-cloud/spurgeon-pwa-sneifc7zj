@@ -2,6 +2,13 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import PptxGenJS from 'npm:pptxgenjs@3.12.0'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
+async function generateHash(message: string): Promise<string> {
+  const msgUint8 = new TextEncoder().encode(message)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -15,18 +22,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_KEY')
-
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
-    }
-
     const { sermon, slideCount, hasImages, theme, settings, customOutline, custom_outline } =
       await req.json()
     const outline = custom_outline || customOutline || sermon?.content?.custom_outline || ''
@@ -35,12 +30,15 @@ Deno.serve(async (req: Request) => {
     let langName = 'Portuguese'
     const authHeader = req.headers.get('Authorization')
 
+    let supabaseClient: any = null
+    let currentUser: any = null
+
     if (authHeader) {
       try {
         const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
         const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
         if (supabaseUrl && supabaseKey) {
-          const supabase = createClient(supabaseUrl, supabaseKey, {
+          supabaseClient = createClient(supabaseUrl, supabaseKey, {
             global: {
               headers: { Authorization: authHeader },
             },
@@ -48,11 +46,12 @@ Deno.serve(async (req: Request) => {
           const token = authHeader.replace('Bearer ', '')
           const {
             data: { user },
-          } = await supabase.auth.getUser(token)
+          } = await supabaseClient.auth.getUser(token)
           if (user) {
+            currentUser = user
             // Check limits for slide generation
             if (user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
-              const { data: sub } = await supabase
+              const { data: sub } = await supabaseClient
                 .from('user_subscriptions')
                 .select('plan_id, status, expires_at, usage_reset_at')
                 .eq('user_id', user.id)
@@ -71,15 +70,23 @@ Deno.serve(async (req: Request) => {
               let blockMessage = ''
 
               if (activePlan === 'free') {
-                const { count } = await supabase
+                let startDate = new Date()
+                startDate.setDate(startDate.getDate() - 7)
+                if (sub?.usage_reset_at && new Date(sub.usage_reset_at) > startDate) {
+                  startDate = new Date(sub.usage_reset_at)
+                }
+
+                const { count } = await supabaseClient
                   .from('generation_logs')
                   .select('*', { count: 'exact', head: true })
                   .eq('user_id', user.id)
                   .eq('resource_type', 'slides')
+                  .gte('created_at', startDate.toISOString())
 
                 if ((count || 0) >= 3) {
                   isBlocked = true
-                  blockMessage = 'Seu plano gratuito permite gerar até 3 apresentações no total.'
+                  blockMessage =
+                    'Você atingiu o limite de 3 apresentações do plano Gratuito nos últimos 7 dias. Faça um upgrade para o Pro e crie recursos visuais incríveis para suas mensagens!'
                 }
               } else if (activePlan === 'pro') {
                 let startDate = new Date()
@@ -88,7 +95,7 @@ Deno.serve(async (req: Request) => {
                   startDate = new Date(sub.usage_reset_at)
                 }
 
-                const { count } = await supabase
+                const { count } = await supabaseClient
                   .from('generation_logs')
                   .select('*', { count: 'exact', head: true })
                   .eq('user_id', user.id)
@@ -97,19 +104,20 @@ Deno.serve(async (req: Request) => {
 
                 if ((count || 0) >= 15) {
                   isBlocked = true
-                  blockMessage = 'Seu plano Pro permite gerar 15 apresentações por mês.'
+                  blockMessage =
+                    'Você atingiu o limite de 15 apresentações mensais do plano Pro. Considere o plano Enterprise para acesso ilimitado e continue impactando sua congregação.'
                 }
               }
 
               if (isBlocked) {
                 return new Response(
                   JSON.stringify({ error: 'LIMIT_REACHED', message: blockMessage }),
-                  { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+                  { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
                 )
               }
             }
 
-            const { data: userSettings } = await supabase
+            const { data: userSettings } = await supabaseClient
               .from('user_settings')
               .select('language')
               .eq('user_id', user.id)
@@ -132,14 +140,15 @@ A partir do sermão fornecido, crie um roteiro de slides.
 Número de slides desejado: ${slideCount === 'auto' ? 'Aproximadamente 6 a 8' : slideCount}.
 Incluir sugestão de imagens: ${hasImages === 'yes' ? 'Sim' : 'Não'}.
 
-IMPORTANT: All generated slide content MUST be written in ${langName}. The imageQuery must remain in English.
+Responda SEMPRE em português brasileiro. Não use inglês em nenhuma circunstância. Gere os títulos, subtítulos, conteúdo dos slides e notas em português.
+(Exceção técnica: apenas o valor do campo "imageQuery" no JSON deve ser em inglês para a busca de imagens).
 
 Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
 {
   "slides": [
     {
-      "title": "Título do slide (curto e impactante, in ${langName})",
-      "content": "Tópicos ou texto para o slide (máximo 3 linhas para ficar legível durante a apresentação, in ${langName})",
+      "title": "Título do slide (curto e impactante, em português brasileiro)",
+      "content": "Tópicos ou texto para o slide (máximo 3 linhas para ficar legível durante a apresentação, em português brasileiro)",
       "imageQuery": "termo de busca em inglês para imagem realista e elegante (ex: 'cross silhouette', 'praying hands', 'bible study', 'nature landscape') - apenas se hasImages for yes, senão deixe vazio"
     }
   ]
@@ -158,49 +167,80 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       userPromptText += `\n\nCrie slides que sigam exatamente a estrutura deste roteiro de pregação: ${outline}`
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    const promptForHash =
+      systemPrompt +
+      userPromptText +
+      language +
+      theme +
+      (settings?.primaryColor || '') +
+      (settings?.fontFamily || '') +
+      slideCount +
+      hasImages
+    const promptHash = await generateHash(promptForHash)
+
+    if (supabaseClient) {
+      const { data: cachedData } = await supabaseClient
+        .from('gemini_cache')
+        .select('response')
+        .eq('prompt_hash', promptHash)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle()
+
+      if (cachedData) {
+        if (currentUser && currentUser.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
+          await (supabaseClient as any).from('generation_logs').insert({
+            user_id: currentUser.id,
+            resource_type: 'slides',
+            provider_used: 'cache',
+            metadata: { provider_used: 'cache', tempo_total: 0, tentativas: 0 },
+          })
+        }
+        return new Response(JSON.stringify(cachedData.response), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      }
+    }
+
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    if (!geminiApiKey) throw new Error('Chave de API do Gemini não configurada.')
+
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`
+
+    const geminiRes = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPromptText }] }],
+        generationConfig: {
+          temperature: 0.7,
+          responseMimeType: 'application/json',
         },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }],
-          },
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: userPromptText }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2000,
-            responseMimeType: 'application/json',
-          },
-        }),
-      },
-    )
+      }),
+    })
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      console.error('Erro detalhado da API do Gemini:', data)
-      throw new Error(
-        `Erro na API do Gemini: ${data.error?.message || response.statusText || 'Erro desconhecido'}`,
-      )
+    if (!geminiRes.ok) {
+      if (geminiRes.status === 429) {
+        return new Response(JSON.stringify({ error: 'RATE_LIMIT_EXCEEDED' }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      const errText = await geminiRes.text()
+      console.error('Gemini error:', errText)
+      throw new Error('Erro ao chamar a API do Gemini')
     }
 
-    if (!data.candidates || data.candidates.length === 0) {
-      throw new Error('A API do Gemini não retornou nenhum conteúdo válido.')
+    const geminiData = await geminiRes.json()
+    const textResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
+
+    if (!textResponse) {
+      throw new Error('Nenhuma resposta válida gerada pela API.')
     }
 
-    let responseText = data.candidates[0].content.parts[0].text
-    responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
-
-    const generatedContent = JSON.parse(responseText)
+    const generatedContent = JSON.parse(textResponse)
+    const metadata = { provider_used: 'gemini', tempo_total: 0, tentativas: 1 }
+    const providerUsed = 'gemini'
 
     // Fetch images and convert to Base64 (always do this if hasImages === 'yes' to guarantee parity)
     if (hasImages === 'yes' && generatedContent.slides) {
@@ -369,25 +409,35 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       console.error('Erro ao gerar PPTX:', e)
     }
 
-    // Registrar o uso no banco de dados
-    if (authHeader) {
+    // Salvar no cache
+    if (supabaseClient) {
       try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-        const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
-        if (supabaseUrl && supabaseKey) {
-          const supabase = createClient(supabaseUrl, supabaseKey, {
-            global: { headers: { Authorization: authHeader } },
+        const expiresAt = new Date()
+        expiresAt.setHours(expiresAt.getHours() + 24)
+
+        await supabaseClient.from('gemini_cache').upsert(
+          {
+            prompt_hash: promptHash,
+            response: generatedContent,
+            expires_at: expiresAt.toISOString(),
+          },
+          { onConflict: 'prompt_hash' },
+        )
+      } catch (e) {
+        console.error('Erro ao salvar no cache:', e)
+      }
+    }
+
+    // Registrar o uso no banco de dados
+    if (supabaseClient && currentUser) {
+      try {
+        if (currentUser.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
+          await (supabaseClient as any).from('generation_logs').insert({
+            user_id: currentUser.id,
+            resource_type: 'slides',
+            provider_used: providerUsed,
+            metadata: metadata,
           })
-          const token = authHeader.replace('Bearer ', '')
-          const {
-            data: { user },
-          } = await supabase.auth.getUser(token)
-          if (user && user.id !== '911d1666-978b-4ead-9be2-5a49028c767f') {
-            await supabase.from('generation_logs').insert({
-              user_id: user.id,
-              resource_type: 'slides',
-            })
-          }
         }
       } catch (e) {
         console.error('Erro ao registrar log de geração de slides:', e)
@@ -400,6 +450,19 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
     })
   } catch (error: any) {
     console.error('Exceção capturada:', error.message)
+    const isRateLimit =
+      error.message &&
+      (error.message.includes('Quota exceeded') ||
+        error.message.includes('429') ||
+        error.message.includes('RESOURCE_EXHAUSTED'))
+
+    if (isRateLimit) {
+      return new Response(JSON.stringify({ error: 'RATE_LIMIT_EXCEEDED' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
     return new Response(
       JSON.stringify({
         error: error.message || 'Erro interno no processamento da geração de slides.',

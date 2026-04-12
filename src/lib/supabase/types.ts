@@ -228,22 +228,79 @@ export type Database = {
         }
         Relationships: []
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
+      gemini_cache: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          prompt_hash: string
+          response: Json
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          prompt_hash: string
+          response: Json
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          prompt_hash?: string
+          response?: Json
+        }
+        Relationships: []
+      }
       generation_logs: {
         Row: {
           created_at: string
           id: string
+          metadata: Json | null
+          provider_used: string | null
           resource_type: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          metadata?: Json | null
+          provider_used?: string | null
           resource_type: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          metadata?: Json | null
+          provider_used?: string | null
           resource_type?: string
           user_id?: string
         }
@@ -399,45 +456,6 @@ export type Database = {
           updated_at?: string
           usage_reset_at?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      youtube_playlists: {
-        Row: {
-          channel_name: string
-          channel_url: string
-          created_at: string | null
-          description: string | null
-          id: string
-          playlist_id: string
-          playlist_name: string
-          thumbnail_url: string | null
-          updated_at: string | null
-          video_count: number | null
-        }
-        Insert: {
-          channel_name: string
-          channel_url: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          playlist_id: string
-          playlist_name: string
-          thumbnail_url?: string | null
-          updated_at?: string | null
-          video_count?: number | null
-        }
-        Update: {
-          channel_name?: string
-          channel_url?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          playlist_id?: string
-          playlist_name?: string
-          thumbnail_url?: string | null
-          updated_at?: string | null
-          video_count?: number | null
         }
         Relationships: []
       }
@@ -639,11 +657,26 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: now())
 //   devotional_text: text (nullable)
 //   devotional_date: date (nullable)
+// Table: email_logs
+//   id: uuid (not null, default: gen_random_uuid())
+//   to_email: text (not null)
+//   subject: text (not null)
+//   status: text (not null)
+//   error_message: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: gemini_cache
+//   id: uuid (not null, default: gen_random_uuid())
+//   prompt_hash: text (not null)
+//   response: jsonb (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+//   expires_at: timestamp with time zone (not null)
 // Table: generation_logs
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
 //   resource_type: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+//   provider_used: text (nullable)
+//   metadata: jsonb (nullable)
 // Table: sermons
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -687,17 +720,6 @@ export const Constants = {
 //   stripe_subscription_id: text (nullable)
 //   sermons_generated: integer (nullable, default: 0)
 //   usage_reset_at: timestamp with time zone (nullable)
-// Table: youtube_playlists
-//   id: uuid (not null, default: gen_random_uuid())
-//   channel_name: text (not null)
-//   channel_url: text (not null)
-//   playlist_id: text (not null)
-//   playlist_name: text (not null)
-//   description: text (nullable)
-//   thumbnail_url: text (nullable)
-//   video_count: integer (nullable, default: 0)
-//   created_at: timestamp without time zone (nullable, default: now())
-//   updated_at: timestamp without time zone (nullable, default: now())
 
 // --- CONSTRAINTS ---
 // Table: bible_books
@@ -722,6 +744,11 @@ export const Constants = {
 // Table: devotionals
 //   PRIMARY KEY devotionals_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY devotionals_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: email_logs
+//   PRIMARY KEY email_logs_pkey: PRIMARY KEY (id)
+// Table: gemini_cache
+//   PRIMARY KEY gemini_cache_pkey: PRIMARY KEY (id)
+//   UNIQUE gemini_cache_prompt_hash_key: UNIQUE (prompt_hash)
 // Table: generation_logs
 //   PRIMARY KEY generation_logs_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY generation_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -738,9 +765,6 @@ export const Constants = {
 //   PRIMARY KEY user_subscriptions_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY user_subscriptions_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE user_subscriptions_user_id_key: UNIQUE (user_id)
-// Table: youtube_playlists
-//   PRIMARY KEY youtube_playlists_pkey: PRIMARY KEY (id)
-//   UNIQUE youtube_playlists_playlist_id_key: UNIQUE (playlist_id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: bible_books
@@ -778,6 +802,20 @@ export const Constants = {
 //     WITH CHECK: (auth.uid() = user_id)
 //   Policy "Users can view their own devotionals" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
+// Table: email_logs
+//   Policy "admin_all_email_logs" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
+//     WITH CHECK: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
+// Table: gemini_cache
+//   Policy "Allow anon read access" (SELECT, PERMISSIVE) roles={anon}
+//     USING: true
+//   Policy "Allow authenticated insert access" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: true
+//   Policy "Allow authenticated read access" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "Allow authenticated update access" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: generation_logs
 //   Policy "Users can insert their own generation logs" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (auth.uid() = user_id)
@@ -817,9 +855,6 @@ export const Constants = {
 //   Policy "admin_update_user_subscriptions" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
 //     WITH CHECK: (auth.uid() = '911d1666-978b-4ead-9be2-5a49028c767f'::uuid)
-// Table: youtube_playlists
-//   Policy "Allow public read access on youtube_playlists" (SELECT, PERMISSIVE) roles={public}
-//     USING: true
 
 // --- DATABASE FUNCTIONS ---
 // FUNCTION handle_new_user()
@@ -874,9 +909,9 @@ export const Constants = {
 // Table: bible_versions
 //   CREATE UNIQUE INDEX bible_versions_abbreviation_key ON public.bible_versions USING btree (abbreviation)
 //   CREATE UNIQUE INDEX bible_versions_name_key ON public.bible_versions USING btree (name)
+// Table: gemini_cache
+//   CREATE UNIQUE INDEX gemini_cache_prompt_hash_key ON public.gemini_cache USING btree (prompt_hash)
 // Table: user_settings
 //   CREATE UNIQUE INDEX user_settings_user_id_key ON public.user_settings USING btree (user_id)
 // Table: user_subscriptions
 //   CREATE UNIQUE INDEX user_subscriptions_user_id_key ON public.user_subscriptions USING btree (user_id)
-// Table: youtube_playlists
-//   CREATE UNIQUE INDEX youtube_playlists_playlist_id_key ON public.youtube_playlists USING btree (playlist_id)
