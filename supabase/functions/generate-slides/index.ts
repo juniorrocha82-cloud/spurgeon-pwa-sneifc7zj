@@ -202,45 +202,58 @@ Retorne OBRIGATORIAMENTE em formato JSON com a seguinte estrutura:
       }
     }
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!geminiApiKey) throw new Error('Chave de API do Gemini não configurada.')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`
-
-    const geminiRes = await fetch(geminiUrl, {
+    const routerRes = await fetch(`${supabaseUrl}/functions/v1/route-api-request`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader || `Bearer ${supabaseKey}`,
+      },
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPromptText }] }],
-        generationConfig: {
-          temperature: 0.7,
-          responseMimeType: 'application/json',
-        },
+        model: 'gemini-1.5-flash',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPromptText },
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
       }),
     })
 
-    if (!geminiRes.ok) {
-      if (geminiRes.status === 429) {
+    if (!routerRes.ok) {
+      if (routerRes.status === 429) {
         return new Response(JSON.stringify({ error: 'RATE_LIMIT_EXCEEDED' }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
-      const errText = await geminiRes.text()
-      console.error('Gemini error:', errText)
-      throw new Error('Erro ao chamar a API do Gemini')
+      const errText = await routerRes.text()
+      console.error('Router error:', errText)
+      throw new Error('Erro ao chamar o roteador de APIs')
     }
 
-    const geminiData = await geminiRes.json()
-    const textResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
+    const routerData = await routerRes.json()
+    if (routerData.error) {
+      throw new Error(routerData.error)
+    }
+
+    const textResponse = routerData.content
 
     if (!textResponse) {
       throw new Error('Nenhuma resposta válida gerada pela API.')
     }
 
-    const generatedContent = JSON.parse(textResponse)
-    const metadata = { provider_used: 'gemini', tempo_total: 0, tentativas: 1 }
-    const providerUsed = 'gemini'
+    const cleanTextResponse = textResponse.replace(/```json\n?|\n?```/gi, '').trim()
+    const generatedContent = JSON.parse(cleanTextResponse)
+    const providerUsed = routerData.provider || 'unknown'
+    const metadata = {
+      provider_used: providerUsed,
+      tempo_total: 0,
+      tentativas: routerData.logs?.length || 1,
+      logs: routerData.logs,
+    }
 
     // Fetch images and convert to Base64 (always do this if hasImages === 'yes' to guarantee parity)
     if (hasImages === 'yes' && generatedContent.slides) {
