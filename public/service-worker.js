@@ -39,14 +39,19 @@ self.addEventListener('fetch', (event) => {
           if (!response || response.status !== 200) {
             return response
           }
-          const responseToCache = response.clone()
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache)
-          })
+          if (request.method === 'GET') {
+            const responseToCache = response.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache)
+            })
+          }
           return response
         })
-        .catch(() => {
-          return caches.match(request)
+        .catch((error) => {
+          if (request.method === 'GET') {
+            return caches.match(request)
+          }
+          throw error
         }),
     )
     return

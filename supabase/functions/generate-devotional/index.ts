@@ -3,7 +3,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -17,7 +18,8 @@ Deno.serve(async (req: Request) => {
     if (!apiKey) {
       return new Response(
         JSON.stringify({
-          error: "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
+          error:
+            "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
@@ -44,10 +46,11 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
 3. Escape corretamente TODAS as aspas duplas internas dentro das strings usando '\\"'.
 4. Certifique-se de NÃO CORTAR a resposta no meio. Feche corretamente todas as chaves '}'.`
 
-    const userPrompt = 'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas. Seja direto e não exceda 600 palavras para evitar corte na resposta. Retorne APENAS o JSON válido.'
+    const userPrompt =
+      'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas. Seja direto e não exceda 600 palavras para evitar corte na resposta. Retorne APENAS o JSON válido.'
 
-    const maxRetries = 2;
-    let lastError = null;
+    const maxRetries = 2
+    let lastError = null
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -73,15 +76,15 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
                 maxOutputTokens: 8192,
                 responseMimeType: 'application/json',
                 responseSchema: {
-                  type: "OBJECT",
+                  type: 'OBJECT',
                   properties: {
-                    title: { type: "STRING" },
-                    baseText: { type: "STRING" },
-                    reading: { type: "STRING" },
-                    reflection: { type: "STRING" },
-                    prayer: { type: "STRING" }
+                    title: { type: 'STRING' },
+                    baseText: { type: 'STRING' },
+                    reading: { type: 'STRING' },
+                    reflection: { type: 'STRING' },
+                    prayer: { type: 'STRING' },
                   },
-                  required: ["title", "baseText", "reading", "reflection", "prayer"]
+                  required: ['title', 'baseText', 'reading', 'reflection', 'prayer'],
                 },
               },
             }),
@@ -99,41 +102,48 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
         }
 
         let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
-        
-        console.log(`=== RAW JSON FROM AI (Attempt ${attempt}) ===`);
-        console.log(responseText);
-        console.log("===========================================");
 
-        let cleanText = responseText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
-        cleanText = cleanText.replace(/\\(?![nrt"\\/bfu])/g, '\\\\');
+        console.log(`=== RAW JSON FROM AI (Attempt ${attempt}) ===`)
+        console.log(responseText)
+        console.log('===========================================')
 
-        let generatedContent;
+        let cleanText = responseText
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/i, '')
+          .trim()
+        cleanText = cleanText.replace(/\\(?![nrt"\\/bfu])/g, '\\\\')
+
+        let generatedContent
         try {
-          generatedContent = JSON.parse(cleanText);
+          generatedContent = JSON.parse(cleanText)
         } catch (parseError: any) {
-          console.warn(`[Attempt ${attempt}] JSON Parse Error:`, parseError.message);
-          
+          console.warn(`[Attempt ${attempt}] JSON Parse Error:`, parseError.message)
+
           // Sanitização Anti-Quebra: Converte quebras literais para espaço e remove control chars
-          let flatText = cleanText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '');
-          flatText = flatText.replace(/\n/g, ' ').replace(/\r/g, '');
-          
+          let flatText = cleanText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
+          flatText = flatText.replace(/\n/g, ' ').replace(/\r/g, '')
+
           try {
-            generatedContent = JSON.parse(flatText);
-            console.log(`[Attempt ${attempt}] JSON recuperado com sucesso após remover quebras de linha literais!`);
+            generatedContent = JSON.parse(flatText)
+            console.log(
+              `[Attempt ${attempt}] JSON recuperado com sucesso após remover quebras de linha literais!`,
+            )
           } catch (e2) {
-             // Validação de Estrutura Estrita: Tentar fechar strings cortadas
-             if (parseError.message.includes('Unterminated string')) {
-                console.warn(`[Attempt ${attempt}] Tentando fechar string não terminada...`);
-                let fixedText = flatText + '"}';
-                try {
-                  generatedContent = JSON.parse(fixedText);
-                  console.log(`[Attempt ${attempt}] JSON recuperado com sucesso após forçar fechamento!`);
-                } catch (e3) {
-                  throw parseError; // Joga o erro original para acionar o retry
-                }
-             } else {
-                throw parseError;
-             }
+            // Validação de Estrutura Estrita: Tentar fechar strings cortadas
+            if (parseError.message.includes('Unterminated string')) {
+              console.warn(`[Attempt ${attempt}] Tentando fechar string não terminada...`)
+              let fixedText = flatText + '"}'
+              try {
+                generatedContent = JSON.parse(fixedText)
+                console.log(
+                  `[Attempt ${attempt}] JSON recuperado com sucesso após forçar fechamento!`,
+                )
+              } catch (e3) {
+                throw parseError // Joga o erro original para acionar o retry
+              }
+            } else {
+              throw parseError
+            }
           }
         }
 
@@ -142,24 +152,24 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
           status: 200,
         })
       } catch (error: any) {
-        console.error(`Attempt ${attempt} failed:`, error.message);
-        lastError = error;
+        console.error(`Attempt ${attempt} failed:`, error.message)
+        lastError = error
       }
     }
 
     return new Response(
-      JSON.stringify({ 
-        error: "O conteúdo gerado pela IA apresentou um formato inválido ou foi interrompido. Tentamos corrigir automaticamente, mas não foi possível. Por favor, tente gerar novamente.",
-        details: lastError?.message
+      JSON.stringify({
+        error:
+          'O conteúdo gerado pela IA apresentou um formato inválido ou foi interrompido. Tentamos corrigir automaticamente, mas não foi possível. Por favor, tente gerar novamente.',
+        details: lastError?.message,
       }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-
+      {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    )
   } catch (error: any) {
-    console.error("Internal Function Error:", error.message);
+    console.error('Internal Function Error:', error.message)
     return new Response(JSON.stringify({ error: error.message || 'Erro interno no servidor' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,

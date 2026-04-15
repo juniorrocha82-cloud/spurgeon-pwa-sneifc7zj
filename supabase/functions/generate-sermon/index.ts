@@ -3,7 +3,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -17,7 +18,8 @@ Deno.serve(async (req: Request) => {
     if (!apiKey) {
       return new Response(
         JSON.stringify({
-          error: "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
+          error:
+            "API Key do Gemini não encontrada. Por favor, configure a secret 'GEMINI_API_KEY' no painel do Supabase Edge Functions.",
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
@@ -76,8 +78,8 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
 
     const userPrompt = `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nEstilo: ${sermonType}\nDuração estimada: ${duration} minutos.${outline ? `\n\nUse o seguinte roteiro como base: ${outline}` : ''}\n\nRetorne APENAS o JSON válido.`
 
-    const maxRetries = 2;
-    let lastError = null;
+    const maxRetries = 2
+    let lastError = null
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -103,40 +105,40 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
                 maxOutputTokens: 8192,
                 responseMimeType: 'application/json',
                 responseSchema: {
-                  type: "OBJECT",
+                  type: 'OBJECT',
                   properties: {
-                    title: { type: "STRING" },
+                    title: { type: 'STRING' },
                     content: {
-                      type: "OBJECT",
+                      type: 'OBJECT',
                       properties: {
-                        intro: { type: "STRING" },
-                        proposition: { type: "STRING" },
+                        intro: { type: 'STRING' },
+                        proposition: { type: 'STRING' },
                         points: {
-                          type: "ARRAY",
+                          type: 'ARRAY',
                           items: {
-                            type: "OBJECT",
+                            type: 'OBJECT',
                             properties: {
-                              title: { type: "STRING" },
-                              text: { type: "STRING" }
+                              title: { type: 'STRING' },
+                              text: { type: 'STRING' },
                             },
-                            required: ["title", "text"]
-                          }
+                            required: ['title', 'text'],
+                          },
                         },
-                        illustration: { type: "STRING" },
-                        conclusion: { type: "STRING" }
+                        illustration: { type: 'STRING' },
+                        conclusion: { type: 'STRING' },
                       },
-                      required: ["intro", "proposition", "points", "illustration", "conclusion"]
+                      required: ['intro', 'proposition', 'points', 'illustration', 'conclusion'],
                     },
                     insights: {
-                      type: "ARRAY",
-                      items: { type: "STRING" }
+                      type: 'ARRAY',
+                      items: { type: 'STRING' },
                     },
                     references: {
-                      type: "ARRAY",
-                      items: { type: "STRING" }
-                    }
+                      type: 'ARRAY',
+                      items: { type: 'STRING' },
+                    },
                   },
-                  required: ["title", "content", "insights", "references"]
+                  required: ['title', 'content', 'insights', 'references'],
                 },
               },
             }),
@@ -155,40 +157,47 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
 
         let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
 
-        console.log(`=== RAW JSON FROM AI (Attempt ${attempt}) ===`);
-        console.log(responseText);
-        console.log("===========================================");
+        console.log(`=== RAW JSON FROM AI (Attempt ${attempt}) ===`)
+        console.log(responseText)
+        console.log('===========================================')
 
-        let cleanText = responseText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
-        cleanText = cleanText.replace(/\\(?![nrt"\\/bfu])/g, '\\\\');
+        let cleanText = responseText
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/i, '')
+          .trim()
+        cleanText = cleanText.replace(/\\(?![nrt"\\/bfu])/g, '\\\\')
 
-        let generatedContent;
+        let generatedContent
         try {
-          generatedContent = JSON.parse(cleanText);
+          generatedContent = JSON.parse(cleanText)
         } catch (parseError: any) {
-          console.warn(`[Attempt ${attempt}] JSON Parse Error:`, parseError.message);
-          
-          let flatText = cleanText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '');
-          flatText = flatText.replace(/\n/g, ' ').replace(/\r/g, '');
-          
+          console.warn(`[Attempt ${attempt}] JSON Parse Error:`, parseError.message)
+
+          let flatText = cleanText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
+          flatText = flatText.replace(/\n/g, ' ').replace(/\r/g, '')
+
           try {
-            generatedContent = JSON.parse(flatText);
-            console.log(`[Attempt ${attempt}] JSON recuperado com sucesso após remover quebras de linha literais!`);
+            generatedContent = JSON.parse(flatText)
+            console.log(
+              `[Attempt ${attempt}] JSON recuperado com sucesso após remover quebras de linha literais!`,
+            )
           } catch (e2) {
-             if (parseError.message.includes('Unterminated string')) {
-                console.warn(`[Attempt ${attempt}] Tentando fechar string não terminada...`);
-                let fixedText = flatText;
-                if (!fixedText.endsWith('}')) fixedText = fixedText + ']}';
-                
-                try {
-                  generatedContent = JSON.parse(fixedText);
-                  console.log(`[Attempt ${attempt}] JSON recuperado com sucesso após forçar fechamento!`);
-                } catch (e3) {
-                  throw parseError; 
-                }
-             } else {
-                throw parseError;
-             }
+            if (parseError.message.includes('Unterminated string')) {
+              console.warn(`[Attempt ${attempt}] Tentando fechar string não terminada...`)
+              let fixedText = flatText
+              if (!fixedText.endsWith('}')) fixedText = fixedText + ']}'
+
+              try {
+                generatedContent = JSON.parse(fixedText)
+                console.log(
+                  `[Attempt ${attempt}] JSON recuperado com sucesso após forçar fechamento!`,
+                )
+              } catch (e3) {
+                throw parseError
+              }
+            } else {
+              throw parseError
+            }
           }
         }
 
@@ -197,24 +206,24 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
           status: 200,
         })
       } catch (error: any) {
-        console.error(`Attempt ${attempt} failed:`, error.message);
-        lastError = error;
+        console.error(`Attempt ${attempt} failed:`, error.message)
+        lastError = error
       }
     }
 
     return new Response(
-      JSON.stringify({ 
-        error: "O conteúdo gerado pela IA apresentou um formato inválido ou foi interrompido. Tentamos corrigir automaticamente, mas não foi possível. Por favor, tente gerar novamente.",
-        details: lastError?.message
+      JSON.stringify({
+        error:
+          'O conteúdo gerado pela IA apresentou um formato inválido ou foi interrompido. Tentamos corrigir automaticamente, mas não foi possível. Por favor, tente gerar novamente.',
+        details: lastError?.message,
       }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-
+      {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    )
   } catch (error: any) {
-    console.error("Internal Function Error:", error.message);
+    console.error('Internal Function Error:', error.message)
     return new Response(JSON.stringify({ error: error.message || 'Erro interno no servidor' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
