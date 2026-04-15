@@ -13,7 +13,62 @@ export interface Devotional {
   created_at: string
 }
 
+export const checkDevotionalLimit = async (userId: string) => {
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data: sub } = await supabase
+    .from('user_subscriptions')
+    .select('plan_id, status')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .maybeSingle()
+
+  const planId = sub?.plan_id || 'free'
+
+  if (planId === 'pro' || planId === 'enterprise') {
+    return true
+  }
+
+  const { data: limits } = await supabase
+    .from('devotional_limits')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('date', today)
+    .maybeSingle()
+
+  if (limits && limits.count >= 2) {
+    throw new Error('LIMIT_REACHED')
+  }
+
+  return true
+}
+
+export const incrementDevotionalLimit = async (userId: string) => {
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data: limits } = await supabase
+    .from('devotional_limits')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('date', today)
+    .maybeSingle()
+
+  if (limits) {
+    await supabase
+      .from('devotional_limits')
+      .update({ count: limits.count + 1 })
+      .eq('id', limits.id)
+  } else {
+    await supabase.from('devotional_limits').insert({ user_id: userId, date: today, count: 1 })
+  }
+}
+
 export const aiGenerateDevotional = async () => {
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData?.user) throw new Error('Usuário não autenticado')
+
+  await checkDevotionalLimit(userData.user.id)
+
   const { data, error } = await supabase.functions.invoke('generate-devotional', {
     body: {},
   })
@@ -37,7 +92,29 @@ export const aiGenerateDevotional = async () => {
     throw new Error(data.error)
   }
 
-  return data
+  const { data: insertedData, error: insertError } = await supabase
+    .from('devotionals')
+    .insert({
+      user_id: userData.user.id,
+      title: data.title || 'Devocional Diário',
+      base_text: data.baseText || '',
+      content: {
+        reading: data.reading || '',
+        reflection: data.reflection || '',
+        prayer: data.prayer || '',
+      },
+      date: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (insertError) {
+    throw new Error('Erro ao salvar o devocional gerado no banco de dados.')
+  }
+
+  await incrementDevotionalLimit(userData.user.id)
+
+  return { devotionals: [insertedData] }
 }
 
 export const getRecentDevotionals = async (limit = 3) => {
