@@ -3,8 +3,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -41,8 +40,7 @@ Responda OBRIGATORIAMENTE em formato JSON válido com a seguinte estrutura exata
 
 IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebras de linha literais (Enter) dentro dos valores das strings do JSON. Em vez disso, use sempre a sequência de escape '\\n'. Escape também eventuais aspas duplas internas com '\\"'.`
 
-    const userPrompt =
-      'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
+    const userPrompt = 'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -66,15 +64,15 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
             maxOutputTokens: 3000,
             responseMimeType: 'application/json',
             responseSchema: {
-              type: 'OBJECT',
+              type: "OBJECT",
               properties: {
-                title: { type: 'STRING' },
-                baseText: { type: 'STRING' },
-                reading: { type: 'STRING' },
-                reflection: { type: 'STRING' },
-                prayer: { type: 'STRING' },
+                title: { type: "STRING" },
+                baseText: { type: "STRING" },
+                reading: { type: "STRING" },
+                reflection: { type: "STRING" },
+                prayer: { type: "STRING" }
               },
-              required: ['title', 'baseText', 'reading', 'reflection', 'prayer'],
+              required: ["title", "baseText", "reading", "reflection", "prayer"]
             },
           },
         }),
@@ -92,47 +90,44 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
     }
 
     let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
-
+    
     // (6) Adicione logs mostrando o JSON gerado antes de retornar
-    console.log('=== RAW JSON FROM AI ===')
-    console.log(responseText)
-    console.log('========================')
+    console.log("=== RAW JSON FROM AI ===");
+    console.log(responseText);
+    console.log("========================");
 
     // Limpeza de blocos markdown e formatação indesejada
-    let cleanText = responseText
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim()
+    let cleanText = responseText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
 
     // Tentativa de sanitização conforme solicitado
     // (3) Escape correto de barras invertidas (evita escapar o que já é escape válido)
-    cleanText = cleanText.replace(/\\(?![nrt"\\/bfu])/g, '\\\\')
+    cleanText = cleanText.replace(/\\(?![nrt"\\/bfu])/g, '\\\\');
 
     // Remove caracteres de controle que podem quebrar o parse do JSON (exceto newlines que são válidos na estrutura)
     cleanText = cleanText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
 
-    let generatedContent
+    let generatedContent;
     try {
       // (4) Validação do JSON antes de retornar usando parse e stringify
-      generatedContent = JSON.parse(cleanText)
-      const finalString = JSON.stringify(generatedContent)
-      JSON.parse(finalString)
+      generatedContent = JSON.parse(cleanText);
+      const finalString = JSON.stringify(generatedContent);
+      JSON.parse(finalString);
+      
     } catch (parseError: any) {
-      console.error('JSON Parse Error:', parseError.message)
-      console.error('Malformed JSON Content:', cleanText)
-
+      console.error('JSON Parse Error:', parseError.message);
+      console.error('Malformed JSON Content:', cleanText);
+      
       // (5) Se houver erro, retorne erro 400 com mensagem clara
       return new Response(
-        JSON.stringify({
-          error:
-            'O conteúdo gerado pela IA apresentou um formato inválido (JSON malformado). Por favor, tente novamente.',
-          details: parseError.message,
+        JSON.stringify({ 
+          error: "O conteúdo gerado pela IA apresentou um formato inválido (JSON malformado). Por favor, tente novamente.",
+          details: parseError.message
         }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        },
-      )
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     return new Response(JSON.stringify(generatedContent), {
@@ -140,7 +135,7 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
       status: 200,
     })
   } catch (error: any) {
-    console.error('Internal Function Error:', error.message)
+    console.error("Internal Function Error:", error.message);
     return new Response(JSON.stringify({ error: error.message || 'Erro interno no servidor' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
