@@ -36,25 +36,25 @@ Sua tarefa é gerar um sermão estruturado com base no texto ou tema fornecido, 
 O estilo da pregação será: ${sermonType} (Expositivo ou Temático).
 A duração estimada é de ${duration} minutos.
 
-A estrutura do sermão DEVE seguir rigorosamente a homilética cristã:
+A estrutura do sermão DEVE seguir rigorosamente a homilética cristã e OBRIGATORIAMENTE incluir aplicações práticas:
 1. Introdução
 2. Proposição (A ideia central do sermão)
-3. Tópicos Principais (Desenvolvimento, mínimo de 3)
+3. Tópicos Principais (Desenvolvimento teológico, mínimo de 3 pontos. CADA PONTO DEVE CONTER UMA APLICAÇÃO PRÁTICA CLARA)
 4. Ilustração
-5. Conclusão
+5. Conclusão e Aplicação Geral (Como a congregação deve viver essa verdade hoje, seguido de apelo final)
 
-Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
+Responda OBRIGATORIAMENTE em formato JSON válido com a seguinte estrutura exata:
 {
   "title": "Um título chamativo e profundo para o sermão",
   "content": {
     "intro": "Texto da introdução...",
     "proposition": "Texto da proposição...",
     "points": [
-      { "title": "Título do ponto 1", "text": "Desenvolvimento do ponto 1..." },
-      { "title": "Título do ponto 2", "text": "Desenvolvimento do ponto 2..." }
+      { "title": "Título do ponto 1", "text": "Desenvolvimento do ponto 1 e sua aplicação prática..." },
+      { "title": "Título do ponto 2", "text": "Desenvolvimento do ponto 2 e sua aplicação prática..." }
     ],
     "illustration": "Texto da ilustração...",
-    "conclusion": "Texto da conclusão e apelo..."
+    "conclusion": "Texto da conclusão, aplicação prática geral obrigatória e apelo final..."
   },
   "insights": [
     "Dica prática para o pregador 1...",
@@ -64,7 +64,9 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
     "Livro Capítulo:Versículo - Breve explicação da relevância",
     "Livro Capítulo:Versículo - Breve explicação da relevância"
   ]
-}`
+}
+
+IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebras de linha literais (Enter) dentro das strings do JSON. Em vez disso, use os caracteres de escape '\\n\\n' para separar parágrafos. Escape aspas duplas internas com '\\"'.`
 
     const userPrompt = `Tema/Texto Base: ${baseText}\nVersão Bíblica: ${version}\nEstilo: ${sermonType}\nDuração estimada: ${duration} minutos.${outline ? `\n\nUse o seguinte roteiro de pregação como base para estruturar o sermão: ${outline}` : ''}`
 
@@ -103,18 +105,32 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
       throw new Error('Nenhuma resposta gerada pela API do Gemini.')
     }
 
-    let responseText = data.candidates[0].content.parts[0].text
+    let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
 
-    // Tratamento extra de segurança contra blocos markdown
-    responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+    // Tratamento extra de segurança contra blocos markdown e formatação
+    responseText = responseText
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim()
 
-    const generatedContent = JSON.parse(responseText)
+    // Remove caracteres de controle que podem quebrar o parse do JSON
+    responseText = responseText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
+
+    let generatedContent
+    try {
+      generatedContent = JSON.parse(responseText)
+    } catch (parseError: any) {
+      console.error('JSON Parse Error:', parseError.message, 'Raw text:', responseText)
+      throw new Error(
+        `A resposta gerada pela IA contém um formato JSON inválido. Por favor, tente novamente. Detalhe: ${parseError.message}`,
+      )
+    }
 
     return new Response(JSON.stringify(generatedContent), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
-  } catch (error) {
+  } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

@@ -24,16 +24,19 @@ Sua tarefa é gerar um devocional diário com profundidade teológica, rigor bí
 
 Escolha aleatoriamente um texto bíblico edificante e rico para o devocional de hoje.
 
-Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
+Responda OBRIGATORIAMENTE em formato JSON válido com a seguinte estrutura exata:
 {
   "title": "Um título chamativo e reflexivo para o devocional",
   "baseText": "Referência Bíblica (ex: Salmos 23:1-3)",
-  "reading": "O texto bíblico completo da referência, seguido OBRIGATORIAMENTE por uma explicação detalhada e rica sobre o contexto histórico e cultural da passagem (use quebras de linha \\n\\n para separar os parágrafos).",
-  "reflection": "Uma análise teológica profunda (2 a 3 parágrafos robustos), seguida de uma aplicação prática detalhada para a vida moderna, conexões com outros versículos bíblicos relevantes e insights espirituais transformadores (use quebras de linha \\n\\n para separar os parágrafos).",
+  "reading": "O texto bíblico completo da referência, seguido OBRIGATORIAMENTE por uma explicação detalhada e rica sobre o contexto histórico e cultural da passagem. NUNCA use quebras de linha literais; use o escape '\\n\\n' para separar os parágrafos.",
+  "reflection": "Uma análise teológica profunda (2 a 3 parágrafos robustos), seguida de uma aplicação prática detalhada para a vida moderna, conexões com outros versículos bíblicos relevantes e insights espirituais transformadores. NUNCA use quebras de linha literais; use o escape '\\n\\n' para separar os parágrafos.",
   "prayer": "Uma oração final extensa, personalizada, profunda e não genérica, que reflita intensamente a mensagem abordada no devocional."
-}`
+}
 
-    const userPrompt = 'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
+IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebras de linha literais (Enter) dentro dos valores das strings do JSON. Em vez disso, use sempre a sequência de escape '\\n'. Escape também eventuais aspas duplas internas com '\\"'.`
+
+    const userPrompt =
+      'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -71,10 +74,26 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
       throw new Error('Nenhuma resposta gerada pela API do Gemini.')
     }
 
-    let responseText = data.candidates[0].content.parts[0].text
-    responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+    let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
 
-    const generatedContent = JSON.parse(responseText)
+    // Limpeza de blocos markdown e formatação indesejada
+    responseText = responseText
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim()
+
+    // Remove caracteres de controle que podem quebrar o parse do JSON (exceto newlines que são válidos na estrutura)
+    responseText = responseText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
+
+    let generatedContent
+    try {
+      generatedContent = JSON.parse(responseText)
+    } catch (parseError: any) {
+      console.error('JSON Parse Error:', parseError.message, 'Raw text:', responseText)
+      throw new Error(
+        `A resposta gerada pela IA contém um formato JSON inválido. Por favor, tente novamente. Detalhe: ${parseError.message}`,
+      )
+    }
 
     return new Response(JSON.stringify(generatedContent), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
