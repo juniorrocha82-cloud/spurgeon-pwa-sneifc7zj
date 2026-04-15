@@ -19,15 +19,18 @@ export const aiGenerateDevotional = async () => {
   })
 
   if (error) {
-    if (error.context) {
+    let errorMessage = error.message || 'Erro ao gerar devocional'
+    if (error.context && typeof error.context.json === 'function') {
       try {
         const errBody = await error.context.json()
-        if (errBody.error) throw new Error(errBody.error)
+        if (errBody.error) {
+          errorMessage = errBody.error
+        }
       } catch (e) {
         // ignore JSON parse errors
       }
     }
-    throw new Error(error.message || 'Erro ao gerar devocional')
+    throw new Error(errorMessage)
   }
 
   if (data?.error) {

@@ -33,10 +33,11 @@ Responda OBRIGATORIAMENTE em formato JSON com a seguinte estrutura exata:
   "prayer": "Uma oração final extensa, personalizada, profunda e não genérica, que reflita intensamente a mensagem abordada no devocional."
 }`
 
-    const userPrompt = 'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
+    const userPrompt =
+      'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
