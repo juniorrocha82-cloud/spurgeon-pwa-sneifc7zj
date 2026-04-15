@@ -3,7 +3,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -95,6 +96,42 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
           generationConfig: {
             temperature: 0.7,
             responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                title: { type: 'STRING' },
+                content: {
+                  type: 'OBJECT',
+                  properties: {
+                    intro: { type: 'STRING' },
+                    proposition: { type: 'STRING' },
+                    points: {
+                      type: 'ARRAY',
+                      items: {
+                        type: 'OBJECT',
+                        properties: {
+                          title: { type: 'STRING' },
+                          text: { type: 'STRING' },
+                        },
+                        required: ['title', 'text'],
+                      },
+                    },
+                    illustration: { type: 'STRING' },
+                    conclusion: { type: 'STRING' },
+                  },
+                  required: ['intro', 'proposition', 'points', 'illustration', 'conclusion'],
+                },
+                insights: {
+                  type: 'ARRAY',
+                  items: { type: 'STRING' },
+                },
+                references: {
+                  type: 'ARRAY',
+                  items: { type: 'STRING' },
+                },
+              },
+              required: ['title', 'content', 'insights', 'references'],
+            },
           },
         }),
       },
@@ -112,18 +149,45 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
 
     let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
 
+    // (6) Adicione logs mostrando o JSON gerado antes de retornar
+    console.log('=== RAW JSON FROM AI ===')
+    console.log(responseText)
+    console.log('========================')
+
     // Tratamento extra de segurança contra blocos markdown e formatação
-    responseText = responseText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+    let cleanText = responseText
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim()
+
+    // Tentativa de sanitização (escapar barras invertidas isoladas)
+    cleanText = cleanText.replace(/\\(?![nrt"\\/bfu])/g, '\\\\')
 
     // Remove caracteres de controle que podem quebrar o parse do JSON
-    responseText = responseText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
+    cleanText = cleanText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
 
     let generatedContent
     try {
-      generatedContent = JSON.parse(responseText)
+      // (4) Validação usando parse e stringify
+      generatedContent = JSON.parse(cleanText)
+      const finalString = JSON.stringify(generatedContent)
+      JSON.parse(finalString)
     } catch (parseError: any) {
-      console.error('JSON Parse Error:', parseError.message, 'Raw text:', responseText)
-      throw new Error(`A resposta gerada pela IA contém um formato JSON inválido. Por favor, tente novamente. Detalhe: ${parseError.message}`)
+      console.error('JSON Parse Error:', parseError.message)
+      console.error('Malformed JSON Content:', cleanText)
+
+      // (5) Retornar 400 com mensagem clara
+      return new Response(
+        JSON.stringify({
+          error:
+            'O conteúdo gerado pela IA apresentou um formato inválido (JSON malformado). Por favor, tente novamente.',
+          details: parseError.message,
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
     }
 
     return new Response(JSON.stringify(generatedContent), {
@@ -131,7 +195,8 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
       status: 200,
     })
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Internal Function Error:', error.message)
+    return new Response(JSON.stringify({ error: error.message || 'Erro interno no servidor' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })
