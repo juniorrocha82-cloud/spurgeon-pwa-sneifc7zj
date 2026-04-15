@@ -46,7 +46,8 @@ A estrutura do sermão DEVE seguir rigorosamente a homilética cristã e OBRIGAT
 2. Proposição (A ideia central do sermão)
 3. Tópicos Principais (Mínimo de 3 pontos. CADA PONTO DEVE CONTER UMA APLICAÇÃO PRÁTICA CLARA)
 4. Ilustração
-5. Conclusão e Aplicação Geral (Como a congregação deve viver essa verdade hoje, seguido de apelo final)
+5. Aplicação Prática (Exemplos de situações do dia a dia)
+6. Conclusão e Apelo (Como a congregação deve viver essa verdade hoje, seguido de apelo final)
 
 Responda OBRIGATORIAMENTE em formato JSON válido com a seguinte estrutura exata:
 {
@@ -59,6 +60,7 @@ Responda OBRIGATORIAMENTE em formato JSON válido com a seguinte estrutura exata
       { "title": "Ponto 2", "text": "Desenvolvimento e aplicação prática..." }
     ],
     "illustration": "Ilustração...",
+    "application": "Aplicação prática detalhada com situações do dia a dia...",
     "conclusion": "Conclusão, aplicação geral e apelo..."
   },
   "insights": [
@@ -125,9 +127,17 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
                           },
                         },
                         illustration: { type: 'STRING' },
+                        application: { type: 'STRING' },
                         conclusion: { type: 'STRING' },
                       },
-                      required: ['intro', 'proposition', 'points', 'illustration', 'conclusion'],
+                      required: [
+                        'intro',
+                        'proposition',
+                        'points',
+                        'illustration',
+                        'application',
+                        'conclusion',
+                      ],
                     },
                     insights: {
                       type: 'ARRAY',

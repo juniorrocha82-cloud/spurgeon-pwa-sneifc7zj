@@ -517,8 +517,8 @@ ${sermon.content.conclusion}`
           </section>
         </div>
 
-        <div className="space-y-6 print:hidden">
-          <Card className="bg-card/50 border-border/50 shadow-sm sticky top-24">
+        <div className="space-y-6 print:hidden sticky top-24 self-start">
+          <Card className="bg-card/50 border-border/50 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center text-lg font-serif">
                 <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />
@@ -537,7 +537,7 @@ ${sermon.content.conclusion}`
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 border-border/50 shadow-sm sticky top-[400px]">
+          <Card className="bg-card/50 border-border/50 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center text-lg font-serif">
                 <BookOpen className="w-5 h-5 mr-2 text-primary" />
