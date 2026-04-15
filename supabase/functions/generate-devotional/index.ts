@@ -3,8 +3,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -41,8 +40,7 @@ Responda OBRIGATORIAMENTE em formato JSON válido com a seguinte estrutura exata
 
 IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebras de linha literais (Enter) dentro dos valores das strings do JSON. Em vez disso, use sempre a sequência de escape '\\n'. Escape também eventuais aspas duplas internas com '\\"'.`
 
-    const userPrompt =
-      'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
+    const userPrompt = 'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas e no mínimo 800 a 1000 palavras.'
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -81,12 +79,9 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
     }
 
     let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
-
+    
     // Limpeza de blocos markdown e formatação indesejada
-    responseText = responseText
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim()
+    responseText = responseText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
 
     // Remove caracteres de controle que podem quebrar o parse do JSON (exceto newlines que são válidos na estrutura)
     responseText = responseText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
@@ -96,9 +91,7 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
       generatedContent = JSON.parse(responseText)
     } catch (parseError: any) {
       console.error('JSON Parse Error:', parseError.message, 'Raw text:', responseText)
-      throw new Error(
-        `A resposta gerada pela IA contém um formato JSON inválido. Por favor, tente novamente. Detalhe: ${parseError.message}`,
-      )
+      throw new Error(`A resposta gerada pela IA contém um formato JSON inválido. Por favor, tente novamente. Detalhe: ${parseError.message}`)
     }
 
     return new Response(JSON.stringify(generatedContent), {

@@ -3,8 +3,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -114,10 +113,7 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
     let responseText = data.candidates[0].content?.parts?.[0]?.text || ''
 
     // Tratamento extra de segurança contra blocos markdown e formatação
-    responseText = responseText
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim()
+    responseText = responseText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
 
     // Remove caracteres de controle que podem quebrar o parse do JSON
     responseText = responseText.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F]+/g, '')
@@ -127,9 +123,7 @@ IMPORTANTE: A resposta deve ser um JSON perfeitamente válido. Não inclua quebr
       generatedContent = JSON.parse(responseText)
     } catch (parseError: any) {
       console.error('JSON Parse Error:', parseError.message, 'Raw text:', responseText)
-      throw new Error(
-        `A resposta gerada pela IA contém um formato JSON inválido. Por favor, tente novamente. Detalhe: ${parseError.message}`,
-      )
+      throw new Error(`A resposta gerada pela IA contém um formato JSON inválido. Por favor, tente novamente. Detalhe: ${parseError.message}`)
     }
 
     return new Response(JSON.stringify(generatedContent), {
