@@ -62,8 +62,9 @@ export default function Layout() {
                 key={item.path}
                 to={item.path}
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={`Navegar para ${item.label}`}
                 className={cn(
-                  'flex items-center px-4 py-3 rounded-lg transition-all duration-200 group',
+                  'flex items-center px-4 py-3 rounded-lg transition-all duration-200 group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                   isActive
                     ? 'bg-primary/10 text-primary font-medium shadow-subtle'
                     : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
@@ -85,8 +86,9 @@ export default function Layout() {
           <Link
             to="/settings"
             aria-current={location.pathname === '/settings' ? 'page' : undefined}
+            aria-label="Navegar para Configurações"
             className={cn(
-              'flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 group',
+              'flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
               location.pathname === '/settings'
                 ? 'bg-primary/10 text-primary font-medium shadow-subtle'
                 : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
@@ -116,16 +118,17 @@ export default function Layout() {
           aria-label="Cabeçalho da página"
           className="h-16 md:h-20 sticky top-0 bg-background/80 backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 md:px-8 z-40"
         >
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center" aria-hidden="true">
             <BookOpen className="w-6 h-6 text-primary mr-2" aria-hidden="true" />
             <span className="font-serif text-xl font-bold text-primary">Spurgeon</span>
           </div>
-          <div className="hidden md:block font-serif text-2xl text-foreground/90 font-medium">
+          <h1 className="hidden md:block font-serif text-2xl text-foreground/90 font-medium m-0">
             {getPageTitle()}
-          </div>
+          </h1>
           <Link
             to="/profile"
-            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold border border-primary/20 text-primary shadow-subtle cursor-pointer hover:bg-primary/10 transition-colors uppercase"
+            aria-label="Acessar Meu Perfil"
+            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold border border-primary/20 text-primary shadow-subtle cursor-pointer hover:bg-primary/10 transition-colors uppercase focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             title="Meu Perfil"
           >
             {user?.user_metadata?.name?.substring(0, 2) || user?.email?.substring(0, 2) || 'PR'}
@@ -141,7 +144,7 @@ export default function Layout() {
           <Link
             to="/contact"
             aria-label="Ir para a página de contato"
-            className="bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 flex items-center justify-center group hover:pr-5"
+            className="bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 flex items-center justify-center group hover:pr-5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             title="Contato"
           >
             <Mail className="w-6 h-6" aria-hidden="true" />
@@ -152,7 +155,7 @@ export default function Layout() {
           <Link
             to="/about"
             aria-label="Saber mais sobre o Spurgeon"
-            className="bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 flex items-center justify-center group hover:pr-5"
+            className="bg-card border border-border shadow-elevation p-3 rounded-full text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300 flex items-center justify-center group hover:pr-5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             title="Sobre o Spurgeon"
           >
             <Info className="w-6 h-6" aria-hidden="true" />
@@ -177,8 +180,9 @@ export default function Layout() {
               key={item.path}
               to={item.path}
               aria-current={isActive ? 'page' : undefined}
+              aria-label={`Navegar para ${item.label}`}
               className={cn(
-                'flex flex-col items-center justify-center w-full h-full space-y-1.5 transition-colors',
+                'flex flex-col items-center justify-center w-full h-full space-y-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                 isActive ? 'text-primary' : 'text-muted-foreground',
               )}
             >

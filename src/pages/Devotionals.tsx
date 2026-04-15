@@ -119,19 +119,31 @@ export default function DevotionalsPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full animate-fade-in-up">
-      <div className="mb-8 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3">
+    <section
+      className="flex-1 flex flex-col max-w-4xl mx-auto w-full animate-fade-in-up"
+      aria-labelledby="page-title"
+    >
+      <header className="mb-8 text-center md:text-left">
+        <h1
+          id="page-title"
+          className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3"
+        >
           Devocionais
         </h1>
         <p className="text-muted-foreground text-lg">
           Uma palavra de Deus estruturada e inspiradora para o seu dia.
         </p>
-      </div>
+      </header>
 
-      <Card className="border-border/50 shadow-elevation bg-card/50 backdrop-blur-sm mb-12">
+      <Card
+        className="border-border/50 shadow-elevation bg-card/50 backdrop-blur-sm mb-12"
+        as="article"
+      >
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl flex items-center font-serif text-primary">
+          <CardTitle
+            className="text-xl flex items-center font-serif text-primary"
+            id="generate-section-title"
+          >
             <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
             Inspiração Diária
           </CardTitle>
@@ -143,25 +155,39 @@ export default function DevotionalsPage() {
           <Button
             onClick={handleGenerate}
             size="lg"
-            className="w-full h-16 text-lg font-serif tracking-wide btn-gold-glow mt-2"
+            className="w-full h-16 text-lg font-serif tracking-wide btn-gold-glow mt-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             disabled={isGenerating}
             aria-busy={isGenerating}
+            aria-label={isGenerating ? 'Gerando devocional...' : 'Gerar Devocional de Hoje'}
           >
             <BookHeart className="mr-3 h-6 w-6" aria-hidden="true" />
-            Gerar Devocional de Hoje
+            {isGenerating ? 'Gerando...' : 'Gerar Devocional de Hoje'}
           </Button>
         </CardContent>
       </Card>
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-serif font-semibold text-foreground">Últimos Devocionais</h2>
+      <section aria-labelledby="recent-devotionals-title" className="mb-6">
+        <h2
+          id="recent-devotionals-title"
+          className="text-2xl font-serif font-semibold text-foreground"
+        >
+          Últimos Devocionais
+        </h2>
         <p className="text-muted-foreground text-sm mt-1">Seu histórico recente de reflexões.</p>
-      </div>
+      </section>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+        <div
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse"
+          aria-busy="true"
+          aria-label="Carregando devocionais recentes"
+        >
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 bg-card/50 rounded-xl border border-border/50"></div>
+            <div
+              key={i}
+              className="h-48 bg-card/50 rounded-xl border border-border/50"
+              aria-hidden="true"
+            ></div>
           ))}
         </div>
       ) : recentDevotionals.length === 0 ? (
@@ -175,12 +201,19 @@ export default function DevotionalsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8" role="list">
           {recentDevotionals.map((devotional) => (
             <Card
               key={devotional.id}
-              className="bg-card border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_4px_20px_rgba(212,175,55,0.1)] hover:-translate-y-1 group cursor-pointer flex flex-col"
+              as="article"
+              role="listitem"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') navigate(`/devotional/${devotional.id}`)
+              }}
+              className="bg-card border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_4px_20px_rgba(212,175,55,0.1)] hover:-translate-y-1 group cursor-pointer flex flex-col focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               onClick={() => navigate(`/devotional/${devotional.id}`)}
+              aria-label={`Ver devocional: ${devotional.title}`}
             >
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start mb-2">
@@ -211,8 +244,10 @@ export default function DevotionalsPage() {
               </CardContent>
               <CardFooter className="pt-0 border-t border-border/30 mt-auto px-6 py-4 flex justify-between items-center text-xs text-muted-foreground">
                 <div className="flex items-center">
-                  <Calendar className="w-3.5 h-3.5 mr-1.5 opacity-70" />
-                  {new Date(devotional.date).toLocaleDateString('pt-BR')}
+                  <Calendar className="w-3.5 h-3.5 mr-1.5 opacity-70" aria-hidden="true" />
+                  <time dateTime={devotional.date}>
+                    {new Date(devotional.date).toLocaleDateString('pt-BR')}
+                  </time>
                 </div>
               </CardFooter>
             </Card>
@@ -222,10 +257,20 @@ export default function DevotionalsPage() {
 
       {/* Loading Overlay */}
       {isGenerating && (
-        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+        <div
+          className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300"
+          aria-live="polite"
+          aria-busy="true"
+        >
           <div className="relative flex items-center justify-center mb-12">
-            <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full w-32 h-32 mx-auto animate-pulse"></div>
-            <BookHeart className="w-20 h-20 text-primary animate-float relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
+            <div
+              className="absolute inset-0 bg-primary/20 blur-2xl rounded-full w-32 h-32 mx-auto animate-pulse"
+              aria-hidden="true"
+            ></div>
+            <BookHeart
+              className="w-20 h-20 text-primary animate-float relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]"
+              aria-hidden="true"
+            />
           </div>
 
           <div className="h-16 flex items-center justify-center px-6 text-center max-w-md">
@@ -233,12 +278,15 @@ export default function DevotionalsPage() {
               key={quoteIndex}
               className="text-xl md:text-2xl font-serif text-foreground animate-in slide-in-from-bottom-2 fade-in duration-500 flex items-start"
             >
-              <Quote className="w-5 h-5 text-primary/50 mr-2 shrink-0 -mt-1" />
+              <Quote className="w-5 h-5 text-primary/50 mr-2 shrink-0 -mt-1" aria-hidden="true" />
               {QUOTES[quoteIndex]}
             </p>
           </div>
 
-          <div className="mt-12 w-48 h-1 bg-secondary rounded-full overflow-hidden">
+          <div
+            className="mt-12 w-48 h-1 bg-secondary rounded-full overflow-hidden"
+            aria-hidden="true"
+          >
             <div
               className="h-full bg-primary w-1/3 rounded-full animate-[slide-right_1.5s_ease-in-out_infinite] relative"
               style={{ left: '-33%' }}
@@ -258,7 +306,7 @@ export default function DevotionalsPage() {
         <AlertDialogContent className="border-border shadow-elevation">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-serif text-xl flex items-center text-foreground">
-              <Sparkles className="w-5 h-5 mr-2 text-primary" />
+              <Sparkles className="w-5 h-5 mr-2 text-primary" aria-hidden="true" />
               Limite Diário Atingido
             </AlertDialogTitle>
             <AlertDialogDescription className="text-base text-muted-foreground mt-2">
@@ -268,16 +316,19 @@ export default function DevotionalsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6">
-            <AlertDialogCancel className="border-border">Voltar</AlertDialogCancel>
+            <AlertDialogCancel className="border-border focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none">
+              Voltar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => navigate('/planos')}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="Ver planos disponíveis"
             >
               Ver Planos
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </section>
   )
 }

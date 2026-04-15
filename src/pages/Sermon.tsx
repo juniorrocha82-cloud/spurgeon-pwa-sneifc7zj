@@ -340,9 +340,13 @@ ${sermon.content.conclusion}`
 
   if (loading || !sermon) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div
+        className="flex-1 flex items-center justify-center"
+        aria-busy="true"
+        aria-label="Carregando pregação"
+      >
         <div className="animate-pulse flex flex-col items-center">
-          <BookOpen className="w-12 h-12 text-primary/50 mb-4" />
+          <BookOpen className="w-12 h-12 text-primary/50 mb-4" aria-hidden="true" />
           <p className="text-muted-foreground">Carregando sermão...</p>
         </div>
       </div>
@@ -352,7 +356,7 @@ ${sermon.content.conclusion}`
   const isDarkPreview = theme === 'dark'
 
   return (
-    <div
+    <article
       id="printable-sermon"
       className="flex-1 w-full max-w-4xl mx-auto pb-12 animate-fade-in-up print:m-0 print:p-0 print:max-w-none print:w-full print:bg-white print:text-black"
     >
@@ -385,10 +389,13 @@ ${sermon.content.conclusion}`
         }
       `}</style>
 
-      <div className="flex justify-between items-center mb-6 print:hidden">
+      <nav
+        className="flex justify-between items-center mb-6 print:hidden"
+        aria-label="Navegação de ações"
+      >
         <Button
           variant="ghost"
-          className="-ml-4 text-muted-foreground hover:text-foreground"
+          className="-ml-4 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           onClick={() => navigate(-1)}
           aria-label="Voltar para a página anterior"
         >
@@ -400,22 +407,24 @@ ${sermon.content.conclusion}`
           variant="outline"
           size="sm"
           onClick={() => navigate('/settings')}
-          className="text-muted-foreground"
+          className="text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           aria-label="Abrir configurações de estilo da marca"
         >
           <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
           Estilos da Marca
         </Button>
-      </div>
+      </nav>
 
-      <div className="mb-8 space-y-4 print:space-y-6">
+      <header className="mb-8 space-y-4 print:space-y-6">
         <div className="flex flex-wrap gap-2 mb-2 print:hidden" aria-label="Metadados do sermão">
           <Badge variant="outline" className="border-primary/30 text-primary">
             {sermon.version}
           </Badge>
           <Badge variant="secondary">
             <Clock className="w-3 h-3 mr-1" aria-hidden="true" />
-            {sermon.duration} min
+            <span aria-label={`Duração estimada de ${sermon.duration} minutos`}>
+              {sermon.duration} min
+            </span>
           </Badge>
           <Badge variant="secondary" className="bg-secondary/50">
             {sermon.sermonType || 'Expositivo'}
@@ -425,11 +434,11 @@ ${sermon.content.conclusion}`
           {sermon.title}
         </h1>
         <p className="text-lg text-muted-foreground flex items-center print:text-gray-800">
-          <Bookmark className="w-4 h-4 mr-2" />
+          <Bookmark className="w-4 h-4 mr-2" aria-hidden="true" />
           Texto Base:{' '}
           <strong className="ml-1 text-foreground print:text-black">{sermon.baseText}</strong>
         </p>
-      </div>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 print:block">
         <div className="lg:col-span-2 space-y-8 print:w-full print:block">
@@ -470,8 +479,15 @@ ${sermon.content.conclusion}`
               <Bookmark className="w-5 h-5 mr-2" aria-hidden="true" /> Desenvolvimento
             </h2>
             {sermon.content.points.map((point, i) => (
-              <article key={i} className="space-y-3 print:break-inside-avoid print:mt-6">
-                <h3 className="text-xl font-serif font-medium text-foreground flex items-baseline print:text-black">
+              <article
+                key={i}
+                className="space-y-3 print:break-inside-avoid print:mt-6"
+                aria-labelledby={`point-heading-${i}`}
+              >
+                <h3
+                  id={`point-heading-${i}`}
+                  className="text-xl font-serif font-medium text-foreground flex items-baseline print:text-black"
+                >
                   <span className="text-primary text-sm mr-3 print:text-gray-600">{i + 1}.</span>
                   {point.title}
                 </h3>
@@ -483,8 +499,14 @@ ${sermon.content.conclusion}`
           </section>
 
           {sermon.content.illustration && (
-            <section className="space-y-4 bg-secondary/20 border border-secondary/30 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid print:mt-8">
-              <h2 className="text-xl font-serif font-semibold text-foreground flex items-center print:text-black">
+            <section
+              className="space-y-4 bg-secondary/20 border border-secondary/30 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid print:mt-8"
+              aria-labelledby="illustration-heading"
+            >
+              <h2
+                id="illustration-heading"
+                className="text-xl font-serif font-semibold text-foreground flex items-center print:text-black"
+              >
                 <ImageIcon className="w-5 h-5 mr-2 text-muted-foreground" aria-hidden="true" />{' '}
                 Ilustração
               </h2>
@@ -495,8 +517,14 @@ ${sermon.content.conclusion}`
           )}
 
           {(sermon.content as any).application && (
-            <section className="space-y-4 bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid print:mt-8">
-              <h2 className="text-xl font-serif font-semibold text-amber-600 flex items-center print:text-black">
+            <section
+              className="space-y-4 bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 print:bg-gray-50 print:border-gray-200 print:break-inside-avoid print:mt-8"
+              aria-labelledby="application-heading"
+            >
+              <h2
+                id="application-heading"
+                className="text-xl font-serif font-semibold text-amber-600 flex items-center print:text-black"
+              >
                 <Check className="w-5 h-5 mr-2" aria-hidden="true" /> Aplicação Prática
               </h2>
               <p className="text-lg leading-relaxed text-foreground/90 print:text-black">
@@ -505,10 +533,16 @@ ${sermon.content.conclusion}`
             </section>
           )}
 
-          <Separator className="my-8 print:my-10 print:bg-gray-300" />
+          <Separator className="my-8 print:my-10 print:bg-gray-300" aria-hidden="true" />
 
-          <section className="space-y-4 print:break-inside-avoid">
-            <h2 className="text-2xl font-serif font-semibold text-primary flex items-center print:text-black">
+          <section
+            className="space-y-4 print:break-inside-avoid"
+            aria-labelledby="conclusion-heading"
+          >
+            <h2
+              id="conclusion-heading"
+              className="text-2xl font-serif font-semibold text-primary flex items-center print:text-black"
+            >
               <Quote className="w-5 h-5 mr-2" aria-hidden="true" /> Conclusão
             </h2>
             <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap print:text-black">
@@ -517,19 +551,29 @@ ${sermon.content.conclusion}`
           </section>
         </div>
 
-        <div className="space-y-6 print:hidden sticky top-24 self-start">
-          <Card className="bg-card/50 border-border/50 shadow-sm">
+        <aside
+          className="space-y-6 print:hidden sticky top-24 self-start"
+          aria-label="Informações adicionais do sermão"
+        >
+          <Card
+            className="bg-card/50 border-border/50 shadow-sm"
+            as="section"
+            aria-labelledby="insights-heading"
+          >
             <CardHeader>
-              <CardTitle className="flex items-center text-lg font-serif">
-                <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />
+              <CardTitle id="insights-heading" className="flex items-center text-lg font-serif">
+                <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" aria-hidden="true" />
                 Insights para o Pregador
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-4">
+              <ul className="space-y-4" role="list">
                 {sermon.insights.map((insight, i) => (
                   <li key={i} className="flex items-start text-sm text-muted-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500/50 mt-1.5 mr-2 shrink-0" />
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-yellow-500/50 mt-1.5 mr-2 shrink-0"
+                      aria-hidden="true"
+                    />
                     <span className="leading-relaxed">{insight}</span>
                   </li>
                 ))}
@@ -537,15 +581,19 @@ ${sermon.content.conclusion}`
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 border-border/50 shadow-sm">
+          <Card
+            className="bg-card/50 border-border/50 shadow-sm"
+            as="section"
+            aria-labelledby="references-heading"
+          >
             <CardHeader>
-              <CardTitle className="flex items-center text-lg font-serif">
-                <BookOpen className="w-5 h-5 mr-2 text-primary" />
+              <CardTitle id="references-heading" className="flex items-center text-lg font-serif">
+                <BookOpen className="w-5 h-5 mr-2 text-primary" aria-hidden="true" />
                 Referências Cruzadas
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-4">
+              <ul className="space-y-4" role="list">
                 {sermon.references.map((ref, i) => {
                   const [verse, ...descArr] = ref.split(' - ')
                   const desc = descArr.join(' - ')
@@ -559,17 +607,21 @@ ${sermon.content.conclusion}`
               </ul>
             </CardContent>
           </Card>
-        </div>
+        </aside>
       </div>
 
       {/* Action Footer */}
-      <div className="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row gap-4 items-center justify-between print:hidden">
+      <footer
+        className="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row gap-4 items-center justify-between print:hidden"
+        aria-label="Ações do sermão"
+      >
         <Button
           onClick={() => setIsModalOpen(true)}
           size="lg"
-          className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-medium"
+          aria-label="Gerar Apresentação de Slides"
+          className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-medium focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
-          <Presentation className="w-5 h-5 mr-2" />
+          <Presentation className="w-5 h-5 mr-2" aria-hidden="true" />
           Gerar Apresentação
         </Button>
 
@@ -578,29 +630,31 @@ ${sermon.content.conclusion}`
             variant="outline"
             size="lg"
             onClick={handleDownloadPdf}
-            className="flex-1 sm:flex-none"
+            aria-label="Baixar sermão em formato PDF"
+            className="flex-1 sm:flex-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
-            <FileText className="w-5 h-5 mr-2" />
+            <FileText className="w-5 h-5 mr-2" aria-hidden="true" />
             Baixar PDF
           </Button>
           <Button
             variant="outline"
             size="lg"
             onClick={handleCopyText}
-            className="flex-1 sm:flex-none"
+            aria-label="Copiar texto do sermão para a área de transferência"
+            className="flex-1 sm:flex-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
-            <Copy className="w-5 h-5 mr-2" />
+            <Copy className="w-5 h-5 mr-2" aria-hidden="true" />
             Copiar Texto
           </Button>
         </div>
-      </div>
+      </footer>
 
       {/* Presentation Modal */}
       <Dialog open={isModalOpen} onOpenChange={handleModalChange}>
         <DialogContent className="sm:max-w-[650px] transition-all duration-300">
           <DialogHeader>
             <DialogTitle className="flex items-center text-2xl font-serif">
-              <Presentation className="w-6 h-6 mr-2 text-amber-500" />
+              <Presentation className="w-6 h-6 mr-2 text-amber-500" aria-hidden="true" />
               Gerar Apresentação
             </DialogTitle>
             <DialogDescription>
@@ -613,7 +667,7 @@ ${sermon.content.conclusion}`
               <div className="py-4 space-y-8 animate-in fade-in zoom-in-95 duration-300">
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-foreground">Prévia dos Slides</h4>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-3" aria-hidden="true">
                     <div
                       className={cn(
                         'aspect-[16/9] rounded-md p-4 flex flex-col items-center justify-center text-center shadow-sm border transition-colors',
@@ -670,18 +724,21 @@ ${sermon.content.conclusion}`
                       value={theme}
                       onValueChange={(v) => v && setTheme(v)}
                       className="justify-start gap-2"
+                      aria-label="Escolher tema dos slides"
                     >
                       <ToggleGroupItem
                         value="light"
+                        aria-label="Tema Claro"
                         className="flex-1 border border-input bg-transparent hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-amber-100 data-[state=on]:text-amber-900 data-[state=on]:border-amber-200 dark:data-[state=on]:bg-amber-900/30 dark:data-[state=on]:text-amber-200"
                       >
-                        <Sun className="w-4 h-4 mr-2" /> Claro
+                        <Sun className="w-4 h-4 mr-2" aria-hidden="true" /> Claro
                       </ToggleGroupItem>
                       <ToggleGroupItem
                         value="dark"
+                        aria-label="Tema Escuro"
                         className="flex-1 border border-input bg-transparent hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-slate-800 data-[state=on]:text-slate-50 data-[state=on]:border-slate-700"
                       >
-                        <Moon className="w-4 h-4 mr-2" /> Escuro
+                        <Moon className="w-4 h-4 mr-2" aria-hidden="true" /> Escuro
                       </ToggleGroupItem>
                     </ToggleGroup>
                   </div>
@@ -689,7 +746,7 @@ ${sermon.content.conclusion}`
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold text-foreground">Nº de Slides</Label>
                     <Select value={slideCount} onValueChange={setSlideCount}>
-                      <SelectTrigger className="h-10">
+                      <SelectTrigger className="h-10" aria-label="Selecionar número de slides">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -707,15 +764,18 @@ ${sermon.content.conclusion}`
                       value={hasImages}
                       onValueChange={(v) => v && setHasImages(v)}
                       className="justify-start gap-2"
+                      aria-label="Incluir imagens nos slides"
                     >
                       <ToggleGroupItem
                         value="yes"
+                        aria-label="Sim"
                         className="flex-1 border border-input bg-transparent hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                       >
-                        <ImageIcon className="w-4 h-4 mr-2" /> Sim
+                        <ImageIcon className="w-4 h-4 mr-2" aria-hidden="true" /> Sim
                       </ToggleGroupItem>
                       <ToggleGroupItem
                         value="no"
+                        aria-label="Não"
                         className="flex-1 border border-input bg-transparent hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                       >
                         Não
@@ -728,9 +788,10 @@ ${sermon.content.conclusion}`
               <DialogFooter>
                 <Button
                   onClick={handleGeneratePresentation}
-                  className="w-full h-11 text-base font-medium bg-amber-500 hover:bg-amber-600 text-white"
+                  className="w-full h-11 text-base font-medium bg-amber-500 hover:bg-amber-600 text-white focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                  aria-label="Iniciar geração de apresentação"
                 >
-                  <Presentation className="w-5 h-5 mr-2" />
+                  <Presentation className="w-5 h-5 mr-2" aria-hidden="true" />
                   Gerar Apresentação
                 </Button>
               </DialogFooter>
@@ -738,13 +799,18 @@ ${sermon.content.conclusion}`
           )}
 
           {generationState === 'generating' && (
-            <div className="flex flex-col items-center justify-center py-16 space-y-10 animate-in fade-in zoom-in-95 duration-300">
+            <div
+              className="flex flex-col items-center justify-center py-16 space-y-10 animate-in fade-in zoom-in-95 duration-300"
+              aria-live="polite"
+              aria-busy="true"
+            >
               <div className="relative w-16 h-16 flex items-center justify-center">
                 <svg
                   className="animate-spin text-amber-500 w-full h-full"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <circle
                     className="opacity-25"
@@ -765,10 +831,13 @@ ${sermon.content.conclusion}`
               <div className="w-full max-w-md space-y-3">
                 <div className="flex justify-between text-sm font-medium text-foreground">
                   <span className="text-muted-foreground">Gerando slides...</span>
-                  <span className="font-bold">{Math.round(progress)}%</span>
+                  <span className="font-bold" aria-live="polite">
+                    {Math.round(progress)}%
+                  </span>
                 </div>
                 <Progress
                   value={progress}
+                  aria-label="Progresso da geração de slides"
                   className="h-2.5 w-full bg-secondary [&>div]:bg-amber-500"
                 />
                 <p className="text-sm text-muted-foreground text-center pt-2">
@@ -779,42 +848,49 @@ ${sermon.content.conclusion}`
           )}
 
           {generationState === 'completed' && (
-            <div className="flex flex-col items-center justify-center py-8 animate-in fade-in zoom-in-95 duration-300">
+            <div
+              className="flex flex-col items-center justify-center py-8 animate-in fade-in zoom-in-95 duration-300"
+              aria-live="polite"
+            >
               <div className="w-16 h-16 bg-[#FDF8F3] dark:bg-amber-900/20 rounded-full flex items-center justify-center text-amber-500 mb-6">
-                <Check className="w-8 h-8" />
+                <Check className="w-8 h-8" aria-hidden="true" />
               </div>
 
               <div className="w-full max-w-lg space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     onClick={handleView}
-                    className="bg-amber-500 hover:bg-amber-600 text-white w-full h-12 shadow-sm"
+                    className="bg-amber-500 hover:bg-amber-600 text-white w-full h-12 shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    aria-label="Visualizar apresentação no navegador"
                   >
-                    <Eye className="w-4 h-4 mr-2" /> Visualizar
+                    <Eye className="w-4 h-4 mr-2" aria-hidden="true" /> Visualizar
                   </Button>
 
                   <Button
                     variant="outline"
                     onClick={handleDownloadPptx}
-                    className="w-full h-12 border-border shadow-sm"
+                    className="w-full h-12 border-border shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    aria-label="Baixar arquivo PPTX da apresentação"
                   >
-                    <Download className="w-4 h-4 mr-2" /> Baixar PPTX
+                    <Download className="w-4 h-4 mr-2" aria-hidden="true" /> Baixar PPTX
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleDownloadPdf}
-                    className="w-full h-12 border-border shadow-sm"
+                    className="w-full h-12 border-border shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    aria-label="Baixar arquivo PDF da apresentação"
                   >
-                    <FileText className="w-4 h-4 mr-2" /> Baixar PDF
+                    <FileText className="w-4 h-4 mr-2" aria-hidden="true" /> Baixar PDF
                   </Button>
                 </div>
 
                 <Button
                   variant="outline"
-                  className="w-full h-12 border-border shadow-sm mt-2"
+                  className="w-full h-12 border-border shadow-sm mt-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   onClick={handleShare}
+                  aria-label="Compartilhar apresentação"
                 >
-                  <Share2 className="w-4 h-4 mr-2" /> Compartilhar
+                  <Share2 className="w-4 h-4 mr-2" aria-hidden="true" /> Compartilhar
                 </Button>
               </div>
             </div>
@@ -827,7 +903,7 @@ ${sermon.content.conclusion}`
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center text-amber-600">
-              <Lightbulb className="w-5 h-5 mr-2" />
+              <Lightbulb className="w-5 h-5 mr-2" aria-hidden="true" />
               Limite Atingido
             </DialogTitle>
             <DialogDescription className="pt-3 text-base text-foreground">
@@ -836,18 +912,23 @@ ${sermon.content.conclusion}`
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
-            <Button variant="outline" onClick={() => setShowUpgradeModal(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowUpgradeModal(false)}
+              aria-label="Cancelar e fechar o aviso"
+            >
               Agora não
             </Button>
             <Button
               onClick={() => navigate('/planos')}
               className="bg-amber-500 hover:bg-amber-600 text-white"
+              aria-label="Ver Planos disponíveis"
             >
               Ver Planos
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </article>
   )
 }

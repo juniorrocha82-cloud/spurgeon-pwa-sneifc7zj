@@ -6,36 +6,52 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background selection:bg-primary/30 flex flex-col">
       <header className="h-16 border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-40 flex items-center px-4 md:px-8">
-        <Link to="/auth" className="flex items-center group">
-          <BookOpen className="w-6 h-6 text-primary mr-2 transition-transform group-hover:scale-110" />
+        <Link
+          to="/auth"
+          className="flex items-center group focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-sm"
+          aria-label="Voltar para a página inicial"
+        >
+          <BookOpen
+            className="w-6 h-6 text-primary mr-2 transition-transform group-hover:scale-110"
+            aria-hidden="true"
+          />
           <span className="font-serif text-xl font-bold text-primary">Spurgeon</span>
         </Link>
       </header>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <main
+        className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
+        aria-labelledby="privacy-title"
+      >
         <Button
           variant="ghost"
           asChild
-          className="-ml-4 mb-6 text-muted-foreground hover:text-foreground"
+          className="-ml-4 mb-6 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
-          <Link to="/auth">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+          <Link to="/auth" aria-label="Voltar para página anterior">
+            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
             Voltar
           </Link>
         </Button>
 
-        <div className="bg-card border border-border shadow-elevation rounded-xl overflow-hidden">
-          <div className="px-6 py-8 md:px-10 md:py-12 border-b border-border/50 bg-secondary/30">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground font-serif">
+        <article className="bg-card border border-border shadow-elevation rounded-xl overflow-hidden">
+          <header className="px-6 py-8 md:px-10 md:py-12 border-b border-border/50 bg-secondary/30">
+            <h1
+              id="privacy-title"
+              className="text-3xl md:text-4xl font-bold tracking-tight text-foreground font-serif"
+            >
               Política de Privacidade
             </h1>
             <p className="mt-3 text-muted-foreground">Última atualização: 15 de Abril de 2026</p>
-          </div>
+          </header>
 
           <div className="px-6 py-8 md:px-10 md:py-12 space-y-10 text-foreground/90 leading-relaxed">
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold"
+                  aria-hidden="true"
+                >
                   1
                 </span>
                 Coleta de Dados
@@ -52,7 +68,10 @@ export default function PrivacyPage() {
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold"
+                  aria-hidden="true"
+                >
                   2
                 </span>
                 Uso de Dados
@@ -68,7 +87,10 @@ export default function PrivacyPage() {
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold"
+                  aria-hidden="true"
+                >
                   3
                 </span>
                 Integrações de Terceiros
@@ -93,7 +115,10 @@ export default function PrivacyPage() {
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold"
+                  aria-hidden="true"
+                >
                   4
                 </span>
                 Segurança
@@ -108,7 +133,10 @@ export default function PrivacyPage() {
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold"
+                  aria-hidden="true"
+                >
                   5
                 </span>
                 Cookies
@@ -124,7 +152,10 @@ export default function PrivacyPage() {
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold"
+                  aria-hidden="true"
+                >
                   6
                 </span>
                 Direitos do Usuário
@@ -140,7 +171,10 @@ export default function PrivacyPage() {
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                <span
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold"
+                  aria-hidden="true"
+                >
                   7
                 </span>
                 Contato
@@ -151,7 +185,8 @@ export default function PrivacyPage() {
                   tratamento dos seus dados, entre em contato conosco através do email{' '}
                   <a
                     href="mailto:faleconosco@spurgeon.one"
-                    className="text-primary hover:underline font-medium"
+                    className="text-primary hover:underline font-medium focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-sm"
+                    aria-label="Enviar email para faleconosco@spurgeon.one"
                   >
                     faleconosco@spurgeon.one
                   </a>
@@ -160,7 +195,7 @@ export default function PrivacyPage() {
               </div>
             </section>
           </div>
-        </div>
+        </article>
       </main>
     </div>
   )

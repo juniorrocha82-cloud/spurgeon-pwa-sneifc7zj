@@ -298,8 +298,11 @@ export default function BiblePage() {
 
   return (
     <>
-      <div className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-12">
-        <div className="flex items-center space-x-4">
+      <section
+        className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-12"
+        aria-labelledby="bible-page-title"
+      >
+        <header className="flex items-center space-x-4">
           <div
             className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shadow-inner flex-shrink-0"
             aria-hidden="true"
@@ -307,14 +310,16 @@ export default function BiblePage() {
             <BookIcon className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-serif font-bold text-foreground">Bíblia Sagrada</h1>
+            <h1 id="bible-page-title" className="text-3xl font-serif font-bold text-foreground">
+              Bíblia Sagrada
+            </h1>
             <p className="text-muted-foreground mt-1 text-sm md:text-base">
               Leia e medite na Palavra de Deus com navegação instantânea.
             </p>
           </div>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <nav aria-label="Navegação da Bíblia" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label id="version-label" className="text-sm font-medium text-muted-foreground pl-1">
               Versão
@@ -326,7 +331,7 @@ export default function BiblePage() {
             >
               <SelectTrigger
                 aria-labelledby="version-label"
-                className="bg-card border-border shadow-subtle h-12"
+                className="bg-card border-border shadow-subtle h-12 focus-visible:ring-primary focus-visible:outline-none"
               >
                 <SelectValue placeholder="Selecione a versão" />
               </SelectTrigger>
@@ -351,7 +356,7 @@ export default function BiblePage() {
             >
               <SelectTrigger
                 aria-labelledby="book-label"
-                className="bg-card border-border shadow-subtle h-12"
+                className="bg-card border-border shadow-subtle h-12 focus-visible:ring-primary focus-visible:outline-none"
               >
                 <SelectValue placeholder="Selecione o livro" />
               </SelectTrigger>
@@ -376,7 +381,7 @@ export default function BiblePage() {
             >
               <SelectTrigger
                 aria-labelledby="chapter-label"
-                className="bg-card border-border shadow-subtle h-12"
+                className="bg-card border-border shadow-subtle h-12 focus-visible:ring-primary focus-visible:outline-none"
               >
                 <SelectValue placeholder="Capítulo" />
               </SelectTrigger>
@@ -389,7 +394,7 @@ export default function BiblePage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </nav>
 
         <div className="relative">
           <Search
@@ -401,7 +406,7 @@ export default function BiblePage() {
             placeholder="Buscar versículo por texto..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-12 bg-card border-border shadow-subtle"
+            className="pl-10 h-12 bg-card border-border shadow-subtle focus-visible:ring-primary focus-visible:outline-none"
             disabled={loading || versions.length === 0}
           />
           {searchTerm && (
@@ -409,7 +414,7 @@ export default function BiblePage() {
               variant="ghost"
               size="icon"
               aria-label="Limpar campo de pesquisa"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               onClick={() => setSearchTerm('')}
             >
               <X className="h-4 w-4" aria-hidden="true" />
@@ -417,26 +422,35 @@ export default function BiblePage() {
           )}
         </div>
 
-        <Card className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm">
+        <Card
+          className="overflow-hidden border-border/50 shadow-elevation bg-card/60 backdrop-blur-sm"
+          as="article"
+        >
           <CardContent className="p-6 md:p-10 min-h-[400px] flex flex-col justify-center">
             {searchTerm ? (
               isSearching ? (
-                <div className="space-y-4 w-full h-full">
+                <div
+                  className="space-y-4 w-full h-full"
+                  aria-busy="true"
+                  aria-label="Pesquisando na Bíblia"
+                >
                   <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
               ) : searchResults.length > 0 ? (
-                <div className="w-full h-full animate-fade-in">
+                <div className="w-full h-full animate-fade-in" aria-live="polite">
                   <h2 className="text-xl font-serif font-bold text-foreground/90 mb-6 border-b border-border/50 pb-2">
                     Resultados para "{debouncedSearchTerm}"
                   </h2>
-                  <div className="grid gap-4">
+                  <div className="grid gap-4" role="list">
                     {searchResults.map((result: any) => (
-                      <div
+                      <button
                         key={result.id}
-                        className="p-4 rounded-lg bg-accent/50 hover:bg-accent cursor-pointer transition-colors border border-border/50 text-left"
+                        role="listitem"
+                        className="p-4 rounded-lg bg-accent/50 hover:bg-accent cursor-pointer transition-colors border border-border/50 text-left w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                        aria-label={`Ir para ${result.chapter.book.name} capítulo ${result.chapter.chapter_number} versículo ${result.verse_number}`}
                         onClick={() =>
                           handleResultClick(result.chapter.book.id, result.chapter.chapter_number)
                         }
@@ -448,12 +462,15 @@ export default function BiblePage() {
                         <div className="font-serif text-foreground/90">
                           "{(result.text || '').trim()}"
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+                <div
+                  className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in"
+                  aria-live="polite"
+                >
                   <Search className="w-12 h-12 text-muted-foreground/50" aria-hidden="true" />
                   <p className="text-muted-foreground text-lg">
                     Nenhum resultado encontrado para "{debouncedSearchTerm}".
@@ -461,7 +478,11 @@ export default function BiblePage() {
                 </div>
               )
             ) : loading && verses.length === 0 ? (
-              <div className="space-y-4 w-full h-full">
+              <div
+                className="space-y-4 w-full h-full"
+                aria-busy="true"
+                aria-label="Carregando capítulo"
+              >
                 <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
                 {Array.from({ length: 8 }).map((_, i) => (
                   <Skeleton
@@ -471,7 +492,10 @@ export default function BiblePage() {
                 ))}
               </div>
             ) : error ? (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+              <div
+                className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in"
+                aria-live="assertive"
+              >
                 <BookIcon className="w-12 h-12 text-muted-foreground/50" aria-hidden="true" />
                 <p className="text-muted-foreground text-lg max-w-md">{error}</p>
               </div>
@@ -484,8 +508,10 @@ export default function BiblePage() {
                   {verses.map((v) => {
                     const isSelected = selectedVerses.includes(v.verse_number)
                     return (
-                      <span
+                      <button
                         key={v.id}
+                        aria-pressed={isSelected}
+                        aria-label={`Selecionar versículo ${v.verse_number}`}
                         onClick={() => {
                           setSelectedVerses((prev) =>
                             prev.includes(v.verse_number)
@@ -494,7 +520,7 @@ export default function BiblePage() {
                           )
                         }}
                         className={cn(
-                          'mr-2 inline-block mb-1 cursor-pointer rounded px-1 transition-colors',
+                          'mr-2 inline-block mb-1 cursor-pointer rounded px-1 transition-colors text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                           isSelected ? 'bg-primary/20 text-foreground' : 'hover:bg-accent',
                         )}
                       >
@@ -503,11 +529,13 @@ export default function BiblePage() {
                             'font-sans font-bold mr-1.5 select-none text-[0.65rem] md:text-xs',
                             isSelected ? 'text-foreground' : 'text-primary',
                           )}
+                          aria-hidden="true"
                         >
                           {v.verse_number}
                         </sup>
+                        <span className="sr-only">Versículo {v.verse_number}: </span>
                         {(v.text || '').trim()}
-                      </span>
+                      </button>
                     )
                   })}
                 </div>
@@ -515,65 +543,85 @@ export default function BiblePage() {
                 <div className="mt-12 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button
                     variant="outline"
-                    className="w-full sm:w-auto h-12 px-6"
+                    className="w-full sm:w-auto h-12 px-6 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     onClick={handleCopyChapter}
+                    aria-label="Copiar capítulo inteiro"
                   >
                     <Copy className="w-4 h-4 mr-2" aria-hidden="true" /> Copiar Capítulo
                   </Button>
                   {typeof navigator.share === 'function' && (
-                    <Button className="w-full sm:w-auto h-12 px-6" onClick={handleShareChapter}>
+                    <Button
+                      className="w-full sm:w-auto h-12 px-6 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                      onClick={handleShareChapter}
+                      aria-label="Compartilhar capítulo inteiro"
+                    >
                       <Share2 className="w-4 h-4 mr-2" aria-hidden="true" /> Compartilhar Capítulo
                     </Button>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in">
+              <div
+                className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12 w-full animate-fade-in"
+                aria-live="polite"
+              >
                 <p className="text-muted-foreground">Nenhum versículo encontrado neste capítulo.</p>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </section>
 
       {selectedVerses.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border shadow-elevation rounded-full px-4 py-2 flex items-center space-x-2 md:space-x-4 animate-fade-in-up z-[9999]">
-          <span className="text-sm font-medium bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">
+        <aside
+          aria-label="Ações para versículos selecionados"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border shadow-elevation rounded-full px-4 py-2 flex items-center space-x-2 md:space-x-4 animate-fade-in-up z-[9999]"
+        >
+          <span
+            className="text-sm font-medium bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+            aria-label={`${selectedVerses.length} selecionados`}
+          >
             {selectedVerses.length}
           </span>
-          <span className="text-sm font-medium hidden sm:inline-block whitespace-nowrap">
+          <span
+            className="text-sm font-medium hidden sm:inline-block whitespace-nowrap"
+            aria-hidden="true"
+          >
             Selecionado(s)
           </span>
           <div className="flex items-center space-x-1 border-l border-border pl-2 md:pl-4">
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 rounded-full px-3"
+              className="h-8 rounded-full px-3 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               onClick={() => handleShare('copy')}
+              aria-label="Copiar versículos selecionados"
             >
-              <Copy className="w-4 h-4 mr-1 md:mr-2" />
+              <Copy className="w-4 h-4 mr-1 md:mr-2" aria-hidden="true" />
               <span className="hidden sm:inline-block">Copiar</span>
             </Button>
             {typeof navigator.share === 'function' && (
               <Button
                 size="sm"
-                className="h-8 rounded-full px-3"
+                className="h-8 rounded-full px-3 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 onClick={() => handleShare('share')}
+                aria-label="Compartilhar versículos selecionados"
               >
-                <Share2 className="w-4 h-4 mr-1 md:mr-2" />
+                <Share2 className="w-4 h-4 mr-1 md:mr-2" aria-hidden="true" />
                 <span className="hidden sm:inline-block">Compartilhar</span>
               </Button>
             )}
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 rounded-full ml-1"
+              className="h-8 w-8 rounded-full ml-1 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               onClick={() => setSelectedVerses([])}
+              aria-label="Cancelar seleção de versículos"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </Button>
           </div>
-        </div>
+        </aside>
       )}
     </>
   )

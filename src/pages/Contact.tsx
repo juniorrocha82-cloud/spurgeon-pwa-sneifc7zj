@@ -73,31 +73,40 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto animate-fade-in-up pb-12">
+    <section
+      className="w-full max-w-4xl mx-auto animate-fade-in-up pb-12"
+      aria-labelledby="contact-title"
+    >
       {/* Header Banner */}
-      <div className="bg-primary text-primary-foreground rounded-xl p-8 md:p-12 text-center mb-8 shadow-md">
-        <h1 className="font-serif text-3xl md:text-5xl font-bold mb-4">Queremos Ouvir Você</h1>
+      <header className="bg-primary text-primary-foreground rounded-xl p-8 md:p-12 text-center mb-8 shadow-md">
+        <h1 id="contact-title" className="font-serif text-3xl md:text-5xl font-bold mb-4">
+          Queremos Ouvir Você
+        </h1>
         <p className="text-primary-foreground/90 text-lg md:text-xl max-w-2xl mx-auto">
           Tem dúvidas sobre o Spurgeon? Quer sugerir uma funcionalidade? Encontrou um problema?
           Estamos aqui para ajudar! Entre em contato conosco através dos canais abaixo:
         </p>
-      </div>
+      </header>
 
       <div className="space-y-6 px-2 md:px-0">
-        <Card className="border-border/50 shadow-sm overflow-hidden">
+        <Card className="border-border/50 shadow-sm overflow-hidden" as="article">
           <CardHeader className="bg-primary/5 border-b border-border/50 pb-4">
-            <CardTitle className="flex items-center text-xl font-serif text-primary">
+            <CardTitle
+              className="flex items-center text-xl font-serif text-primary"
+              id="email-contact-title"
+            >
               <Mail className="w-5 h-5 mr-3 text-primary" aria-hidden="true" />
               Email
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-6" aria-labelledby="email-contact-title">
             <p className="text-muted-foreground mb-2">
               Para dúvidas gerais, sugestões ou suporte técnico, envie um email para:
             </p>
             <a
               href="mailto:faleconosco@spurgeon.one"
-              className="text-primary font-medium hover:underline text-lg inline-flex items-center"
+              className="text-primary font-medium hover:underline text-lg inline-flex items-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-sm"
+              aria-label="Enviar email para faleconosco@spurgeon.one"
             >
               faleconosco@spurgeon.one
             </a>
@@ -107,16 +116,23 @@ export default function ContactPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 shadow-sm overflow-hidden">
+        <Card className="border-border/50 shadow-sm overflow-hidden" as="article">
           <CardHeader className="bg-primary/5 border-b border-border/50 pb-4">
-            <CardTitle className="flex items-center text-xl font-serif text-primary">
+            <CardTitle
+              className="flex items-center text-xl font-serif text-primary"
+              id="form-contact-title"
+            >
               <ClipboardList className="w-5 h-5 mr-3 text-primary" aria-hidden="true" />
               Formulário de Contato
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+                aria-labelledby="form-contact-title"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
@@ -125,9 +141,15 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Nome</FormLabel>
                         <FormControl>
-                          <Input placeholder="Seu nome" {...field} />
+                          <Input
+                            placeholder="Seu nome"
+                            aria-required="true"
+                            aria-invalid={!!form.formState.errors.name}
+                            className="focus-visible:ring-primary focus-visible:outline-none"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage aria-live="polite" />
                       </FormItem>
                     )}
                   />
@@ -138,9 +160,16 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="seu@email.com" type="email" {...field} />
+                          <Input
+                            placeholder="seu@email.com"
+                            type="email"
+                            aria-required="true"
+                            aria-invalid={!!form.formState.errors.email}
+                            className="focus-visible:ring-primary focus-visible:outline-none"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage aria-live="polite" />
                       </FormItem>
                     )}
                   />
@@ -153,9 +182,15 @@ export default function ContactPage() {
                     <FormItem>
                       <FormLabel>Assunto</FormLabel>
                       <FormControl>
-                        <Input placeholder="Assunto da mensagem" {...field} />
+                        <Input
+                          placeholder="Assunto da mensagem"
+                          aria-required="true"
+                          aria-invalid={!!form.formState.errors.subject}
+                          className="focus-visible:ring-primary focus-visible:outline-none"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage aria-live="polite" />
                     </FormItem>
                   )}
                 />
@@ -169,19 +204,22 @@ export default function ContactPage() {
                       <FormControl>
                         <Textarea
                           placeholder="Escreva sua mensagem..."
-                          className="min-h-[120px] resize-y"
+                          className="min-h-[120px] resize-y focus-visible:ring-primary focus-visible:outline-none"
+                          aria-required="true"
+                          aria-invalid={!!form.formState.errors.message}
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage aria-live="polite" />
                     </FormItem>
                   )}
                 />
 
                 <Button
                   type="submit"
-                  className="w-full md:w-auto min-w-[200px]"
+                  className="w-full md:w-auto min-w-[200px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   disabled={isSubmitting || isSuccess}
+                  aria-busy={isSubmitting}
                 >
                   {isSubmitting ? (
                     <span className="flex items-center animate-pulse" aria-live="polite">
@@ -203,14 +241,17 @@ export default function ContactPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 shadow-sm overflow-hidden">
+        <Card className="border-border/50 shadow-sm overflow-hidden" as="article">
           <CardHeader className="bg-primary/5 border-b border-border/50 pb-4">
-            <CardTitle className="flex items-center text-xl font-serif text-primary">
+            <CardTitle
+              className="flex items-center text-xl font-serif text-primary"
+              id="hours-contact-title"
+            >
               <Clock className="w-5 h-5 mr-3 text-primary" aria-hidden="true" />
               Horário de Atendimento
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6 space-y-3">
+          <CardContent className="pt-6 space-y-3" aria-labelledby="hours-contact-title">
             <p className="text-foreground">
               <strong className="font-medium">Segunda a Sexta:</strong>{' '}
               <span className="text-muted-foreground">9h às 18h (Horário de Brasília)</span>
@@ -224,6 +265,6 @@ export default function ContactPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </section>
   )
 }

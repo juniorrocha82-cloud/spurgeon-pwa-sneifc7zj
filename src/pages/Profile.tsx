@@ -98,36 +98,46 @@ export default function ProfilePage() {
   const hasReachedLimit = !isUnlimited && sermonsGenerated >= (generationLimit || 0)
 
   return (
-    <div className="container max-w-5xl py-8 animate-in fade-in duration-500">
-      <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-foreground">Sua Conta</h1>
+    <main
+      className="container max-w-5xl py-8 animate-in fade-in duration-500"
+      aria-labelledby="profile-title"
+    >
+      <header className="mb-8">
+        <h1 id="profile-title" className="text-3xl font-serif font-bold text-foreground">
+          Sua Conta
+        </h1>
         <p className="text-muted-foreground">Gerencie suas informações e assinatura.</p>
-      </div>
+      </header>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-3">
+        <Card className="md:col-span-3" as="section" aria-labelledby="account-details-title">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2" id="account-details-title">
+              <User className="h-5 w-5 text-primary" aria-hidden="true" />
               Dados da Conta
             </CardTitle>
             <CardDescription>Informações básicas do seu perfil.</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-4" aria-busy="true" aria-label="Carregando dados da conta">
                 <Skeleton className="h-4 w-[250px]" />
                 <Skeleton className="h-10 w-[120px]" />
               </div>
             ) : (
               <div className="space-y-6">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Email</p>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Email</h3>
                   <p className="text-base font-medium">{user?.email}</p>
                 </div>
                 <div className="pt-4 border-t">
-                  <Button variant="destructive" onClick={handleSignOut} className="gap-2">
-                    <LogOut className="h-4 w-4" />
+                  <Button
+                    variant="destructive"
+                    onClick={handleSignOut}
+                    className="gap-2 focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none"
+                    aria-label="Sair da conta atual"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
                     Sair da Conta
                   </Button>
                 </div>
@@ -136,17 +146,21 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-1 flex flex-col">
+        <Card
+          className="md:col-span-1 flex flex-col"
+          as="section"
+          aria-labelledby="plan-details-title"
+        >
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2" id="plan-details-title">
+              <CreditCard className="h-5 w-5 text-primary" aria-hidden="true" />
               Detalhes do Plano
             </CardTitle>
             <CardDescription>Informações atuais da sua conta.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col">
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-4" aria-busy="true" aria-label="Carregando detalhes do plano">
                 <Skeleton className="h-8 w-[150px]" />
                 <Skeleton className="h-4 w-[100px]" />
               </div>
@@ -171,7 +185,12 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="pt-6 mt-auto">
-                  <Button variant="outline" className="w-full" onClick={() => navigate('/planos')}>
+                  <Button
+                    variant="outline"
+                    className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    onClick={() => navigate('/planos')}
+                    aria-label="Navegar para a página de renovação e alteração de plano"
+                  >
                     Renovar / Alterar Plano
                   </Button>
                 </div>
@@ -180,17 +199,17 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2" as="section" aria-labelledby="usage-limits-title">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2" id="usage-limits-title">
+              <Zap className="h-5 w-5 text-primary" aria-hidden="true" />
               Uso e Limites
             </CardTitle>
             <CardDescription>Acompanhe suas gerações do plano.</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-4" aria-busy="true" aria-label="Carregando uso e limites">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-2 w-full" />
                 <div className="space-y-2 pt-4">
@@ -204,11 +223,21 @@ export default function ProfilePage() {
                   <div className="flex justify-between text-sm font-medium">
                     <span>Gerações utilizadas</span>
                     {isAdmin ? (
-                      <span className="text-primary">Acesso Ilimitado</span>
+                      <span className="text-primary" aria-label="Acesso ilimitado de gerações">
+                        Acesso Ilimitado
+                      </span>
                     ) : isUnlimited ? (
-                      <span className="text-primary">{sermonsGenerated} / Ilimitado</span>
+                      <span
+                        className="text-primary"
+                        aria-label={`${sermonsGenerated} de ilimitado`}
+                      >
+                        {sermonsGenerated} / Ilimitado
+                      </span>
                     ) : (
-                      <span className={hasReachedLimit ? 'text-destructive font-bold' : ''}>
+                      <span
+                        className={hasReachedLimit ? 'text-destructive font-bold' : ''}
+                        aria-label={`${sermonsGenerated} gerações utilizadas de um total de ${generationLimit}`}
+                      >
                         <span className={hasReachedLimit ? '' : 'text-primary'}>
                           {sermonsGenerated}
                         </span>{' '}
@@ -220,33 +249,34 @@ export default function ProfilePage() {
                   {!isAdmin && !isUnlimited && (
                     <Progress
                       value={usagePercentage}
+                      aria-label="Barra de progresso de uso do plano"
                       className={hasReachedLimit ? 'bg-destructive/20 [&>div]:bg-destructive' : ''}
                     />
                   )}
                 </div>
 
                 <div className="pt-4 border-t">
-                  <p className="text-sm font-medium text-muted-foreground mb-4">
+                  <h4 className="text-sm font-medium text-muted-foreground mb-4">
                     O que está incluído no {isAdmin ? 'seu perfil' : plan?.name || 'seu plano'}:
-                  </p>
+                  </h4>
 
-                  <ul className="space-y-3">
+                  <ul className="space-y-3" role="list">
                     {isAdmin ? (
                       <>
                         <li className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                           <span>Acesso ilimitado a todas as funcionalidades</span>
                         </li>
                         <li className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                           <span>Gerenciamento de usuários</span>
                         </li>
                         <li className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                           <span>Reset de contadores</span>
                         </li>
                         <li className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                           <span>Sem restrições</span>
                         </li>
                       </>
@@ -255,7 +285,7 @@ export default function ProfilePage() {
                       plan.features.length > 0 ? (
                       plan.features.map((feature: any, idx: number) => (
                         <li key={idx} className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                           <span>{typeof feature === 'string' ? feature : feature.name}</span>
                         </li>
                       ))
@@ -264,15 +294,15 @@ export default function ProfilePage() {
                         {plan?.id === 'free' && (
                           <>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>3 gerações em 7 dias</span>
                             </li>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>Acesso básico aos recursos</span>
                             </li>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>Suporte comunitário</span>
                             </li>
                           </>
@@ -280,15 +310,15 @@ export default function ProfilePage() {
                         {plan?.id === 'pro' && (
                           <>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>15 gerações de pregações por mês</span>
                             </li>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>Geração de Slides (PPTX)</span>
                             </li>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>Geração de Devocionais</span>
                             </li>
                           </>
@@ -296,15 +326,15 @@ export default function ProfilePage() {
                         {plan?.id === 'enterprise' && (
                           <>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>Gerações Ilimitadas</span>
                             </li>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>Todos os recursos do Pro</span>
                             </li>
                             <li className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
                               <span>Suporte prioritário</span>
                             </li>
                           </>
@@ -315,14 +345,19 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="pt-4 flex gap-4">
-                  <Button className="flex-1" onClick={() => navigate('/')}>
+                  <Button
+                    className="flex-1 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    onClick={() => navigate('/')}
+                    aria-label="Navegar para gerar nova pregação"
+                  >
                     Gerar Nova Pregação
                   </Button>
                   {hasReachedLimit && (
                     <Button
                       variant="outline"
-                      className="flex-1 border-primary text-primary hover:bg-primary/10"
+                      className="flex-1 border-primary text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                       onClick={() => navigate('/planos')}
+                      aria-label="Ver todos os planos disponíveis para assinatura"
                     >
                       Ver todos os planos
                     </Button>
@@ -333,6 +368,6 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   )
 }

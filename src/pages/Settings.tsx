@@ -91,34 +91,48 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div
+        className="flex-1 flex items-center justify-center"
+        aria-busy="true"
+        aria-label="Carregando configurações"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-primary" aria-hidden="true" />
       </div>
     )
   }
 
   return (
-    <div className="flex-1 w-full max-w-3xl mx-auto pb-12 animate-fade-in-up">
+    <main
+      className="flex-1 w-full max-w-3xl mx-auto pb-12 animate-fade-in-up"
+      aria-labelledby="settings-title"
+    >
       <Button
         variant="ghost"
-        className="mb-6 -ml-4 text-muted-foreground hover:text-foreground"
+        className="mb-6 -ml-4 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         onClick={() => navigate(-1)}
+        aria-label="Voltar para a página anterior"
       >
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
         Voltar
       </Button>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-foreground">Gerenciador de Estilos</h1>
+      <header className="mb-8">
+        <h1 id="settings-title" className="text-3xl font-serif font-bold text-foreground">
+          Gerenciador de Estilos
+        </h1>
         <p className="text-muted-foreground mt-2 text-lg">
           Defina as cores, fontes e logo padrão para suas apresentações.
         </p>
-      </div>
+      </header>
 
       <div className="space-y-8">
-        <Card className="border-border/50 shadow-sm">
+        <Card
+          className="border-border/50 shadow-sm"
+          as="section"
+          aria-labelledby="primary-color-title"
+        >
           <CardHeader>
-            <CardTitle className="flex items-center text-xl font-serif">
+            <CardTitle className="flex items-center text-xl font-serif" id="primary-color-title">
               <Palette className="w-5 h-5 mr-2 text-primary" aria-hidden="true" />
               Cor Primária
             </CardTitle>
@@ -127,20 +141,26 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-4">
+            <div
+              className="flex flex-wrap gap-4"
+              role="radiogroup"
+              aria-label="Selecione a cor primária"
+            >
               {COLORS.map((c) => (
                 <button
                   key={c.hex}
                   onClick={() => setSettings({ ...settings, primaryColor: c.hex })}
+                  role="radio"
+                  aria-checked={settings.primaryColor === c.hex}
+                  aria-label={`Selecionar cor ${c.name}`}
                   className={cn(
-                    'w-12 h-12 rounded-full border-2 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2',
+                    'w-12 h-12 rounded-full border-2 transition-all hover:scale-110 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus:outline-none focus:ring-2 focus:ring-offset-2',
                     settings.primaryColor === c.hex
                       ? 'border-primary ring-2 ring-primary ring-offset-2'
                       : 'border-transparent',
                   )}
                   style={{ backgroundColor: c.hex }}
                   title={c.name}
-                  aria-label={`Selecionar cor ${c.name}`}
                 />
               ))}
               <div className="flex items-center gap-2 ml-4">
@@ -152,16 +172,21 @@ export default function SettingsPage() {
                   type="color"
                   value={settings.primaryColor}
                   onChange={(e) => setSettings({ ...settings, primaryColor: e.target.value })}
-                  className="w-12 h-12 p-1 cursor-pointer"
+                  className="w-12 h-12 p-1 cursor-pointer focus-visible:ring-primary focus-visible:outline-none"
+                  aria-label="Escolher uma cor primária personalizada"
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 shadow-sm">
+        <Card
+          className="border-border/50 shadow-sm"
+          as="section"
+          aria-labelledby="font-family-title"
+        >
           <CardHeader>
-            <CardTitle className="flex items-center text-xl font-serif">
+            <CardTitle className="flex items-center text-xl font-serif" id="font-family-title">
               <Type className="w-5 h-5 mr-2 text-primary" aria-hidden="true" />
               Fonte do Texto
             </CardTitle>
@@ -175,8 +200,8 @@ export default function SettingsPage() {
               onValueChange={(val) => setSettings({ ...settings, fontFamily: val })}
             >
               <SelectTrigger
-                aria-label="Selecione a fonte principal do sistema"
-                className="w-full md:w-[300px]"
+                aria-label="Selecione a fonte principal dos textos da apresentação"
+                className="w-full md:w-[300px] focus-visible:ring-primary focus-visible:outline-none"
               >
                 <SelectValue placeholder="Selecione uma fonte" />
               </SelectTrigger>
@@ -191,10 +216,14 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 shadow-sm">
+        <Card
+          className="border-border/50 shadow-sm"
+          as="section"
+          aria-labelledby="logo-upload-title"
+        >
           <CardHeader>
-            <CardTitle className="flex items-center text-xl font-serif">
-              <ImageIcon className="w-5 h-5 mr-2 text-primary" />
+            <CardTitle className="flex items-center text-xl font-serif" id="logo-upload-title">
+              <ImageIcon className="w-5 h-5 mr-2 text-primary" aria-hidden="true" />
               Logo do Ministério
             </CardTitle>
             <CardDescription>
@@ -208,21 +237,25 @@ export default function SettingsPage() {
                   <div className="w-32 h-32 rounded-lg border border-border flex items-center justify-center bg-muted/30 p-2 overflow-hidden">
                     <img
                       src={settings.logoBase64}
-                      alt="Logo"
+                      alt="Pré-visualização do logo selecionado"
                       className="max-w-full max-h-full object-contain"
                     />
                   </div>
                   <Button
                     variant="destructive"
                     size="icon"
-                    className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus:opacity-100"
                     onClick={handleRemoveLogo}
+                    aria-label="Remover logo do ministério"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </Button>
                 </div>
               ) : (
-                <div className="w-32 h-32 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/10 text-muted-foreground">
+                <div
+                  className="w-32 h-32 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/10 text-muted-foreground"
+                  aria-hidden="true"
+                >
                   Sem logo
                 </div>
               )}
@@ -239,23 +272,31 @@ export default function SettingsPage() {
                   accept="image/png, image/jpeg, image/svg+xml"
                   className="hidden"
                   onChange={handleLogoUpload}
+                  aria-label="Fazer upload de um arquivo de imagem para o logo"
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex justify-end pt-4">
-          <Button onClick={handleSave} disabled={saving} size="lg" className="w-full md:w-auto">
+        <footer className="flex justify-end pt-4">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            size="lg"
+            className="w-full md:w-auto focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            aria-busy={saving}
+            aria-label="Salvar configurações de estilo"
+          >
             {saving ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
             ) : (
-              <Save className="w-5 h-5 mr-2" />
+              <Save className="w-5 h-5 mr-2" aria-hidden="true" />
             )}
             Salvar Configurações
           </Button>
-        </div>
+        </footer>
       </div>
-    </div>
+    </main>
   )
 }

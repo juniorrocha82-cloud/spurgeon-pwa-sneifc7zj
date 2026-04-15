@@ -73,11 +73,13 @@
     --primary: 46 65% 52%;
     --primary-foreground: 213 100% 12%;
 
-    --secondary: 214 32% 20%;
+    /* Ajuste para aumentar contraste mínimo (4.5:1 exigido) 
+       Escurecer background e clarear foreground para garantir leitura */
+    --secondary: 214 32% 16%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 214 32% 20%;
-    --muted-foreground: 215 20% 70%;
+    --muted: 214 32% 16%;
+    --muted-foreground: 215 20% 85%; /* Clareado para contraste AA */
 
     --accent: 41 86% 83%;
     --accent-foreground: 213 100% 12%;
@@ -95,7 +97,7 @@
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 46 65% 52%;
     --sidebar-primary-foreground: 213 100% 12%;
-    --sidebar-accent: 214 32% 20%;
+    --sidebar-accent: 214 32% 16%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 214 32% 25%;
     --sidebar-ring: 46 65% 52%;
@@ -111,10 +113,10 @@
     --popover-foreground: 210 40% 98%;
     --primary: 46 65% 52%;
     --primary-foreground: 213 100% 12%;
-    --secondary: 214 32% 20%;
+    --secondary: 214 32% 16%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 214 32% 20%;
-    --muted-foreground: 215 20% 70%;
+    --muted: 214 32% 16%;
+    --muted-foreground: 215 20% 85%; /* Clareado para contraste AA */
     --accent: 41 86% 83%;
     --accent-foreground: 213 100% 12%;
     --destructive: 0 84% 60%;
@@ -131,6 +133,11 @@
   section[aria-label='Notifications alt+T'] {
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  /* Foco visível global para acessibilidade com teclado */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background !important;
   }
 }
 

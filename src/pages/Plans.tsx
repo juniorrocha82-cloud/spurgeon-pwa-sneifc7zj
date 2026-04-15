@@ -149,43 +149,61 @@ function PlansContent() {
   }
 
   return (
-    <div className="container mx-auto py-10 px-4 md:px-6 max-w-6xl animate-fade-in-up">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4">
+    <main
+      className="container mx-auto py-10 px-4 md:px-6 max-w-6xl animate-fade-in-up"
+      aria-labelledby="plans-title"
+    >
+      <header className="text-center mb-12">
+        <h1
+          id="plans-title"
+          className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4 text-foreground"
+        >
           Escolha o Plano Ideal para o Seu Ministério
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Desbloqueie todo o potencial do Spurgeon com nossos planos premium e crie pregações ainda
           mais inspiradoras.
         </p>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+      <section
+        className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start"
+        aria-label="Lista de planos disponíveis"
+      >
         {displayPlans.map((plan) => (
           <Card
             key={plan.id}
+            as="article"
             className={`flex flex-col h-full transition-all duration-300 hover:shadow-lg ${plan.id === 'pro' ? 'border-primary shadow-md md:-mt-4 relative' : ''}`}
           >
             {plan.id === 'pro' && (
-              <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-3">
+              <div
+                className="absolute top-0 right-0 transform translate-x-2 -translate-y-3"
+                aria-hidden="true"
+              >
                 <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
                   Recomendado
                 </span>
               </div>
             )}
             <CardHeader>
-              <CardTitle className="text-2xl">{plan.name}</CardTitle>
-              <CardDescription className="min-h-[40px]">{plan.description}</CardDescription>
+              <CardTitle className="text-2xl text-foreground">{plan.name}</CardTitle>
+              <CardDescription className="min-h-[40px] text-muted-foreground">
+                {plan.description}
+              </CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
               <div className="mb-6">
-                <span className="text-4xl font-extrabold">{plan.price}</span>
+                <span className="text-4xl font-extrabold text-foreground">{plan.price}</span>
                 <span className="text-muted-foreground font-medium">{plan.period}</span>
               </div>
-              <ul className="space-y-3">
+              <ul
+                className="space-y-3 text-foreground/90"
+                aria-label={`Benefícios do plano ${plan.name}`}
+              >
                 {plan.features.map((feature: string, i: number) => (
                   <li key={i} className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden="true" />
                     <span className="text-sm">{feature}</span>
                   </li>
                 ))}
@@ -193,13 +211,18 @@ function PlansContent() {
             </CardContent>
             <CardFooter className="pt-4">
               <Button
-                className="w-full"
+                className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 variant={plan.current ? 'outline' : plan.id === 'pro' ? 'default' : 'secondary'}
                 disabled={plan.current || isLoadingPlans}
                 onClick={() => handleChoosePlan(plan)}
+                aria-label={
+                  plan.current
+                    ? `Plano ${plan.name} é o seu plano atual`
+                    : `Selecionar o plano ${plan.name}`
+                }
               >
                 {isLoadingPlans ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : plan.current ? (
                   'Seu Plano Atual'
                 ) : (
@@ -209,7 +232,7 @@ function PlansContent() {
             </CardFooter>
           </Card>
         ))}
-      </div>
+      </section>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-md">
@@ -223,20 +246,23 @@ function PlansContent() {
           {selectedPlan && (
             <div className="bg-muted/50 p-4 rounded-lg my-4 space-y-3 border">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-lg">{selectedPlan.name}</span>
-                <span className="font-bold text-xl">
+                <span className="font-semibold text-lg text-foreground">{selectedPlan.name}</span>
+                <span className="font-bold text-xl text-foreground">
                   {selectedPlan.price}
                   <span className="text-sm font-normal text-muted-foreground">
                     {selectedPlan.period}
                   </span>
                 </span>
               </div>
-              <div className="text-sm text-muted-foreground pt-3 border-t">
+              <div className="text-sm text-muted-foreground pt-3 border-t border-border/50">
                 <span className="font-medium text-foreground mb-2 block">Você terá acesso a:</span>
                 <ul className="space-y-2">
                   {selectedPlan.features.map((feature: string, i: number) => (
                     <li key={i} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                      <div
+                        className="h-1.5 w-1.5 rounded-full bg-primary shrink-0"
+                        aria-hidden="true"
+                      />
                       {feature}
                     </li>
                   ))}
@@ -250,14 +276,20 @@ function PlansContent() {
               variant="outline"
               onClick={() => setIsModalOpen(false)}
               disabled={isLoadingPayment}
-              className="sm:mr-2"
+              className="sm:mr-2 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="Cancelar e fechar a janela"
             >
               Cancelar
             </Button>
-            <Button onClick={handleProceedToPayment} disabled={isLoadingPayment}>
+            <Button
+              onClick={handleProceedToPayment}
+              disabled={isLoadingPayment}
+              className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="Prosseguir para a página de pagamento seguro"
+            >
               {isLoadingPayment ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Conectando...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> Conectando...
                 </>
               ) : (
                 'Prosseguir para Pagamento'
@@ -266,7 +298,7 @@ function PlansContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   )
 }
 

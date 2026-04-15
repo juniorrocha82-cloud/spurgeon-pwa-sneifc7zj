@@ -143,7 +143,6 @@ export default function Index() {
     setIsGenerating(true)
 
     try {
-      // 1. Generate via AI Edge Function
       const outlineValue = hasCustomOutline ? customOutline : ''
       const finalBaseText = baseText.trim() || 'Tema livre baseado no roteiro fornecido'
       const generatedData = await aiGenerateSermon(
@@ -154,7 +153,6 @@ export default function Index() {
         outlineValue,
       )
 
-      // 2. Save to Database
       const savedSermon = await saveSermonToDb({
         title: generatedData.title,
         baseText: finalBaseText,
@@ -168,10 +166,7 @@ export default function Index() {
         use_custom_outline: hasCustomOutline,
       })
 
-      // 3. Log generation
       await logGeneration('sermon')
-
-      // 4. Update local state and redirect
       addSermon(savedSermon)
       navigate(`/sermon/${savedSermon.id}`)
     } catch (error: any) {
@@ -186,32 +181,39 @@ export default function Index() {
   }
 
   return (
-    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full animate-fade-in-up">
-      <div className="mb-8 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3">
+    <section
+      className="flex-1 flex flex-col max-w-3xl mx-auto w-full animate-fade-in-up"
+      aria-labelledby="page-title"
+    >
+      <header className="mb-8 text-center md:text-left">
+        <h1
+          id="page-title"
+          className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3"
+        >
           O que Deus colocou em seu coração?
         </h1>
         <p className="text-muted-foreground text-lg">
           Deixe o Spurgeon auxiliar na estrutura e profundidade da sua mensagem.
         </p>
-      </div>
+      </header>
 
-      <Card className="border-border/50 shadow-elevation bg-card/50 backdrop-blur-sm">
+      <Card className="border-border/50 shadow-elevation bg-card/50 backdrop-blur-sm" as="article">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl flex items-center font-serif text-primary">
+          <CardTitle className="text-xl flex items-center font-serif text-primary" id="form-title">
             <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
             Parâmetros da sua Pregação
           </CardTitle>
           <CardDescription>Defina a base e o estilo da sua pregação.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleGenerate} className="space-y-8">
+          <form onSubmit={handleGenerate} className="space-y-8" aria-labelledby="form-title">
             <div className="space-y-3">
               <Label htmlFor="baseText" className="text-base">
                 Base do Sermão
               </Label>
               <Textarea
                 id="baseText"
+                aria-required={!hasCustomOutline}
                 placeholder="Ex: João 3:16, ou um tema como 'A graça Inesgotável', ou um esboço prévio, ou seu próprio sermão (ative o botão 'Roteiro próprio de pregação')"
                 className="min-h-[120px] resize-none bg-background/50 focus:bg-background border-border focus-visible:ring-primary/50 text-base leading-relaxed"
                 value={baseText}
@@ -225,6 +227,7 @@ export default function Index() {
                 id="custom-outline"
                 checked={hasCustomOutline}
                 onCheckedChange={setHasCustomOutline}
+                aria-label="Ativar uso de roteiro próprio de pregação"
               />
               <Label htmlFor="custom-outline" className="text-base cursor-pointer">
                 Roteiro próprio de pregação
@@ -238,6 +241,7 @@ export default function Index() {
                 </Label>
                 <Textarea
                   id="customOutline"
+                  aria-required="true"
                   placeholder="Cole aqui seu roteiro de pregação (introdução, pontos principais, conclusão, etc)"
                   className="min-h-[150px] resize-none bg-background/50 focus:bg-background border-border focus-visible:ring-primary/50 text-base leading-relaxed"
                   value={customOutline}
@@ -252,7 +256,11 @@ export default function Index() {
                   Versão da Bíblia
                 </Label>
                 <Select value={version} onValueChange={setVersion}>
-                  <SelectTrigger id="version" className="bg-background/50 border-border h-12">
+                  <SelectTrigger
+                    id="version"
+                    aria-label="Selecione a versão da Bíblia"
+                    className="bg-background/50 border-border h-12 focus-visible:ring-primary focus-visible:outline-none"
+                  >
                     <SelectValue placeholder="Selecione a versão" />
                   </SelectTrigger>
                   <SelectContent>
@@ -271,7 +279,11 @@ export default function Index() {
                   Estilo da Pregação
                 </Label>
                 <Select value={sermonType} onValueChange={setSermonType}>
-                  <SelectTrigger id="sermonType" className="bg-background/50 border-border h-12">
+                  <SelectTrigger
+                    id="sermonType"
+                    aria-label="Selecione o estilo da pregação"
+                    className="bg-background/50 border-border h-12 focus-visible:ring-primary focus-visible:outline-none"
+                  >
                     <SelectValue placeholder="Selecione o estilo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -287,7 +299,9 @@ export default function Index() {
                     <Clock className="w-4 h-4 mr-2 text-muted-foreground" aria-hidden="true" />{' '}
                     Duração Estimada
                   </Label>
-                  <span className="text-primary font-medium font-serif">{duration[0]} min</span>
+                  <span className="text-primary font-medium font-serif" aria-live="polite">
+                    {duration[0]} min
+                  </span>
                 </div>
                 <Slider
                   value={duration}
@@ -304,14 +318,15 @@ export default function Index() {
             <Button
               type="submit"
               size="lg"
-              className="w-full h-14 text-lg font-serif tracking-wide btn-gold-glow mt-4"
+              className="w-full h-14 text-lg font-serif tracking-wide btn-gold-glow mt-4 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               disabled={
                 isGenerating || (hasCustomOutline ? !customOutline.trim() : !baseText.trim())
               }
               aria-busy={isGenerating}
+              aria-label={isGenerating ? 'Gerando pregação...' : 'Gerar Pregação'}
             >
               <BookOpen className="mr-2 h-5 w-5" aria-hidden="true" />
-              Gerar Pregação
+              {isGenerating ? 'Gerando...' : 'Gerar Pregação'}
             </Button>
           </form>
         </CardContent>
@@ -319,9 +334,16 @@ export default function Index() {
 
       {/* Loading Overlay */}
       {isGenerating && (
-        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+        <div
+          className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300"
+          aria-live="polite"
+          aria-busy="true"
+        >
           <div className="relative flex items-center justify-center mb-12">
-            <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full w-32 h-32 mx-auto animate-pulse"></div>
+            <div
+              className="absolute inset-0 bg-primary/20 blur-2xl rounded-full w-32 h-32 mx-auto animate-pulse"
+              aria-hidden="true"
+            ></div>
             <BookOpen
               className="w-20 h-20 text-primary animate-float relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]"
               aria-hidden="true"
@@ -333,12 +355,15 @@ export default function Index() {
               key={quoteIndex}
               className="text-xl md:text-2xl font-serif text-foreground animate-in slide-in-from-bottom-2 fade-in duration-500 flex items-start"
             >
-              <Quote className="w-5 h-5 text-primary/50 mr-2 shrink-0 -mt-1" />
+              <Quote className="w-5 h-5 text-primary/50 mr-2 shrink-0 -mt-1" aria-hidden="true" />
               {QUOTES[quoteIndex]}
             </p>
           </div>
 
-          <div className="mt-12 w-48 h-1 bg-secondary rounded-full overflow-hidden">
+          <div
+            className="mt-12 w-48 h-1 bg-secondary rounded-full overflow-hidden"
+            aria-hidden="true"
+          >
             <div
               className="h-full bg-primary w-1/3 rounded-full animate-[slide-right_1.5s_ease-in-out_infinite] relative"
               style={{ left: '-33%' }}
@@ -356,10 +381,10 @@ export default function Index() {
       <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-serif text-2xl text-primary">
+            <DialogTitle className="font-serif text-2xl text-primary" id="limit-modal-title">
               Limite de gerações atingido
             </DialogTitle>
-            <DialogDescription className="text-base mt-2">
+            <DialogDescription className="text-base mt-2" id="limit-modal-desc">
               Você atingiu o limite de gerações do seu plano atual. Faça upgrade para continuar
               criando pregações inspiradoras com o auxílio da IA.
             </DialogDescription>
@@ -368,7 +393,8 @@ export default function Index() {
             <Button
               variant="outline"
               onClick={() => setShowLimitModal(false)}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="Cancelar aviso de limite excedido"
             >
               Cancelar
             </Button>
@@ -376,21 +402,26 @@ export default function Index() {
               variant="secondary"
               onClick={handleReloadLimit}
               disabled={isReloadingLimit}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="Recarregar limite da conta"
             >
               {isReloadingLimit ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" aria-hidden="true" />
               ) : (
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
               )}
               Recarregar
             </Button>
-            <Button onClick={() => navigate('/planos')} className="w-full sm:w-auto btn-gold-glow">
+            <Button
+              onClick={() => navigate('/planos')}
+              className="w-full sm:w-auto btn-gold-glow focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              aria-label="Ver Planos disponíveis"
+            >
               Ver Planos
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </section>
   )
 }
