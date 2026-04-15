@@ -76,10 +76,4 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           if (request.mode === 'navigate') {
-            return caches.match('/')
-          }
-          return new Response('', { status: 408, statusText: 'Offline' })
-        })
-    }),
-  )
-})
+    
