@@ -2,7 +2,7 @@
   "_versions": {
     "generate-sermon": 75,
     "generate-slides": 72,
-    "generate-devotional": 60,
+    "generate-devotional": 61,
     "get-playlist-preview": 43,
     "create-checkout-session": 39,
     "stripe-webhook": 39,

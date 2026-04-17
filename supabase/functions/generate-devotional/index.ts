@@ -25,18 +25,69 @@ Deno.serve(async (req: Request) => {
       )
     }
 
+    const themes = [
+      'Graça',
+      'Fé',
+      'Esperança',
+      'Amor',
+      'Perdão',
+      'Obediência',
+      'Sabedoria',
+      'Paciência',
+      'Humildade',
+      'Justiça',
+      'Paz',
+      'Alegria',
+      'Santidade',
+      'Misericórdia',
+    ]
+    const perspectives = ['pessoal', 'comunitária', 'histórica', 'profética']
+    const structures = ['meditativa', 'analítica', 'prática', 'contemplativa']
+    const verseTypes = [
+      'Antigo Testamento',
+      'Novo Testamento',
+      'Salmos',
+      'Provérbios',
+      'Evangelhos',
+      'Epístolas Paulinas',
+      'Profetas Menores',
+    ]
+    const depths = [
+      'iniciante (acessível e inspirador)',
+      'intermediário (reflexivo e contextual)',
+      'avançado (profundo e teológico)',
+    ]
+    const tones = ['formal', 'conversacional', 'poética', 'encorajadora', 'exortativa']
+
+    const getRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]
+
+    const selectedTheme = getRandom(themes)
+    const selectedPerspective = getRandom(perspectives)
+    const selectedStructure = getRandom(structures)
+    const selectedVerseType = getRandom(verseTypes)
+    const selectedDepth = getRandom(depths)
+    const selectedTone = getRandom(tones)
+
     const systemPrompt = `Você é um teólogo, pastor e escritor cristão extremamente experiente e inspirador.
-Sua tarefa é gerar um devocional diário com profundidade teológica, rigor bíblico e aplicação prática contundente.
+Sua tarefa é gerar um devocional diário com rigor bíblico e aplicação prática contundente.
 Mantenha o texto total entre 400 e 600 palavras para garantir estabilidade na geração do JSON. Textos muito longos podem ser cortados.
 
-Escolha aleatoriamente um texto bíblico edificante e rico para o devocional de hoje.
+Para garantir a diversidade do conteúdo, siga ESTAS diretrizes para o devocional de hoje:
+- Tema central: ${selectedTheme}
+- Perspectiva da reflexão: ${selectedPerspective}
+- Estrutura da reflexão: ${selectedStructure}
+- Fonte do texto bíblico base: ${selectedVerseType}
+- Nível de profundidade teológica: ${selectedDepth}
+- Tom de linguagem: ${selectedTone}
+
+Escolha um texto bíblico edificante e rico que se encaixe na fonte solicitada (${selectedVerseType}) e no tema (${selectedTheme}).
 
 Responda OBRIGATORIAMENTE em formato JSON válido com a seguinte estrutura exata:
 {
   "title": "Um título chamativo e reflexivo para o devocional",
   "baseText": "Referência Bíblica (ex: Salmos 23:1-3)",
   "reading": "O texto bíblico completo da referência, seguido OBRIGATORIAMENTE por uma explicação do contexto histórico.",
-  "reflection": "Uma análise teológica seguida de uma aplicação prática detalhada para a vida moderna e insights espirituais.",
+  "reflection": "Uma análise teológica seguida de uma aplicação prática detalhada para a vida moderna e insights espirituais. INCLUA UM EXEMPLO PRÁTICO E ÚNICO PARA O DIA A DIA.",
   "prayer": "Uma oração final personalizada e profunda."
 }
 
@@ -46,8 +97,7 @@ IMPORTANTE E CRÍTICO PARA O SISTEMA:
 3. Escape corretamente TODAS as aspas duplas internas dentro das strings usando '\\"'.
 4. Certifique-se de NÃO CORTAR a resposta no meio. Feche corretamente todas as chaves '}'.`
 
-    const userPrompt =
-      'Gere o devocional diário de hoje com profundidade teológica, contexto histórico, aplicações modernas. Seja direto e não exceda 600 palavras para evitar corte na resposta. Retorne APENAS o JSON válido.'
+    const userPrompt = `Gere o devocional diário de hoje com as seguintes características: Tema de ${selectedTheme}, perspectiva ${selectedPerspective}, estrutura ${selectedStructure}, nível ${selectedDepth}, linguagem ${selectedTone}, baseado em um texto de ${selectedVerseType}. Inclua contexto histórico e aplicações modernas com exemplos práticos ÚNICOS. Seja direto e não exceda 600 palavras para evitar corte na resposta. Retorne APENAS o JSON válido.`
 
     const maxRetries = 2
     let lastError = null
