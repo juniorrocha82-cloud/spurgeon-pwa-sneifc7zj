@@ -214,7 +214,7 @@ export default function Index() {
               <Textarea
                 id="baseText"
                 aria-required={!hasCustomOutline}
-                placeholder="Ex: João 3:16, ou um tema como 'A graça Inesgotável', ou um esboço prévio, ou seu próprio sermão (ative o botão 'Roteiro próprio de pregação')"
+                placeholder="Ex: João 3:16, ou um assunto como 'Casamento conforme a bíblia diz'"
                 className="min-h-[120px] resize-none bg-background/50 focus:bg-background border-border focus-visible:ring-primary/50 text-base leading-relaxed"
                 value={baseText}
                 onChange={(e) => setBaseText(e.target.value)}
