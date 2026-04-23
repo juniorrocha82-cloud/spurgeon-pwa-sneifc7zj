@@ -520,15 +520,14 @@ export default function BiblePage() {
                           )
                         }}
                         className={cn(
-                          'mr-2 inline-block mb-1 cursor-pointer rounded px-1 transition-colors text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
-                          isSelected ? 'bg-primary/20 text-foreground' : 'hover:bg-accent',
+                          'mr-2 inline-block mb-1 cursor-pointer rounded px-1 transition-all text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                          isSelected
+                            ? 'underline decoration-primary decoration-2 underline-offset-4 text-foreground'
+                            : 'hover:bg-accent',
                         )}
                       >
                         <sup
-                          className={cn(
-                            'font-sans font-bold mr-1.5 select-none text-[0.65rem] md:text-xs',
-                            isSelected ? 'text-foreground' : 'text-primary',
-                          )}
+                          className="font-sans font-bold mr-1.5 select-none text-[0.65rem] md:text-xs text-primary"
                           aria-hidden="true"
                         >
                           {v.verse_number}
